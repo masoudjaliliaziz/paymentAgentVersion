@@ -18,7 +18,9 @@ function App() {
   return (
     <div className="w-full h-dvh relative">
       <div className="flex justify-center items-center bg-sky-700 p-6">
-        <span className="text-3xl font-bold text-white">hello guys</span>
+        <span className="text-3xl font-bold text-white">
+          مدیریت مالی (دولوپ){" "}
+        </span>
       </div>
 
       <div className="p-4">
@@ -28,6 +30,7 @@ function App() {
 
         {data?.map((item) => (
           <PaymentRow
+            price={item.price}
             key={item.ID}
             parentGuid={guid}
             itemGuid={item.itemGUID}
