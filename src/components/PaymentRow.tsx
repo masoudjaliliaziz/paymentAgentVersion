@@ -1,4 +1,5 @@
-import { usePaymentFiles } from "../hooks/usePaymentFiles";
+import CheckPic from "./CheckPic";
+import CheckPicConfirm from "./CheckPicConfirm";
 
 interface PaymentRowProps {
   parentGuid: string;
@@ -17,18 +18,6 @@ export const PaymentRow = ({
   dueDate,
   price,
 }: PaymentRowProps) => {
-  const {
-    data: checkFiles,
-    isLoading: loadingCheck,
-    isError: errorCheck,
-  } = usePaymentFiles(parentGuid, itemGuid, "checkPic");
-
-  const {
-    data: confirmFiles,
-    isLoading: loadingConfirm,
-    isError: errorConfirm,
-  } = usePaymentFiles(parentGuid, itemGuid, "checkPicConfirm");
-
   return (
     <div className="p-4 bg-white border rounded my-4 flex flex-col">
       <div className="flex justify-between items-center">
@@ -51,47 +40,8 @@ export const PaymentRow = ({
       </div>
 
       <div className="flex justify-end items-center gap-3">
-        <div>
-          {loadingCheck && <p>در حال دریافت تصویر چک...</p>}
-          {errorCheck && <p className="text-red-500">خطا در دریافت تصویر چک</p>}
-          {checkFiles?.length === 0 && <p>تصویری یافت نشد</p>}
-          <ul className="list-disc list-inside">
-            {checkFiles?.map((file) => (
-              <div key={file.Name}>
-                <a
-                  href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-blue-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-blue-800"
-                >
-                  دانلود تصویر چک
-                </a>
-              </div>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          {loadingConfirm && <p>در حال دریافت تصویر ثبت چک...</p>}
-          {errorConfirm && (
-            <p className="text-red-500">خطا در دریافت تصویر ثبت چک</p>
-          )}
-          {confirmFiles?.length === 0 && <p>تصویر ثبت چک یافت نشد</p>}
-          <ul className="list-disc list-inside">
-            {confirmFiles?.map((file) => (
-              <div key={file.Name}>
-                <a
-                  href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-green-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-green-800"
-                >
-                  دانلود تصویر ثبت چک
-                </a>
-              </div>
-            ))}
-          </ul>
-        </div>
+        <CheckPicConfirm itemGuid={itemGuid} parentGuid={parentGuid} />
+        <CheckPic itemGuid={itemGuid} parentGuid={parentGuid} />
       </div>
     </div>
   );
