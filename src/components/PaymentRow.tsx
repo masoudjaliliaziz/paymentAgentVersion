@@ -1,5 +1,8 @@
+import { useSelector } from "react-redux";
 import CheckPic from "./CheckPic";
 import CheckPicConfirm from "./CheckPicConfirm";
+import type { RootState } from "../store/store";
+import ActionByRole from "./ActionByRole";
 
 interface PaymentRowProps {
   parentGuid: string;
@@ -18,6 +21,8 @@ export const PaymentRow = ({
   dueDate,
   price,
 }: PaymentRowProps) => {
+  const { userRole } = useSelector((state: RootState) => state.agentFeature);
+
   return (
     <div className="p-4 bg-white border rounded my-4 flex flex-col">
       <div className="flex justify-between items-center">
@@ -42,6 +47,7 @@ export const PaymentRow = ({
       <div className="flex justify-end items-center gap-3">
         <CheckPicConfirm itemGuid={itemGuid} parentGuid={parentGuid} />
         <CheckPic itemGuid={itemGuid} parentGuid={parentGuid} />
+        <ActionByRole userRole={userRole} />
       </div>
     </div>
   );
