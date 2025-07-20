@@ -48,15 +48,7 @@ function App() {
         {paymentData?.length === 0 && <p>داده‌ای وجود ندارد.</p>}
 
         {paymentData?.map((item) => (
-          <PaymentRow
-            price={item.price}
-            key={item.ID}
-            parentGuid={guid}
-            itemGuid={item.itemGUID}
-            seri={item.seri}
-            serial={item.serial}
-            dueDate={item.dueDate}
-          />
+          <PaymentRow key={item.ID} parentGuid={guid} item={item} />
         ))}
       </div>
     </div>
