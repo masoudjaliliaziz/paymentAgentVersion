@@ -1,21 +1,30 @@
+
 export type PaymentType = {
   ID: number;
   price: string;
   dueDate: string;
   sayadiCode: string;
+  nationalId: string;
   parentGUID: string;
+  dayOfYear: string;
   Title: string;
   status: string;
   agentDescription: string;
   treasuryConfirmDescription: string;
-  dayOfYear: string;
-  itemGUID: string;
   iban: string;
+  name: string;
   serialNo: string;
   seriesNo: string;
   branchCode: string;
-  SalesExpert: string;
-  name: string;
-  SalesExpertAcunt_text: string;
   checksColor: string;
+  Verified: string;
+  VerifiedSayad:string;
+  sayadConfirmReason:string;
+  sayadConfirmHolders:string;
+  sayadConfirmBlockStatus:string;
+  sayadConfirmChequeStatus:string;
+  sayadConfirmChequeType:string;
+  sayadConfirmBankCode:string;
+  sayadConfirmGuaranteeStatus:string;
+
 };

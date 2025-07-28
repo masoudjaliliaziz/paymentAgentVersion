@@ -4,78 +4,114 @@ import CheckPicConfirm from "./CheckPicConfirm";
 import type { RootState } from "../store/store";
 import ActionByRole from "./ActionByRole";
 import type { PaymentType } from "../types/apiTypes";
+import { useSayadConfirm } from "../hooks/useSayadConfirm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PaymentRowProps {
   item: PaymentType;
   parentGuid: string;
 }
 
+const getCheckColor = (colorCode: string | undefined) => {
+  const colorMap: Record<string, string> = {
+    "1": "bg-gray-100",
+    "2": "bg-yellow-300",
+    "3": "bg-orange-300",
+    "4": "bg-amber-800",
+    "5": "bg-red-400",
+  };
+  return colorMap[colorCode ?? ""] ?? "bg-gray-500 border border-gray-700";
+};
+
 export const PaymentRow = ({ item, parentGuid }: PaymentRowProps) => {
   const { userRole } = useSelector((state: RootState) => state.agentFeature);
   const { sayadiCode, dueDate, price, itemGUID, ID } = item;
+  const queryClient = useQueryClient();
+  const updateSayadVerifiedMutation = useSayadConfirm(parentGuid);
+  function checkSayadConfirm() {
+    updateSayadVerifiedMutation.mutate(
+      {
+        ID,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["payments", parentGuid] });
+        },
+      }
+    );
+  }
+
   return (
-    <div className="p-4 bg-white border rounded my-4 flex flex-col">
-      <div className="flex justify-between items-center">
-        <div className="flex justify-center items-center gap-2">
-          <div className="flex flex-col gap-1">
-            <p className="font-bold">شناسه صیادی</p>
-            <span>{sayadiCode}</span>
-          </div>
+    <div
+      className={`transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 `}
+    >
+      {/* Top section */}
+      <div className="flex flex-col md:flex-row md:justify-between gap-4 items-center mb-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-500">شناسه صیادی</p>
+          <span className="text-lg font-medium">{sayadiCode}</span>
         </div>
-        <p className="font-bold">تاریخ سررسید: {dueDate}</p>
-        <div className="flex justify-center items-center gap-1">
-          <span className="font-semibold text-xs text-sky-600">ریال</span>
-          <p className="font-bold"> مبلغ: {Number(price).toLocaleString()}</p>
+        <p className="text-md font-semibold">تاریخ سررسید: {dueDate}</p>
+        <div className="text-end">
+          <p className="text-sm font-semibold text-sky-600">ریال</p>
+          <p className="text-lg font-bold text-gray-800">
+            مبلغ: {Number(price).toLocaleString()}
+          </p>
         </div>
       </div>
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> سری</p>
+
+      {/* Details Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-sm">
+        <div>
+          <p className="font-semibold text-gray-500">سری</p>
           <span>{item.seriesNo}</span>
         </div>
-      </div>
-
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> سریال</p>
+        <div>
+          <p className="font-semibold text-gray-500">سریال</p>
           <span>{item.serialNo}</span>
         </div>
-      </div>
-
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> نام کارشناس</p>
+        <div>
+          <p className="font-semibold text-gray-500">نام کارشناس</p>
           <span>{item.SalesExpert}</span>
         </div>
-      </div>
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> شماره شبا</p>
+        <div>
+          <p className="font-semibold text-gray-500">شماره شبا</p>
           <span>{item.iban}</span>
         </div>
-      </div>
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> نام صادر کننده</p>
+        <div>
+          <p className="font-semibold text-gray-500">نام صادر کننده</p>
           <span>{item.name}</span>
         </div>
-      </div>
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> شعبه بانک</p>
+        <div>
+          <p className="font-semibold text-gray-500">شعبه بانک</p>
           <span>{item.branchCode}</span>
         </div>
       </div>
-      <div className="flex justify-center items-center gap-2">
-        <div className="flex flex-col gap-1">
-          <p className="font-bold"> استعلام رنگ چک</p>
-          <span>{item.checksColor}</span>
+
+      {/* Status and Actions */}
+      <div className="flex flex-col md:flex-row md:justify-between items-center gap-4">
+        <div>
+          <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
+          <div className="flex gap-1 items-center">
+            {Array.from({ length: Number(item.checksColor) }, (_, i) => (
+              <span
+                key={i}
+                className={`rounded-sm w-4 h-4 ${getCheckColor(
+                  item.checksColor
+                )}`}
+              ></span>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex justify-end items-center gap-3">
-        <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
-        <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
-        <ActionByRole userRole={userRole} ID={ID} />
+
+        <div className="flex gap-2">
+          <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
+          <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
+          <ActionByRole userRole={userRole} ID={ID} />
+          <button type="button" onClick={() => checkSayadConfirm()}>
+            استعلام ثبت چک
+          </button>
+        </div>
       </div>
     </div>
   );

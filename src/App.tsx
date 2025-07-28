@@ -7,15 +7,18 @@ import type { AppDispatch } from "./store/store";
 import { PaymentRow } from "./components/PaymentRow"; // اضافه کن
 import { useCurrentUser } from "./hooks/useUser";
 import { useUserRoles } from "./hooks/useUserRoles";
+// import type { PaymentType } from "./types/apiTypes";
 
 function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
+
   const {
     data: paymentData,
     isLoading: paymentLoading,
     error: paymentError,
   } = usePayment(guid);
+
   const {
     data: userData,
     isLoading: userLoading,
@@ -33,6 +36,114 @@ function App() {
       dispatch(setUserRole(isAgent ? "agent" : "master"));
     }
   }, [paymentData, dispatch, userData, isAgent]);
+
+  // const paymentDataTest: PaymentType[] = [
+  //   {
+  //     ID: 1,
+  //     branchCode: "123546",
+  //     agentDescription: "test",
+  //     dayOfYear: "123",
+  //     price: "123456789",
+  //     serialNo: "123456",
+  //     iban: "123456789",
+  //     sayadiCode: "123456",
+  //     itemGUID: "123456789",
+  //     parentGUID: "123456789",
+  //     dueDate: "01/04/1404",
+  //     name: "قوی دل",
+  //     checksColor: "5",
+  //     Title: "teeeeeeeest",
+  //     SalesExpert: "آرش مقدم",
+  //     SalesExpertAcunt_text: "test",
+  //     status: "0",
+  //     seriesNo: "123456",
+  //     treasuryConfirmDescription: "test",
+  //   },
+  //   {
+  //     ID: 1,
+  //     branchCode: "123546",
+  //     agentDescription: "test",
+  //     dayOfYear: "123",
+  //     price: "123456789",
+  //     serialNo: "123456",
+  //     iban: "123456789",
+  //     sayadiCode: "123456",
+  //     itemGUID: "123456789",
+  //     parentGUID: "123456789",
+  //     dueDate: "01/04/1404",
+  //     name: "قوی دل",
+  //     checksColor: "3",
+  //     Title: "teeeeeeeest",
+  //     SalesExpert: "آرش مقدم",
+  //     SalesExpertAcunt_text: "test",
+  //     status: "0",
+  //     seriesNo: "123456",
+  //     treasuryConfirmDescription: "test",
+  //   },
+  //   {
+  //     ID: 1,
+  //     branchCode: "123546",
+  //     agentDescription: "test",
+  //     dayOfYear: "123",
+  //     price: "123456789",
+  //     serialNo: "123456",
+  //     iban: "123456789",
+  //     sayadiCode: "123456",
+  //     itemGUID: "123456789",
+  //     parentGUID: "123456789",
+  //     dueDate: "01/04/1404",
+  //     name: "قوی دل",
+  //     checksColor: "2",
+  //     Title: "teeeeeeeest",
+  //     SalesExpert: "آرش مقدم",
+  //     SalesExpertAcunt_text: "test",
+  //     status: "0",
+  //     seriesNo: "123456",
+  //     treasuryConfirmDescription: "test",
+  //   },
+  //   {
+  //     ID: 1,
+  //     branchCode: "123546",
+  //     agentDescription: "test",
+  //     dayOfYear: "123",
+  //     price: "123456789",
+  //     serialNo: "123456",
+  //     iban: "123456789",
+  //     sayadiCode: "123456",
+  //     itemGUID: "123456789",
+  //     parentGUID: "123456789",
+  //     dueDate: "01/04/1404",
+  //     name: "قوی دل",
+  //     checksColor: "4",
+  //     Title: "teeeeeeeest",
+  //     SalesExpert: "آرش مقدم",
+  //     SalesExpertAcunt_text: "test",
+  //     status: "0",
+  //     seriesNo: "123456",
+  //     treasuryConfirmDescription: "test",
+  //   },
+  //   {
+  //     ID: 1,
+  //     branchCode: "123546",
+  //     agentDescription: "test",
+  //     dayOfYear: "123",
+  //     price: "123456789",
+  //     serialNo: "123456",
+  //     iban: "123456789",
+  //     sayadiCode: "123456",
+  //     itemGUID: "123456789",
+  //     parentGUID: "123456789",
+  //     dueDate: "01/04/1404",
+  //     name: "قوی دل",
+  //     checksColor: "1",
+  //     Title: "teeeeeeeest",
+  //     SalesExpert: "آرش مقدم",
+  //     SalesExpertAcunt_text: "test",
+  //     status: "0",
+  //     seriesNo: "123456",
+  //     treasuryConfirmDescription: "test",
+  //   },
+  // ];
 
   return (
     <div className="w-full h-dvh relative">
