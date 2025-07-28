@@ -6,6 +6,8 @@ import ActionByRole from "./ActionByRole";
 import type { PaymentType } from "../types/apiTypes";
 import { useSayadConfirm } from "../hooks/useSayadConfirm";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import SayadiConfirmModal from "./SayadiConfirmModal";
 
 interface PaymentRowProps {
   item: PaymentType;
@@ -24,6 +26,8 @@ const getCheckColor = (colorCode: string | undefined) => {
 };
 
 export const PaymentRow = ({ item, parentGuid }: PaymentRowProps) => {
+  const [ShowSayadConfirmDataOpen, setShowSayadConfirmDataOpen] =
+    useState(false);
   const { userRole } = useSelector((state: RootState) => state.agentFeature);
   const { sayadiCode, dueDate, price, itemGUID, ID } = item;
   const queryClient = useQueryClient();
@@ -103,15 +107,35 @@ export const PaymentRow = ({ item, parentGuid }: PaymentRowProps) => {
             ))}
           </div>
         </div>
+        <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
+        <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
+        <ActionByRole userRole={userRole} ID={ID} />
+        {item.VerifiedSayad === " " ||
+        item.VerifiedSayad === null ||
+        item.VerifiedSayad === undefined ||
+        item.VerifiedSayad === "0" ? (
+          <div className="flex gap-2">
+            <button type="button" onClick={() => checkSayadConfirm()}>
+              استعلام ثبت چک
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col justify-start items-center gap-3 p-3 ">
+            <div
+              className="px-1.5 py-1 rounded-md cursor-pointer bg-sky-500 text-white hover:bg-white hover:text-sky-700"
+              onClick={() => setShowSayadConfirmDataOpen((cur) => !cur)}
+            >
+              نمایش اطلاعات ثبت چک
+            </div>
 
-        <div className="flex gap-2">
-          <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
-          <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
-          <ActionByRole userRole={userRole} ID={ID} />
-          <button type="button" onClick={() => checkSayadConfirm()}>
-            استعلام ثبت چک
-          </button>
-        </div>
+            {ShowSayadConfirmDataOpen && (
+              <SayadiConfirmModal
+                closeModal={() => setShowSayadConfirmDataOpen(false)}
+                data={item}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

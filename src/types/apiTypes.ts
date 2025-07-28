@@ -1,4 +1,3 @@
-
 export type PaymentType = {
   ID: number;
   price: string;
@@ -18,13 +17,15 @@ export type PaymentType = {
   branchCode: string;
   checksColor: string;
   Verified: string;
-  VerifiedSayad:string;
-  sayadConfirmReason:string;
-  sayadConfirmHolders:string;
-  sayadConfirmBlockStatus:string;
-  sayadConfirmChequeStatus:string;
-  sayadConfirmChequeType:string;
-  sayadConfirmBankCode:string;
-  sayadConfirmGuaranteeStatus:string;
-
+  VerifiedSayad: string;
+  SalesExpert: string;
+  SalesExpertAcunt_text: string;
+  itemGUID: string;
+  sayadConfirmReason: string;
+  sayadConfirmHolders: string;
+  sayadConfirmBlockStatus: string;
+  sayadConfirmChequeStatus: string;
+  sayadConfirmChequeType: string;
+  sayadConfirmBankCode: string;
+  sayadConfirmGuaranteeStatus: string;
 };
