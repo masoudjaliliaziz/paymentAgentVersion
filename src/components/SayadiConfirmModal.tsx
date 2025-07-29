@@ -31,30 +31,30 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
   }, [data.sayadConfirmHolders]);
 
   return (
-    <div className="w-full p-6 flex  justify-center items-center gap-4 rounded-md bg-slate-100">
+    <div className="w-full p-6 flex  justify-center items-center gap-4 rounded-md ">
       <div className="flex flex-col justify-center items-center gap-3">
         {sayadConfirmHoldersArray.map((item) => (
           <div
             className="flex flex-col justify-center items-center gap-2"
             key={item.idCode}
           >
-            <div className="flex justify-center items-center gap-3">
+            <div className="flex flex-col justify-center items-center gap-3">
               <p>نام صاحب چک</p>
               <span>{item.name}</span>
             </div>
 
-            <div className="flex justify-center items-center gap-3">
+            <div className="flex flex-col justify-center items-center gap-3">
               <p> شماره حقیقی / حقوقی</p>
               <span>{item.idCode}</span>
             </div>
           </div>
         ))}
         <button
-          className="bg-red-500 px-1.5 py-1 rounded-md cursor-pointer text-white hover:bg-white hover:text-red-600"
+          className="bg-sky-500 px-1.5 py-1 rounded-md cursor-pointer text-white hover:bg-white hover:text-sky-500"
           onClick={() => closeModal()}
           type="button"
         >
-          بستن
+          بازگشن به چک
         </button>
       </div>
     </div>

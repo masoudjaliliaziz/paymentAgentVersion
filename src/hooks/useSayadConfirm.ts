@@ -9,9 +9,6 @@ export function useSayadConfirm(parentGUID: string) {
   return useMutation({
     mutationFn: ({ ID }: { ID: number }) => updateSayadVerified(ID),
     onSuccess: () => {
-      toast.success(
-        "درخواست استعلام ثبت چک با موفقیت ثیت شد لطفا چن لحظه صبر نمایید"
-      );
       queryClient.invalidateQueries({ queryKey: ["payments", parentGUID] });
     },
     onError: () => toast.error("خطا در استعلام ثبت چک صیاد"),

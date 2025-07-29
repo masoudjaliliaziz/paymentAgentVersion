@@ -1,13 +1,15 @@
 import { usePayment } from "./hooks/usePayment";
 import { useParentGuid } from "./hooks/useParentGuid";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
-import { PaymentRow } from "./components/PaymentRow"; // اضافه کن
+import { PaymentRow } from "./components/PaymentRow";
 import { useCurrentUser } from "./hooks/useUser";
 import { useUserRoles } from "./hooks/useUserRoles";
-// import type { PaymentType } from "./types/apiTypes";
+import { calculateRasDatePayment } from "./utils/calculateRasDate";
+import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
+import type { PaymentType } from "./types/apiTypes";
 
 function App() {
   const guid = useParentGuid();
@@ -37,129 +39,61 @@ function App() {
     }
   }, [paymentData, dispatch, userData, isAgent]);
 
-  // const paymentDataTest: PaymentType[] = [
-  //   {
-  //     ID: 1,
-  //     branchCode: "123546",
-  //     agentDescription: "test",
-  //     dayOfYear: "123",
-  //     price: "123456789",
-  //     serialNo: "123456",
-  //     iban: "123456789",
-  //     sayadiCode: "123456",
-  //     itemGUID: "123456789",
-  //     parentGUID: "123456789",
-  //     dueDate: "01/04/1404",
-  //     name: "قوی دل",
-  //     checksColor: "5",
-  //     Title: "teeeeeeeest",
-  //     SalesExpert: "آرش مقدم",
-  //     SalesExpertAcunt_text: "test",
-  //     status: "0",
-  //     seriesNo: "123456",
-  //     treasuryConfirmDescription: "test",
-  //   },
-  //   {
-  //     ID: 1,
-  //     branchCode: "123546",
-  //     agentDescription: "test",
-  //     dayOfYear: "123",
-  //     price: "123456789",
-  //     serialNo: "123456",
-  //     iban: "123456789",
-  //     sayadiCode: "123456",
-  //     itemGUID: "123456789",
-  //     parentGUID: "123456789",
-  //     dueDate: "01/04/1404",
-  //     name: "قوی دل",
-  //     checksColor: "3",
-  //     Title: "teeeeeeeest",
-  //     SalesExpert: "آرش مقدم",
-  //     SalesExpertAcunt_text: "test",
-  //     status: "0",
-  //     seriesNo: "123456",
-  //     treasuryConfirmDescription: "test",
-  //   },
-  //   {
-  //     ID: 1,
-  //     branchCode: "123546",
-  //     agentDescription: "test",
-  //     dayOfYear: "123",
-  //     price: "123456789",
-  //     serialNo: "123456",
-  //     iban: "123456789",
-  //     sayadiCode: "123456",
-  //     itemGUID: "123456789",
-  //     parentGUID: "123456789",
-  //     dueDate: "01/04/1404",
-  //     name: "قوی دل",
-  //     checksColor: "2",
-  //     Title: "teeeeeeeest",
-  //     SalesExpert: "آرش مقدم",
-  //     SalesExpertAcunt_text: "test",
-  //     status: "0",
-  //     seriesNo: "123456",
-  //     treasuryConfirmDescription: "test",
-  //   },
-  //   {
-  //     ID: 1,
-  //     branchCode: "123546",
-  //     agentDescription: "test",
-  //     dayOfYear: "123",
-  //     price: "123456789",
-  //     serialNo: "123456",
-  //     iban: "123456789",
-  //     sayadiCode: "123456",
-  //     itemGUID: "123456789",
-  //     parentGUID: "123456789",
-  //     dueDate: "01/04/1404",
-  //     name: "قوی دل",
-  //     checksColor: "4",
-  //     Title: "teeeeeeeest",
-  //     SalesExpert: "آرش مقدم",
-  //     SalesExpertAcunt_text: "test",
-  //     status: "0",
-  //     seriesNo: "123456",
-  //     treasuryConfirmDescription: "test",
-  //   },
-  //   {
-  //     ID: 1,
-  //     branchCode: "123546",
-  //     agentDescription: "test",
-  //     dayOfYear: "123",
-  //     price: "123456789",
-  //     serialNo: "123456",
-  //     iban: "123456789",
-  //     sayadiCode: "123456",
-  //     itemGUID: "123456789",
-  //     parentGUID: "123456789",
-  //     dueDate: "01/04/1404",
-  //     name: "قوی دل",
-  //     checksColor: "1",
-  //     Title: "teeeeeeeest",
-  //     SalesExpert: "آرش مقدم",
-  //     SalesExpertAcunt_text: "test",
-  //     status: "0",
-  //     seriesNo: "123456",
-  //     treasuryConfirmDescription: "test",
-  //   },
-  // ];
+  const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
+  const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
+
+  const togglePaymentSelection = (payment: PaymentType) => {
+    setSelectedPayments((prev) => {
+      const exists = prev.find((p) => p.ID === payment.ID);
+      return exists
+        ? prev.filter((p) => p.ID !== payment.ID)
+        : [...prev, payment];
+    });
+  };
+
+  useEffect(() => {
+    if (selectedPayments.length > 0) {
+      const calculated = calculateRasDatePayment(selectedPayments);
+      setSelectedRasDate(calculated);
+    } else {
+      setSelectedRasDate(null);
+    }
+  }, [selectedPayments]);
 
   return (
-    <div className="w-full h-dvh relative">
-      <div className="flex justify-center items-center bg-sky-700 p-6">
-        <span className="text-3xl font-bold text-white">
-          مدیریت مالی (دولوپ)
-        </span>
+    <div
+      className="min-h-screen   relative  top-6"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 3fr",
+        gap: "20px",
+      }}
+    >
+      <div className="bg-white  rounded-lg  font-bold text-xl shadow-md flex justify-center items-start sticky top-0 p-6 ">
+        {selectedRasDate && (
+          <div className=" flex flex-col gap-3 justify-center items-center">
+            <span className="text-sky-500 text-sm font-bold">
+              راس پرداخت‌های انتخاب‌شده
+            </span>
+            <span className="text-slate-500 text-lg font-bold">
+              {getShamsiDateFromDayOfYear(selectedRasDate)}
+            </span>
+          </div>
+        )}
       </div>
-
-      <div className="p-4">
+      <div className=" ">
         {isLoading && <p>در حال بارگذاری...</p>}
         {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
         {paymentData?.length === 0 && <p>داده‌ای وجود ندارد.</p>}
 
         {paymentData?.map((item) => (
-          <PaymentRow key={item.ID} parentGuid={guid} item={item} />
+          <PaymentRow
+            key={item.ID}
+            parentGuid={guid}
+            item={item}
+            onToggleSelect={() => togglePaymentSelection(item)}
+            isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+          />
         ))}
       </div>
     </div>

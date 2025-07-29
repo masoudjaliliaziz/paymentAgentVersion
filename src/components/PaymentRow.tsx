@@ -8,10 +8,15 @@ import { useSayadConfirm } from "../hooks/useSayadConfirm";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import SayadiConfirmModal from "./SayadiConfirmModal";
+import { getBankNameFromIBAN } from "../utils/getBankNameFromIban";
+import { SayadCheckOverlay } from "./SayadCheckOverlay";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PaymentRowProps {
   item: PaymentType;
   parentGuid: string;
+  onToggleSelect: () => void;
+  isSelected: boolean;
 }
 
 const getCheckColor = (colorCode: string | undefined) => {
@@ -25,118 +30,189 @@ const getCheckColor = (colorCode: string | undefined) => {
   return colorMap[colorCode ?? ""] ?? "bg-gray-500 border border-gray-700";
 };
 
-export const PaymentRow = ({ item, parentGuid }: PaymentRowProps) => {
-  const [ShowSayadConfirmDataOpen, setShowSayadConfirmDataOpen] =
-    useState(false);
+export const PaymentRow = ({
+  item,
+  parentGuid,
+  onToggleSelect,
+  isSelected,
+}: PaymentRowProps) => {
+  const [showDetails, setShowDetails] = useState(false);
   const { userRole } = useSelector((state: RootState) => state.agentFeature);
   const { sayadiCode, dueDate, price, itemGUID, ID } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(parentGuid);
+
+  const [showCheckOverlay, setShowCheckOverlay] = useState(false);
+  const [checkBtnColor, setCheckBtnColor] = useState("#0ea5e9");
+
   function checkSayadConfirm() {
+    setCheckBtnColor("#0ea5e9");
+    setShowCheckOverlay(true);
+
     updateSayadVerifiedMutation.mutate(
-      {
-        ID,
-      },
+      { ID },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["payments", parentGuid] });
+          setTimeout(() => {
+            setShowCheckOverlay(false);
+          }, 1500);
+        },
+        onError: () => {
+          setCheckBtnColor("#dc2626");
+          setTimeout(() => {
+            setShowCheckOverlay(false);
+          }, 2000);
         },
       }
     );
   }
 
   return (
-    <div
-      className={`transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 `}
-    >
-      {/* Top section */}
-      <div className="flex flex-col md:flex-row md:justify-between gap-4 items-center mb-4">
-        <div>
-          <p className="text-sm font-semibold text-gray-500">شناسه صیادی</p>
-          <span className="text-lg font-medium">{sayadiCode}</span>
-        </div>
-        <p className="text-md font-semibold">تاریخ سررسید: {dueDate}</p>
-        <div className="text-end">
-          <p className="text-sm font-semibold text-sky-600">ریال</p>
-          <p className="text-lg font-bold text-gray-800">
-            مبلغ: {Number(price).toLocaleString()}
-          </p>
-        </div>
-      </div>
-
-      {/* Details Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-sm">
-        <div>
-          <p className="font-semibold text-gray-500">سری</p>
-          <span>{item.seriesNo}</span>
-        </div>
-        <div>
-          <p className="font-semibold text-gray-500">سریال</p>
-          <span>{item.serialNo}</span>
-        </div>
-        <div>
-          <p className="font-semibold text-gray-500">نام کارشناس</p>
-          <span>{item.SalesExpert}</span>
-        </div>
-        <div>
-          <p className="font-semibold text-gray-500">شماره شبا</p>
-          <span>{item.iban}</span>
-        </div>
-        <div>
-          <p className="font-semibold text-gray-500">نام صادر کننده</p>
-          <span>{item.name}</span>
-        </div>
-        <div>
-          <p className="font-semibold text-gray-500">شعبه بانک</p>
-          <span>{item.branchCode}</span>
-        </div>
-      </div>
-
-      {/* Status and Actions */}
-      <div className="flex flex-col md:flex-row md:justify-between items-center gap-4">
-        <div>
-          <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
-          <div className="flex gap-1 items-center">
-            {Array.from({ length: Number(item.checksColor) }, (_, i) => (
-              <span
-                key={i}
-                className={`rounded-sm w-4 h-4 ${getCheckColor(
-                  item.checksColor
-                )}`}
-              ></span>
-            ))}
+    <AnimatePresence mode="wait">
+      {!showDetails ? (
+        <motion.div
+          key="main"
+          layout
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.3 }}
+          className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white"
+        >
+          <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
+            <div className="font-bold text-sky-500 text-xl ">
+              {getBankNameFromIBAN(item.iban)}
+            </div>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelect}
+              className="w-4 h-4 cursor-pointer"
+            />
           </div>
-        </div>
-        <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
-        <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
-        <ActionByRole userRole={userRole} ID={ID} />
-        {item.VerifiedSayad === " " ||
-        item.VerifiedSayad === null ||
-        item.VerifiedSayad === undefined ||
-        item.VerifiedSayad === "0" ? (
-          <div className="flex gap-2">
-            <button type="button" onClick={() => checkSayadConfirm()}>
-              استعلام ثبت چک
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col justify-start items-center gap-3 p-3 ">
-            <div
-              className="px-1.5 py-1 rounded-md cursor-pointer bg-sky-500 text-white hover:bg-white hover:text-sky-700"
-              onClick={() => setShowSayadConfirmDataOpen((cur) => !cur)}
-            >
-              نمایش اطلاعات ثبت چک
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:justify-between gap-4 items-center mb-4">
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-sm font-semibold text-gray-500">
+                  شناسه صیادی
+                </p>
+                <span className="text-lg font-medium">{sayadiCode}</span>
+              </div>
             </div>
 
-            {ShowSayadConfirmDataOpen && (
-              <SayadiConfirmModal
-                closeModal={() => setShowSayadConfirmDataOpen(false)}
-                data={item}
-              />
+            <div>
+              <p className="text-sm font-semibold text-gray-500">
+                تاریخ سررسید
+              </p>
+              <span className="text-lg font-medium">{dueDate}</span>
+            </div>
+
+            <div className="text-end">
+              <div className="flex flex-col justify-center items-center ">
+                <p className="font-semibold text-gray-500">مبلغ</p>
+                <div className="flex flex-row-reverse gap-1">
+                  <span>{Number(price).toLocaleString()}</span>
+                  <p className="font-semibold text-sky-400 text-sm">ریال</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Details */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-sm">
+            <div>
+              <p className="font-semibold text-gray-500">سری</p>
+              <span>{item.seriesNo}</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">سریال</p>
+              <span>{item.serialNo}</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">نام کارشناس</p>
+              <span>{item.SalesExpert}</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">شماره شبا</p>
+              <span>{item.iban}</span>
+            </div>
+
+            <div>
+              <p className="font-semibold text-gray-500">نام صادر کننده</p>
+              <span>{item.name}</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">شعبه بانک</p>
+              <span>{item.branchCode}</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col md:flex-row md:justify-between items-center gap-4">
+            <div>
+              <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
+              <div className="flex gap-1 items-center">
+                {Array.from({ length: Number(item.checksColor) }, (_, i) => (
+                  <span
+                    key={i}
+                    className={`rounded-sm w-4 h-4 ${getCheckColor(
+                      item.checksColor
+                    )}`}
+                  ></span>
+                ))}
+              </div>
+            </div>
+
+            <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
+            <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
+            <ActionByRole userRole={userRole} ID={ID} />
+
+            {item.VerifiedSayad === " " ||
+            item.VerifiedSayad === null ||
+            item.VerifiedSayad === undefined ||
+            item.VerifiedSayad === "0" ? (
+              <button
+                type="button"
+                onClick={checkSayadConfirm}
+                className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
+              >
+                استعلام ثبت چک
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
+                onClick={() => setShowDetails(true)}
+              >
+                نمایش اطلاعات ثبت چک
+              </button>
             )}
           </div>
-        )}
-      </div>
-    </div>
+
+          <SayadCheckOverlay
+            isOpen={showCheckOverlay}
+            onClose={() => setShowCheckOverlay(false)}
+            color={checkBtnColor}
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="details"
+          layout
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.3 }}
+          className="transition-all shadow-md rounded-xl border p-6 mb-6 bg-white"
+        >
+          <SayadiConfirmModal
+            data={item}
+            closeModal={() => setShowDetails(false)}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
