@@ -56,6 +56,21 @@ const blockStatusMap: Record<string, string> = {
   "3": "  چک رفع مسدودی شده است",
 };
 
+const chequeTypeStatusMap: Record<string, string> = {
+  "0": "عادی",
+  "1": " بانکی (چک تضمینی)",
+  "2": "رمزدار",
+  "3": " چک موردی",
+};
+
+const guaranteeStatusMap: Record<string, string> = {
+  "0": " این چک فاقد ضمانت می باشد",
+  "1": " فرآیند ضمانت در جریان است",
+  "2": " فرآیند ضمانت ناتمام خاتمه یافته است",
+  "3": " فرآیند ضمانت اتمام و همه ضامن ها ضمانت کرده اند",
+  "4": " فرآیند ضمانت اتمام و برخی ضامن ها ضمانت را رد کرده اند",
+};
+
 function convertChequeStatusToMessage(code: string): string {
   return chequeStatusMap[code] ?? "وضعیت نامشخص";
 }
@@ -64,6 +79,12 @@ function convertBlockStatusToMessage(code: string): string {
   return blockStatusMap[code] ?? "وضعیت نامشخص";
 }
 
+function ChequeTypeStatusToMessage(code: string): string {
+  return chequeTypeStatusMap[code] ?? "وضعیت نامشخص";
+}
+function guaranteeStatusToMessage(code: string): string {
+  return guaranteeStatusMap[code] ?? "وضعیت نامشخص";
+}
 function SayadiConfirmModal({ data, closeModal }: Props) {
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
@@ -114,8 +135,14 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
           {data.sayadConfirmChequeStatus &&
             convertChequeStatusToMessage(data.sayadConfirmChequeStatus)}
         </div>
-        <div>{data.sayadConfirmChequeType}</div>
-        <div>{data.sayadConfirmGuaranteeStatus}</div>
+        <div>
+          {data.sayadConfirmChequeType &&
+            ChequeTypeStatusToMessage(data.sayadConfirmChequeType)}
+        </div>
+        <div>
+          {data.sayadConfirmGuaranteeStatus &&
+            guaranteeStatusToMessage(data.sayadConfirmGuaranteeStatus)}
+        </div>
         <button
           className="bg-sky-500 px-1.5 py-1 rounded-md cursor-pointer text-white hover:bg-white hover:text-sky-500"
           onClick={() => closeModal()}
