@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { PaymentType } from "../types/apiTypes";
-
+import { Undo2 } from "lucide-react";
 type Props = {
   data: Partial<PaymentType>;
   closeModal: () => void;
@@ -104,52 +104,69 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
   }, [data.sayadConfirmHolders]);
 
   return (
-    <div className="w-full p-6 flex  justify-center items-center gap-4 rounded-md ">
-      <div className="flex flex-col justify-center items-center gap-3">
+    <div className="w-full p-6 flex flex-col   gap-4 rounded-md  ">
+      <button
+        className="bg-sky-500 px-1.5 py-1 flex gap-1 items-center justify-end rounded-md cursor-pointer text-white hover:bg-white hover:text-sky-500"
+        onClick={() => closeModal()}
+        type="button"
+      >
+        بازگشن به چک
+        <Undo2 />
+      </button>
+      <div className="grid grid-cols-4 gap-4 mb-4 ">
         {sayadConfirmHoldersArray.map((item) => (
-          <div
-            className="flex flex-col justify-center items-center gap-2"
-            key={item.idCode}
-          >
-            <div className="flex flex-col justify-center items-center gap-3">
-              <p>نام صاحب چک</p>
-              <span>{item.name}</span>
+          <>
+            <div>
+              <p className="font-semibold text-gray-600"> نام صاحب چک </p>
+              <span className="font-bold text-sky-700">{item.name}</span>
             </div>
-
-            <div className="flex flex-col justify-center items-center gap-3">
-              <p> شماره حقیقی / حقوقی</p>
-              <span>{item.idCode}</span>
+            <div>
+              <p className="font-semibold text-gray-600">
+                شماره حقیقی / حقوقی{" "}
+              </p>
+              <span className="font-bold text-sky-700">{item.idCode}</span>
             </div>
-          </div>
+          </>
         ))}
         <div>
-          {data.sayadConfirmReason &&
-            convertSayadConfirmReasonToMessage(data.sayadConfirmReason)}
-        </div>
-
-        <div>
-          {data.sayadConfirmBlockStatus &&
-            convertBlockStatusToMessage(data.sayadConfirmBlockStatus)}
-        </div>
-        <div>
-          {data.sayadConfirmChequeStatus &&
-            convertChequeStatusToMessage(data.sayadConfirmChequeStatus)}
+          <p className="font-semibold text-gray-600">علت ثبت چک صیاد</p>
+          <span className="font-bold text-sky-700">
+            {data.sayadConfirmReason &&
+            data.sayadConfirmReason !== null &&
+            data.sayadConfirmReason !== undefined &&
+            data.sayadConfirmReason !== ""
+              ? convertSayadConfirmReasonToMessage(data.sayadConfirmReason)
+              : "درج نشده"}
+          </span>
         </div>
         <div>
-          {data.sayadConfirmChequeType &&
-            ChequeTypeStatusToMessage(data.sayadConfirmChequeType)}
+          <p className="font-semibold text-gray-600"> وضعیت مسدودی چک</p>
+          <span className="font-bold text-sky-700">
+            {data.sayadConfirmBlockStatus &&
+              convertBlockStatusToMessage(data.sayadConfirmBlockStatus)}
+          </span>
         </div>
         <div>
-          {data.sayadConfirmGuaranteeStatus &&
-            guaranteeStatusToMessage(data.sayadConfirmGuaranteeStatus)}
+          <p className="font-semibold text-gray-600"> وضعیت چک</p>
+          <span className="font-bold text-sky-700">
+            {data.sayadConfirmChequeStatus &&
+              convertChequeStatusToMessage(data.sayadConfirmChequeStatus)}
+          </span>
         </div>
-        <button
-          className="bg-sky-500 px-1.5 py-1 rounded-md cursor-pointer text-white hover:bg-white hover:text-sky-500"
-          onClick={() => closeModal()}
-          type="button"
-        >
-          بازگشن به چک
-        </button>
+        <div>
+          <p className="font-semibold text-gray-600">نوع چک </p>
+          <span className="font-bold text-sky-700">
+            {data.sayadConfirmChequeType &&
+              ChequeTypeStatusToMessage(data.sayadConfirmChequeType)}
+          </span>
+        </div>
+        <div>
+          <p className="font-semibold text-gray-600">وضعیت ضمانت چک </p>
+          <span className="font-bold text-sky-700">
+            {data.sayadConfirmGuaranteeStatus &&
+              guaranteeStatusToMessage(data.sayadConfirmGuaranteeStatus)}
+          </span>
+        </div>
       </div>
     </div>
   );

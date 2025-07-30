@@ -78,79 +78,9 @@ export const PaymentRow = ({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.3 }}
-          className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white"
+          className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
         >
-          <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
-            <div className="font-bold text-sky-500 text-xl ">
-              {getBankNameFromIBAN(item.iban)}
-            </div>
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={onToggleSelect}
-              className="w-4 h-4 cursor-pointer"
-            />
-          </div>
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:justify-between gap-4 items-center mb-4">
-            <div className="flex items-center gap-2">
-              <div>
-                <p className="text-sm font-semibold text-gray-500">
-                  شناسه صیادی
-                </p>
-                <span className="text-lg font-medium">{sayadiCode}</span>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold text-gray-500">
-                تاریخ سررسید
-              </p>
-              <span className="text-lg font-medium">{dueDate}</span>
-            </div>
-
-            <div className="text-end">
-              <div className="flex flex-col justify-center items-center ">
-                <p className="font-semibold text-gray-500">مبلغ</p>
-                <div className="flex flex-row-reverse gap-1">
-                  <span>{Number(price).toLocaleString()}</span>
-                  <p className="font-semibold text-sky-400 text-sm">ریال</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Details */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 text-sm">
-            <div>
-              <p className="font-semibold text-gray-500">سری</p>
-              <span>{item.seriesNo}</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">سریال</p>
-              <span>{item.serialNo}</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">نام کارشناس</p>
-              <span>{item.SalesExpert}</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">شماره شبا</p>
-              <span>{item.iban}</span>
-            </div>
-
-            <div>
-              <p className="font-semibold text-gray-500">نام صادر کننده</p>
-              <span>{item.name}</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">شعبه بانک</p>
-              <span>{item.branchCode}</span>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col md:flex-row md:justify-between items-center gap-4">
+          <div className="flex justify-between items-center gap-4 rounded-md bg-slate-100 p-1.5">
             <div>
               <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
               <div className="flex gap-1 items-center">
@@ -189,7 +119,77 @@ export const PaymentRow = ({
                 نمایش اطلاعات ثبت چک
               </button>
             )}
+            <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
+              <div className="font-bold text-sky-500 text-xl ">
+                {getBankNameFromIBAN(item.iban)}
+              </div>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={onToggleSelect}
+                className="w-4 h-4 cursor-pointer"
+              />
+            </div>
           </div>
+
+          {/* Details */}
+          <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
+            <div>
+              <p className="text-sm font-semibold text-gray-500">شناسه صیادی</p>
+              <span className="font-bold text-sky-700 text-sm">
+                {sayadiCode}
+              </span>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-gray-500">
+                تاریخ سررسید
+              </p>
+              <span className="font-bold text-sky-700 text-sm">{dueDate}</span>
+            </div>
+
+            <div>
+              <p className="font-semibold text-gray-500 ">مبلغ</p>
+              <div className="flex items-center  gap-1">
+                <span>{Number(price).toLocaleString()}</span>
+                <span className="font-semibold text-sky-700 text-sm">ریال</span>
+              </div>
+            </div>
+
+            <div>
+              <p className="font-semibold text-gray-500">سری</p>
+              <span className="font-bold text-sky-700 text-sm">
+                {item.seriesNo}
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">سریال</p>
+              <span className="font-bold text-sky-700 text-sm">
+                {item.serialNo}
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">نام کارشناس</p>
+              <span className="font-bold text-sky-700 text-sm">
+                {item.SalesExpert}
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">شماره شبا</p>
+              <span className="font-bold text-sky-700 text-sm">
+                {item.iban}
+              </span>
+            </div>
+
+            <div>
+              <p className="font-semibold text-gray-500">نام صادر کننده</p>
+              <span className="font-bold text-sky-700 text-sm">
+                {item.name}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
 
           <SayadCheckOverlay
             isOpen={showCheckOverlay}
