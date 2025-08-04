@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useUpdatePaymentStatusTru } from "../hooks/useUpdatePaymentStatusTru";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 type Props = {
-  userRole: string | "agent" | "master";
   ID: number;
 };
 
-function ActionByRole({ userRole, ID }: Props) {
+function ActionByRole({ ID }: Props) {
+  const { userRole } = useSelector((state: RootState) => state.agentFeature);
   const [isTruOpen, setIsTruOpen] =
     useState<React.SetStateAction<boolean>>(false);
   const [isAgentOpen, setIsAgentOpen] =

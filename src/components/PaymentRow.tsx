@@ -1,7 +1,6 @@
-import { useSelector } from "react-redux";
 import CheckPic from "./CheckPic";
 import CheckPicConfirm from "./CheckPicConfirm";
-import type { RootState } from "../store/store";
+
 import ActionByRole from "./ActionByRole";
 import type { PaymentType } from "../types/apiTypes";
 import { useSayadConfirm } from "../hooks/useSayadConfirm";
@@ -37,7 +36,7 @@ export const PaymentRow = ({
   isSelected,
 }: PaymentRowProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  const { userRole } = useSelector((state: RootState) => state.agentFeature);
+
   const { sayadiCode, dueDate, price, itemGUID, ID } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(parentGuid);
@@ -84,25 +83,30 @@ export const PaymentRow = ({
             <div>
               <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
               <div className="flex gap-1 items-center">
-                {Array.from({ length: Number(item.checksColor) }, (_, i) => (
-                  <span
-                    key={i}
-                    className={`rounded-sm w-4 h-4 ${getCheckColor(
-                      item.checksColor
-                    )}`}
-                  ></span>
-                ))}
+                {Array.from(
+                  { length: Number(item.checksColor ?? 0) || 0 },
+                  (_, i) => (
+                    <span
+                      key={i}
+                      className={`rounded-sm w-4 h-4 ${getCheckColor(
+                        item.checksColor
+                      )}`}
+                    ></span>
+                  )
+                )}
               </div>
             </div>
 
-            <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
-            <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
-            <ActionByRole userRole={userRole} ID={ID} />
+            {itemGUID && parentGuid && (
+              <>
+                <CheckPicConfirm itemGuid={itemGUID} parentGuid={parentGuid} />
+                <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
+              </>
+            )}
 
-            {item.VerifiedSayad === " " ||
-            item.VerifiedSayad === null ||
-            item.VerifiedSayad === undefined ||
-            item.VerifiedSayad === "0" ? (
+            <ActionByRole ID={ID} />
+
+            {!item.VerifiedSayad?.trim() || item.VerifiedSayad === "0" ? (
               <button
                 type="button"
                 onClick={checkSayadConfirm}
@@ -119,9 +123,10 @@ export const PaymentRow = ({
                 نمایش اطلاعات ثبت چک
               </button>
             )}
+
             <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
               <div className="font-bold text-sky-500 text-xl ">
-                {getBankNameFromIBAN(item.iban)}
+                {item.iban ? getBankNameFromIBAN(item.iban) : "نامشخص"}
               </div>
               <input
                 type="checkbox"
@@ -132,12 +137,12 @@ export const PaymentRow = ({
             </div>
           </div>
 
-          {/* Details */}
+          {/* جزئیات چک */}
           <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
             <div>
               <p className="text-sm font-semibold text-gray-500">شناسه صیادی</p>
               <span className="font-bold text-sky-700 text-sm">
-                {sayadiCode}
+                {sayadiCode ?? "نامشخص"}
               </span>
             </div>
 
@@ -145,13 +150,15 @@ export const PaymentRow = ({
               <p className="text-sm font-semibold text-gray-500">
                 تاریخ سررسید
               </p>
-              <span className="font-bold text-sky-700 text-sm">{dueDate}</span>
+              <span className="font-bold text-sky-700 text-sm">
+                {dueDate ?? "نامشخص"}
+              </span>
             </div>
 
             <div>
-              <p className="font-semibold text-gray-500 ">مبلغ</p>
-              <div className="flex items-center  gap-1">
-                <span>{Number(price).toLocaleString()}</span>
+              <p className="font-semibold text-gray-500">مبلغ</p>
+              <div className="flex items-center gap-1">
+                <span>{Number(price ?? 0).toLocaleString()}</span>
                 <span className="font-semibold text-sky-700 text-sm">ریال</span>
               </div>
             </div>
@@ -159,37 +166,38 @@ export const PaymentRow = ({
             <div>
               <p className="font-semibold text-gray-500">سری</p>
               <span className="font-bold text-sky-700 text-sm">
-                {item.seriesNo}
+                {item.seriesNo ?? "نامشخص"}
               </span>
             </div>
+
             <div>
               <p className="font-semibold text-gray-500">سریال</p>
               <span className="font-bold text-sky-700 text-sm">
-                {item.serialNo}
+                {item.serialNo ?? "نامشخص"}
               </span>
             </div>
+
             <div>
               <p className="font-semibold text-gray-500">نام کارشناس</p>
               <span className="font-bold text-sky-700 text-sm">
-                {item.SalesExpert}
+                {item.SalesExpert ?? "نامشخص"}
               </span>
             </div>
+
             <div>
               <p className="font-semibold text-gray-500">شماره شبا</p>
               <span className="font-bold text-sky-700 text-sm">
-                {item.iban}
+                {item.iban ?? "نامشخص"}
               </span>
             </div>
 
             <div>
               <p className="font-semibold text-gray-500">نام صادر کننده</p>
               <span className="font-bold text-sky-700 text-sm">
-                {item.name}
+                {item.name ?? "نامشخص"}
               </span>
             </div>
           </div>
-
-          {/* Actions */}
 
           <SayadCheckOverlay
             isOpen={showCheckOverlay}
