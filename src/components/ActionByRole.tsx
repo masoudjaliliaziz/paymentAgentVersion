@@ -27,7 +27,7 @@ function ActionByRole({ userRole, ID }: Props) {
       {
         id: ID,
         status: String(numericStatus),
-        treasuryUnconfirmReason:
+        treasuryConfirmDescription:
           status === "rejected" ? description : undefined,
       },
       {
@@ -53,7 +53,7 @@ function ActionByRole({ userRole, ID }: Props) {
       {
         id: ID,
         status: String(numericStatus),
-        agentUnconfirmReason:
+        agentDescription:
           AgentStatus === "rejected" ? AgentDescription : undefined,
       },
       {
@@ -69,7 +69,7 @@ function ActionByRole({ userRole, ID }: Props) {
       }
     );
   };
-  
+
   return (
     <>
       {userRole === "agent" && (

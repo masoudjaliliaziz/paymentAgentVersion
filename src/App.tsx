@@ -84,17 +84,22 @@ function App() {
       <div className=" ">
         {isLoading && <p>در حال بارگذاری...</p>}
         {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
-        {paymentData?.length === 0 && <p>داده‌ای وجود ندارد.</p>}
 
-        {paymentData?.map((item) => (
-          <PaymentRow
-            key={item.ID}
-            parentGuid={guid}
-            item={item}
-            onToggleSelect={() => togglePaymentSelection(item)}
-            isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
-          />
-        ))}
+        {paymentData?.filter((item) => item.status === "0").length === 0 && (
+          <p>هیچ پرداختی با وضعیت "در انتظار" یافت نشد.</p>
+        )}
+
+        {paymentData
+          ?.filter((item) => item.status === "0")
+          .map((item) => (
+            <PaymentRow
+              key={item.ID}
+              parentGuid={guid}
+              item={item}
+              onToggleSelect={() => togglePaymentSelection(item)}
+              isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+            />
+          ))}
       </div>
     </div>
   );
