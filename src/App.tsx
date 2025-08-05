@@ -33,7 +33,7 @@ function App() {
     error: userError,
   } = useCurrentUser();
 
-  const { isAgent } = useUserRoles(userData ?? null);
+  const { isAgent, isMaster } = useUserRoles(userData ?? null);
   const error = userError || paymentError;
   const isLoading = paymentLoading || userLoading;
 
@@ -82,7 +82,11 @@ function App() {
   };
 
   const filteredPayments = paymentData
-    ?.filter((item) => item.status === "0")
+    ?.filter((item) => {
+      if (isAgent) return item.status === "0";
+      if (isMaster) return item.status === "1";
+      return false;
+    })
     .filter((item) => {
       // اگه یوزر در specialUsers هست، همه رو نشون بده
       if (userData && specialUsers.includes(userData)) {
@@ -92,7 +96,6 @@ function App() {
       if (userData) {
         return item.SalesExpertAcunt_text === userData;
       }
-      // اگه userData هنوز نیومده، چیزی نشون نده
       return false;
     })
     .filter((item) => {

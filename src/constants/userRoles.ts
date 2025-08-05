@@ -9,7 +9,7 @@ export const Agents = [
 export const Masters = [
   "i:0#.w|zarsim\\sakbari",
   "i:0#.w|zarsim\\mmoradabadi",
-  "i:0#.w|zarsim\\Rashaadmin",
+  "i:0#.w|zarsim\\rashaadmin",
   "i:0#.w|zarsim\\dev1",
   "i:0#.w|zarsim\\mesmaeili",
 ];
