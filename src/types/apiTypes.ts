@@ -4,6 +4,7 @@ export type PaymentType = {
   dueDate: string;
   sayadiCode: string;
   nationalId: string;
+  nationalIdHoghoghi: string;
   parentGUID: string;
   dayOfYear: string;
   Title: string;
@@ -17,6 +18,7 @@ export type PaymentType = {
   branchCode: string;
   checksColor: string;
   Verified: string;
+  VerifiedHoghoghi: string;
   VerifiedSayad: string;
   SalesExpert: string;
   SalesExpertAcunt_text: string;
@@ -28,6 +30,9 @@ export type PaymentType = {
   sayadConfirmChequeType: string;
   sayadConfirmBankCode: string;
   sayadConfirmGuaranteeStatus: string;
+  cash: string;
+  Error: string;
+  bankName: string;
 };
 
 export type DebtType = {

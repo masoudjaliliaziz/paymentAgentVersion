@@ -3,9 +3,10 @@ import { usePaymentFiles } from "../hooks/usePaymentFiles";
 type Props = {
   parentGuid: string;
   itemGuid: string;
+  title?: string;
 };
 
-function CheckPicConfirm({ parentGuid, itemGuid }: Props) {
+function CheckPicConfirm({ parentGuid, itemGuid, title }: Props) {
   const {
     data: confirmFiles,
     isLoading: loadingConfirm,
@@ -27,7 +28,7 @@ function CheckPicConfirm({ parentGuid, itemGuid }: Props) {
               rel="noreferrer"
               className="bg-green-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-green-800"
             >
-              دانلود تصویر ثبت چک
+              {title ?? "دانلود تصویر ثبت چک"}
             </a>
           </div>
         ))}
