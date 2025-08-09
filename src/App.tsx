@@ -11,6 +11,9 @@ import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
 import { useCustomers } from "./hooks/useCustomer";
+import DebtsArchivePage from "./routes/DebtsArchivePage";
+import { Archive, BanknoteArrowUpIcon } from "lucide-react";
+import DebtsPage from "./routes/DebtsPage";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -22,6 +25,9 @@ function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
   const parentGUID = useParentGuid();
+  const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
+  const [isShownDebt, setIsShownDebt] = useState(false);
+
   const { data, isLoading: isLoadinCustomer } = useCustomers(parentGUID);
   const {
     data: paymentData,
@@ -139,10 +145,28 @@ function App() {
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
+        <div className="flex justify-start items-center gap-3">
+          <div
+            onClick={() => setIsShownDebtArchive((cur) => !cur)}
+            className={`flex flex-row- gap-4 items-center justify-center font-bold  border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
+              isShownDebtArchive ? "bg-slate-800 text-white" : ""
+            }`}
+          >
+            <Archive width={20} height={20} />
+          </div>
+          <div
+            onClick={() => setIsShownDebt((cur) => !cur)}
+            className={`flex flex-row- gap-4 items-center justify-center font-bold  border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
+              isShownDebt ? "bg-slate-800 text-white" : ""
+            }`}
+          >
+            <BanknoteArrowUpIcon width={20} height={20} />
+          </div>
+        </div>
         <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white ">
           {data?.[0]?.Title ?? "در حال بارگذاری..."}
         </span>
-        <div className="flex flex-col gap-4 items-center justify-center">
+        <div className="flex flex-col gap-4 items-center justify-center ">
           <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
           </span>
@@ -190,47 +214,60 @@ function App() {
         </div>
       </div>
 
-      <div className="w-3/4">
-        {isLoading && <p>در حال بارگذاری...</p>}
-        {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
-
-        {filteredPayments.length === 0 && (
-          <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
-        )}
-
-        {/* انتخاب همه / عدم انتخاب همه */}
-        <div className="mb-4 flex items-center justify-end gap-2">
-          <input
-            type="checkbox"
-            checked={areAllSelected}
-            onChange={() => {
-              if (areAllSelected) {
-                deselectAllPayments();
-              } else {
-                selectAllPayments();
-              }
-            }}
-            id="selectAllCheckbox"
-            className="cursor-pointer"
-          />
-          <label
-            htmlFor="selectAllCheckbox"
-            className="cursor-pointer select-none text-xl font-bold"
-          >
-            انتخاب همه
-          </label>
+      {isShownDebtArchive && (
+        <div className={` ${isShownDebt ? "w-1/2" : "w-3/4"} `}>
+          <DebtsArchivePage />
         </div>
+      )}
 
-        {filteredPayments.map((item) => (
-          <PaymentRow
-            key={item.ID}
-            parentGuid={guid}
-            item={item}
-            onToggleSelect={() => togglePaymentSelection(item)}
-            isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
-          />
-        ))}
-      </div>
+      {!isShownDebtArchive && !isShownDebt && (
+        <div className="w-3/4">
+          {isLoading && <p>در حال بارگذاری...</p>}
+          {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
+
+          {filteredPayments.length === 0 && (
+            <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
+          )}
+
+          {/* انتخاب همه / عدم انتخاب همه */}
+          <div className="mb-4 flex items-center justify-end gap-2">
+            <input
+              type="checkbox"
+              checked={areAllSelected}
+              onChange={() => {
+                if (areAllSelected) {
+                  deselectAllPayments();
+                } else {
+                  selectAllPayments();
+                }
+              }}
+              id="selectAllCheckbox"
+              className="cursor-pointer"
+            />
+            <label
+              htmlFor="selectAllCheckbox"
+              className="cursor-pointer select-none text-xl font-bold"
+            >
+              انتخاب همه
+            </label>
+          </div>
+
+          {filteredPayments.map((item) => (
+            <PaymentRow
+              key={item.ID}
+              parentGuid={guid}
+              item={item}
+              onToggleSelect={() => togglePaymentSelection(item)}
+              isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+            />
+          ))}
+        </div>
+      )}
+      {isShownDebt && (
+        <div className={`${isShownDebtArchive ? "w-1/2" : "w-3/4"}`}>
+          <DebtsPage />
+        </div>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export const usePayment = (guid: string) => {
     queryKey: ["payments", guid],
     queryFn: () => fetchPayments(guid),
     enabled: !!guid,
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   return { isLoading, isError, data, error, refetch, isFetching };
