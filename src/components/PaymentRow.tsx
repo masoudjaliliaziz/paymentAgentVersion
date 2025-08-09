@@ -37,7 +37,7 @@ export const PaymentRow = ({
 }: PaymentRowProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  const { sayadiCode, dueDate, price, itemGUID, ID } = item;
+  const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(parentGuid);
 
@@ -255,7 +255,25 @@ export const PaymentRow = ({
                   </>
                 )}
 
+                {status && (
+                  <span
+                    className={`font-bold text-xs ${
+                      status === "1"
+                        ? "text-green-700"
+                        : status === "2"
+                        ? "text-red-700"
+                        : ""
+                    }`}
+                  >
+                    {status === "1"
+                      ? "تایید توسط کارشناس"
+                      : status === "2"
+                      ? "رد شده توسط کارشناس"
+                      : ""}
+                  </span>
+                )}
                 <ActionByRole ID={ID} />
+
                 <p className="font-bold text-sky-500 text-lg">واریز نقدی</p>
                 <input
                   type="checkbox"

@@ -86,7 +86,13 @@ function App() {
   const filteredPayments = paymentData
     ?.filter((item) => {
       if (isAgent) return item.status === "0";
-      if (isMaster) return item.status === "1";
+      if (isMaster) {
+        return (
+          item.status === "1" ||
+          (item.cash === "1" && item.status !== "3" && item.status !== "4")
+        );
+      }
+
       return false;
     })
     .filter((item) => {
