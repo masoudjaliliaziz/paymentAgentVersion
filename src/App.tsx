@@ -10,6 +10,7 @@ import { useUserRoles } from "./hooks/useUserRoles";
 import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
+import { useCustomers } from "./hooks/useCustomer";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -20,7 +21,8 @@ const specialUsers = [
 function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
-
+  const parentGUID = useParentGuid();
+  const { data, isLoading: isLoadinCustomer } = useCustomers(parentGUID);
   const {
     data: paymentData,
     isLoading: paymentLoading,
@@ -35,7 +37,7 @@ function App() {
 
   const { isAgent, isMaster } = useUserRoles(userData ?? null);
   const error = userError || paymentError;
-  const isLoading = paymentLoading || userLoading;
+  const isLoading = paymentLoading || userLoading || isLoadinCustomer;
 
   useEffect(() => {
     if (userData && paymentData) {
@@ -107,9 +109,15 @@ function App() {
       });
     });
 
+  if (!parentGUID || isLoading) {
+    return <div>در حال بارگذاری...</div>;
+  }
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
+        <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white ">
+          {data?.[0]?.Title ?? "در حال بارگذاری..."}
+        </span>
         <div className="flex flex-col gap-4 items-center justify-center">
           <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
