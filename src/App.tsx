@@ -83,41 +83,59 @@ function App() {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const filteredPayments = paymentData
-    ?.filter((item) => {
-      if (isAgent) return item.status === "0";
-      if (isMaster) {
-        return (
-          item.status === "1" ||
-          (item.cash === "1" && item.status !== "3" && item.status !== "4")
-        );
-      }
+  const filteredPayments =
+    paymentData
+      ?.filter((item) => {
+        if (isAgent) return item.status === "0";
+        if (isMaster) {
+          return (
+            item.status === "1" ||
+            (item.cash === "1" && item.status !== "3" && item.status !== "4")
+          );
+        }
+        return false;
+      })
+      .filter((item) => {
+        if (userData && specialUsers.includes(userData)) {
+          return true;
+        }
+        if (userData) {
+          return item.SalesExpertAcunt_text === userData;
+        }
+        return false;
+      })
+      .filter((item) => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (!value) return true;
+          return (item[key as keyof PaymentType] ?? "")
+            .toString()
+            .includes(value);
+        });
+      }) ?? [];
 
-      return false;
-    })
-    .filter((item) => {
-      // اگه یوزر در specialUsers هست، همه رو نشون بده
-      if (userData && specialUsers.includes(userData)) {
-        return true;
-      }
-      // وگرنه فقط مواردی که SalesExpertAcunt_text برابر با userData هست رو نگه دار
-      if (userData) {
-        return item.SalesExpertAcunt_text === userData;
-      }
-      return false;
-    })
-    .filter((item) => {
-      return Object.entries(filters).every(([key, value]) => {
-        if (!value) return true;
-        return (item[key as keyof PaymentType] ?? "")
-          .toString()
-          .includes(value);
-      });
-    });
+  const totalSelectedPrice = selectedPayments.reduce(
+    (sum, p) => sum + Number(p.price || 0),
+    0
+  );
+
+  const areAllSelected =
+    filteredPayments.length > 0 &&
+    filteredPayments.every((p) =>
+      selectedPayments.some((sp) => sp.ID === p.ID)
+    );
+
+  const selectAllPayments = () => {
+    setSelectedPayments(filteredPayments);
+  };
+
+  const deselectAllPayments = () => {
+    setSelectedPayments([]);
+  };
 
   if (!parentGUID || isLoading) {
     return <div>در حال بارگذاری...</div>;
   }
+
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
@@ -133,6 +151,17 @@ function App() {
               ? getShamsiDateFromDayOfYear(selectedRasDate)
               : "چکی انتخاب نشده"}
           </span>
+          <span className="text-green-500 text-sm font-bold">
+            جمع کل چک‌های انتخاب‌شده
+          </span>
+          <div className="flex flex-row-reverse gap-3 items-center justify-center">
+            <span className="text-slate-700 text-lg font-bold mt-2">
+              {totalSelectedPrice.toLocaleString("fa-IR")}
+            </span>
+            <span className="text-sky-700 text-sm font-semibold mt-2">
+              ریال
+            </span>
+          </div>
         </div>
 
         {/* فیلترها */}
@@ -165,11 +194,34 @@ function App() {
         {isLoading && <p>در حال بارگذاری...</p>}
         {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
 
-        {filteredPayments?.length === 0 && (
+        {filteredPayments.length === 0 && (
           <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
         )}
 
-        {filteredPayments?.map((item) => (
+        {/* انتخاب همه / عدم انتخاب همه */}
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <input
+            type="checkbox"
+            checked={areAllSelected}
+            onChange={() => {
+              if (areAllSelected) {
+                deselectAllPayments();
+              } else {
+                selectAllPayments();
+              }
+            }}
+            id="selectAllCheckbox"
+            className="cursor-pointer"
+          />
+          <label
+            htmlFor="selectAllCheckbox"
+            className="cursor-pointer select-none text-xl font-bold"
+          >
+            انتخاب همه
+          </label>
+        </div>
+
+        {filteredPayments.map((item) => (
           <PaymentRow
             key={item.ID}
             parentGuid={guid}
