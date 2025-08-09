@@ -69,7 +69,7 @@ export const PaymentRow = ({
 
   return (
     <>
-      {item.cash === "0" ? (
+      {item.cash === "0" && (
         <AnimatePresence mode="wait">
           {!showDetails ? (
             <motion.div
@@ -231,7 +231,8 @@ export const PaymentRow = ({
             </motion.div>
           )}
         </AnimatePresence>
-      ) : (
+      )}
+      {item.cash === "1" && (
         <AnimatePresence mode="wait">
           {!showDetails ? (
             <motion.div
@@ -256,6 +257,12 @@ export const PaymentRow = ({
 
                 <ActionByRole ID={ID} />
                 <p className="font-bold text-sky-500 text-lg">واریز نقدی</p>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={onToggleSelect}
+                  className="w-4 h-4 cursor-pointer"
+                />
               </div>
 
               {/* جزئیات چک */}
