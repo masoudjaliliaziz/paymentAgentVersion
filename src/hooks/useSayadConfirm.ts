@@ -14,3 +14,6 @@ export function useSayadConfirm(parentGUID: string) {
     onError: () => toast.error("خطا در استعلام ثبت چک صیاد"),
   });
 }
+
+
+

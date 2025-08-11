@@ -22,9 +22,6 @@ const specialUsers = [
 ];
 
 function App() {
-  function getLast16Chars(str: string) {
-    return str.slice(-16);
-  }
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
   const parentGUID = useParentGuid();
@@ -87,14 +84,42 @@ function App() {
       setSelectedRasDate(null);
     }
   }, [selectedPayments]);
+  let barcodeBuffer = "";
+  let lastInputTime = 0;
+const handleInputChange = (
+  field: string,
+  event: React.ChangeEvent<HTMLInputElement>
+) => {
+  let value = event.target.value;
+  const now = Date.now();
 
-  const handleFilterChange = (field: string, value: string) => {
-    if (field === "sayadiCode") {
-      value = getLast16Chars(value);
+  if (field === "sayadiCode") {
+    const timeDiff = now - lastInputTime;
+    lastInputTime = now;
+
+    // اگر ورودی خیلی سریع وارد شد (مثل بارکد اسکن)
+    if (timeDiff < 50) {
+      barcodeBuffer += value[value.length - 1] || "";
+      // وقتی طول کد به اندازه کافی رسید
+      if (barcodeBuffer.length >= 16) {
+        setFilters((prev) => ({ ...prev, sayadiCode: barcodeBuffer }));
+        barcodeBuffer = "";
+      }
+      return;
+    } else {
+      // تایپ دستی → فقط ۱۶ کاراکتر آخر
+      value = value.slice(-16);
     }
-    setFilters((prev) => ({ ...prev, [field]: value }));
-  };
+  }
 
+  setFilters((prev) => ({ ...prev, [field]: value }));
+};
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // جلوگیری از submit فرم
+    }
+  };
   const filteredPayments =
     paymentData
       ?.filter((item) => {
@@ -213,7 +238,8 @@ function App() {
                 className="border p-1 rounded-md"
                 placeholder={placeholder}
                 value={filters[key as keyof typeof filters]}
-                onChange={(e) => handleFilterChange(key, e.target.value)}
+                onChange={(e) => handleInputChange(key, e)}
+                onKeyDown={handleInputKeyDown}
               />
             </div>
           ))}
