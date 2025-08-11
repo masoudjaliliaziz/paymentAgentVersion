@@ -22,6 +22,9 @@ const specialUsers = [
 ];
 
 function App() {
+  function getLast16Chars(str: string) {
+    return str.slice(-16);
+  }
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
   const parentGUID = useParentGuid();
@@ -86,6 +89,9 @@ function App() {
   }, [selectedPayments]);
 
   const handleFilterChange = (field: string, value: string) => {
+    if (field === "sayadiCode") {
+      value = getLast16Chars(value);
+    }
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -216,7 +222,7 @@ function App() {
 
       {isShownDebtArchive && (
         <div className={` ${isShownDebt ? "w-1/2" : "w-3/4"} `}>
-          <DebtsArchivePage />
+          <DebtsArchivePage paymentList={selectedPayments} />
         </div>
       )}
 
@@ -265,7 +271,7 @@ function App() {
       )}
       {isShownDebt && (
         <div className={`${isShownDebtArchive ? "w-1/2" : "w-3/4"}`}>
-          <DebtsPage />
+          <DebtsPage paymentList={selectedPayments} />
         </div>
       )}
     </div>

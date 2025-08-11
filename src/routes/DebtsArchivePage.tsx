@@ -1,28 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParentGuid } from "../hooks/useParentGuid";
-import { loadDebt, loadPayment, type PaymentType } from "../api/getData";
+import { loadDebt, type PaymentType } from "../api/getData";
 import { useMemo } from "react";
 import type { DebtType } from "../types/apiTypes";
 
-function DebtsArchivePage() {
+type Props = {
+  paymentList: PaymentType[];
+};
+function DebtsArchivePage({ paymentList }: Props) {
   const parentGUID = useParentGuid();
-
-  const {
-    data: paymentList = [],
-    isLoading: isLoadingPayments,
-    isError: isErrorPayments,
-    error: errorPayments,
-  } = useQuery<PaymentType[]>({
-    queryKey: ["payments", parentGUID],
-    queryFn: async () => {
-      const data = await loadPayment(parentGUID);
-      return (data as (PaymentType | undefined)[]).filter(
-        (item): item is PaymentType => item !== undefined && item.status === "4"
-      );
-    },
-    enabled: !!parentGUID,
-    refetchInterval: 5000,
-  });
 
   const {
     data: debtList = [],
@@ -81,14 +67,12 @@ function DebtsArchivePage() {
     );
   }
 
-  if (isLoadingPayments || isLoadingDebts)
+  if (isLoadingDebts)
     return <div className="text-center text-lg">در حال بارگذاری...</div>;
 
-  if (isErrorPayments || isErrorDebts)
+  if (isErrorDebts)
     return (
-      <div className="text-center text-red-600">
-        خطا: {String(errorPayments || errorDebts)}
-      </div>
+      <div className="text-center text-red-600">خطا: {String(errorDebts)}</div>
     );
 
   return (

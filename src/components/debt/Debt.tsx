@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { loadDebt, loadPayment, type PaymentType } from "../../api/getData";
+import { loadDebt, type PaymentType } from "../../api/getData";
 import type { DebtType } from "../../types/apiTypes";
 import { useEffect, useMemo, useState } from "react";
 import { calculateRasDateDebt } from "../../utils/calculateRasDate";
@@ -33,29 +33,13 @@ const getTodayShamsiDayOfYear = (): number => {
   return dayOfYear;
 };
 
-type Props = { parentGUID: string };
+type Props = { parentGUID: string; paymentList: PaymentType[] };
 
-function Debt({ parentGUID }: Props) {
+function Debt({ parentGUID, paymentList }: Props) {
   const [totalDebt, setTotalDebt] = useState(0);
   const [dueDateDisplay, setDueDateDisplay] = useState("");
 
   // پرداختی‌ها
-  const {
-    data: paymentList = [],
-    isLoading: isLoadingPayments,
-    isError: isErrorPayments,
-    error: errorPayments,
-  } = useQuery<PaymentType[]>({
-    queryKey: ["payments", parentGUID],
-    queryFn: async () => {
-      const data = await loadPayment(parentGUID);
-      return (data as (PaymentType | undefined)[]).filter(
-        (item): item is PaymentType => item !== undefined && item.status === "4"
-      );
-    },
-    enabled: !!parentGUID,
-    refetchInterval: 5000,
-  });
 
   // بدهی‌ها
   const {
@@ -163,14 +147,12 @@ function Debt({ parentGUID }: Props) {
   }, [output]);
 
   // نمایش بارگذاری یا خطا
-  if (isLoadingPayments || isLoadingDebts)
+  if (isLoadingDebts)
     return <div className="text-center text-lg">در حال بارگذاری...</div>;
 
-  if (isErrorPayments || isErrorDebts)
+  if (isErrorDebts)
     return (
-      <div className="text-center text-red-600">
-        خطا: {String(errorPayments || errorDebts)}
-      </div>
+      <div className="text-center text-red-600">خطا: {String(errorDebts)}</div>
     );
 
   const activeDebts = output.filter((debt) => Number(debt.debt) > 0);
