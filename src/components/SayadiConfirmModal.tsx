@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { PaymentType } from "../types/apiTypes";
 import { Undo2 } from "lucide-react";
+import { formatShamsiDate } from "../utils/formatShamsiDate";
 type Props = {
   data: Partial<PaymentType>;
   closeModal: () => void;
@@ -139,6 +140,7 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
               : "درج نشده"}
           </span>
         </div>
+
         <div>
           <p className="font-semibold text-gray-600"> وضعیت مسدودی چک</p>
           <span className="font-bold text-sky-700">
@@ -146,6 +148,7 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
               convertBlockStatusToMessage(data.sayadConfirmBlockStatus)}
           </span>
         </div>
+
         <div>
           <p className="font-semibold text-gray-600"> وضعیت چک</p>
           <span className="font-bold text-sky-700">
@@ -153,6 +156,7 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
               convertChequeStatusToMessage(data.sayadConfirmChequeStatus)}
           </span>
         </div>
+
         <div>
           <p className="font-semibold text-gray-600">نوع چک </p>
           <span className="font-bold text-sky-700">
@@ -160,11 +164,30 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
               ChequeTypeStatusToMessage(data.sayadConfirmChequeType)}
           </span>
         </div>
+
         <div>
           <p className="font-semibold text-gray-600">وضعیت ضمانت چک </p>
           <span className="font-bold text-sky-700">
             {data.sayadConfirmGuaranteeStatus &&
               guaranteeStatusToMessage(data.sayadConfirmGuaranteeStatus)}
+          </span>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-600"> مبلغ ثبت شده </p>
+          <div className="flex flex-row-reverse gap-3 items-center justify-end">
+            <span className="font-bold text-sky-700">
+              {Number(data.sayadConfirmAmount).toLocaleString("fa-IR") ??
+                "درج نشده"}
+            </span>
+            <span className="font-bold text-xs text-gray-600">ریال</span>
+          </div>
+        </div>
+
+        <div>
+          <p className="font-semibold text-gray-600"> تاریخ ثبت شده </p>
+          <span className="font-bold text-sky-700">
+            {formatShamsiDate(String(data.sayadConfirmDueDate)) ?? "درج نشده"}
           </span>
         </div>
       </div>

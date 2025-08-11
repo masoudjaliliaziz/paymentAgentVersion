@@ -30,6 +30,8 @@ export type PaymentType = {
   sayadConfirmChequeType: string;
   sayadConfirmBankCode: string;
   sayadConfirmGuaranteeStatus: string;
+  sayadConfirmDueDate: string;
+  sayadConfirmAmount: string;
   cash: string;
   Error: string;
   bankName: string;
