@@ -35,6 +35,11 @@ export type PaymentType = {
   cash: string;
   Error: string;
   bankName: string;
+  sayadConfirmAcceptStatusCode: string;
+  sayadConfirmAcceptStatusMessage: string;
+  acceptDescrptionFromSP: string;
+  VerifiedConfirmSayadTr: string;
+  VerifiedRejectSayadTr: string;
 };
 
 export type DebtType = {
