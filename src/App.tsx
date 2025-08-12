@@ -1,19 +1,16 @@
-import { usePayment } from "./hooks/usePayment";
-import { useParentGuid } from "./hooks/useParentGuid";
 import { useEffect, useState } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
-import { PaymentRow } from "./components/PaymentRow";
+
 import { useCurrentUser } from "./hooks/useUser";
 import { useUserRoles } from "./hooks/useUserRoles";
 import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
-import { useCustomers } from "./hooks/useCustomer";
-import DebtsArchivePage from "./routes/DebtsArchivePage";
-import { Archive, BanknoteArrowUpIcon } from "lucide-react";
-import DebtsPage from "./routes/DebtsPage";
+
+import { useAllPayment } from "./hooks/useAllPayments";
+import { PaymentRowTr } from "./components/PaymentRowTr";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -22,18 +19,13 @@ const specialUsers = [
 ];
 
 function App() {
-  const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
-  const parentGUID = useParentGuid();
-  const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
-  const [isShownDebt, setIsShownDebt] = useState(false);
 
-  const { data, isLoading: isLoadinCustomer } = useCustomers(parentGUID);
   const {
     data: paymentData,
     isLoading: paymentLoading,
     error: paymentError,
-  } = usePayment(guid);
+  } = useAllPayment();
 
   const {
     data: userData,
@@ -43,7 +35,7 @@ function App() {
 
   const { isAgent, isMaster } = useUserRoles(userData ?? null);
   const error = userError || paymentError;
-  const isLoading = paymentLoading || userLoading || isLoadinCustomer;
+  const isLoading = paymentLoading || userLoading;
 
   useEffect(() => {
     if (userData && paymentData) {
@@ -86,34 +78,34 @@ function App() {
   }, [selectedPayments]);
   let barcodeBuffer = "";
   let lastInputTime = 0;
-const handleInputChange = (
-  field: string,
-  event: React.ChangeEvent<HTMLInputElement>
-) => {
-  let value = event.target.value;
-  const now = Date.now();
+  const handleInputChange = (
+    field: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    let value = event.target.value;
+    const now = Date.now();
 
-  if (field === "sayadiCode") {
-    const timeDiff = now - lastInputTime;
-    lastInputTime = now;
+    if (field === "sayadiCode") {
+      const timeDiff = now - lastInputTime;
+      lastInputTime = now;
 
-    // اگر ورودی خیلی سریع وارد شد (مثل بارکد اسکن)
-    if (timeDiff < 50) {
-      barcodeBuffer += value[value.length - 1] || "";
-      // وقتی طول کد به اندازه کافی رسید
-      if (barcodeBuffer.length >= 16) {
-        setFilters((prev) => ({ ...prev, sayadiCode: barcodeBuffer }));
-        barcodeBuffer = "";
+      // اگر ورودی خیلی سریع وارد شد (مثل بارکد اسکن)
+      if (timeDiff < 50) {
+        barcodeBuffer += value[value.length - 1] || "";
+        // وقتی طول کد به اندازه کافی رسید
+        if (barcodeBuffer.length >= 16) {
+          setFilters((prev) => ({ ...prev, sayadiCode: barcodeBuffer }));
+          barcodeBuffer = "";
+        }
+        return;
+      } else {
+        // تایپ دستی → فقط ۱۶ کاراکتر آخر
+        value = value.slice(-16);
       }
-      return;
-    } else {
-      // تایپ دستی → فقط ۱۶ کاراکتر آخر
-      value = value.slice(-16);
     }
-  }
 
-  setFilters((prev) => ({ ...prev, [field]: value }));
-};
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -169,34 +161,9 @@ const handleInputChange = (
     setSelectedPayments([]);
   };
 
-  if (!parentGUID || isLoading) {
-    return <div>در حال بارگذاری...</div>;
-  }
-
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
-        <div className="flex justify-start items-center gap-3">
-          <div
-            onClick={() => setIsShownDebtArchive((cur) => !cur)}
-            className={`flex flex-row- gap-4 items-center justify-center font-bold  border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
-              isShownDebtArchive ? "bg-slate-800 text-white" : ""
-            }`}
-          >
-            <Archive width={20} height={20} />
-          </div>
-          <div
-            onClick={() => setIsShownDebt((cur) => !cur)}
-            className={`flex flex-row- gap-4 items-center justify-center font-bold  border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
-              isShownDebt ? "bg-slate-800 text-white" : ""
-            }`}
-          >
-            <BanknoteArrowUpIcon width={20} height={20} />
-          </div>
-        </div>
-        <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white ">
-          {data?.[0]?.Title ?? "در حال بارگذاری..."}
-        </span>
         <div className="flex flex-col gap-4 items-center justify-center ">
           <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
@@ -246,60 +213,46 @@ const handleInputChange = (
         </div>
       </div>
 
-      {isShownDebtArchive && (
-        <div className={` ${isShownDebt ? "w-1/2" : "w-3/4"} `}>
-          <DebtsArchivePage paymentList={selectedPayments} />
+      <div className="w-3/4">
+        {isLoading && <p>در حال بارگذاری...</p>}
+        {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
+
+        {filteredPayments.length === 0 && (
+          <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
+        )}
+
+        {/* انتخاب همه / عدم انتخاب همه */}
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <input
+            type="checkbox"
+            checked={areAllSelected}
+            onChange={() => {
+              if (areAllSelected) {
+                deselectAllPayments();
+              } else {
+                selectAllPayments();
+              }
+            }}
+            id="selectAllCheckbox"
+            className="cursor-pointer"
+          />
+          <label
+            htmlFor="selectAllCheckbox"
+            className="cursor-pointer select-none text-xl font-bold"
+          >
+            انتخاب همه
+          </label>
         </div>
-      )}
 
-      {!isShownDebtArchive && !isShownDebt && (
-        <div className="w-3/4">
-          {isLoading && <p>در حال بارگذاری...</p>}
-          {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
-
-          {filteredPayments.length === 0 && (
-            <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
-          )}
-
-          {/* انتخاب همه / عدم انتخاب همه */}
-          <div className="mb-4 flex items-center justify-end gap-2">
-            <input
-              type="checkbox"
-              checked={areAllSelected}
-              onChange={() => {
-                if (areAllSelected) {
-                  deselectAllPayments();
-                } else {
-                  selectAllPayments();
-                }
-              }}
-              id="selectAllCheckbox"
-              className="cursor-pointer"
-            />
-            <label
-              htmlFor="selectAllCheckbox"
-              className="cursor-pointer select-none text-xl font-bold"
-            >
-              انتخاب همه
-            </label>
-          </div>
-
-          {filteredPayments.map((item) => (
-            <PaymentRow
-              key={item.ID}
-              parentGuid={guid}
-              item={item}
-              onToggleSelect={() => togglePaymentSelection(item)}
-              isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
-            />
-          ))}
-        </div>
-      )}
-      {isShownDebt && (
-        <div className={`${isShownDebtArchive ? "w-1/2" : "w-3/4"}`}>
-          <DebtsPage paymentList={selectedPayments} />
-        </div>
-      )}
+        {filteredPayments.map((item) => (
+          <PaymentRowTr
+            key={item.ID}
+            item={item}
+            onToggleSelect={() => togglePaymentSelection(item)}
+            isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

@@ -96,7 +96,6 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
   const { mutate: mutateConfirmTr } = useSayadConfirmTr(parentGUID);
   const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(parentGUID);
 
-
   useEffect(() => {
     if (data.sayadConfirmHolders) {
       try {
@@ -221,12 +220,12 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
           </span>
         </div>
         <div></div>
-        <div></div>
+
         {data.sayadConfirmAcceptStatusCode !== "" &&
           data.sayadConfirmAcceptStatusCode !== undefined &&
           data.sayadConfirmAcceptStatusCode !== null && (
             <div
-              className={`rounded-md font-bold text-xl flex justify-center items-center ${
+              className={`rounded-md font-bold text-lg flex justify-center items-center ${
                 data.sayadConfirmAcceptStatusCode === "FAILED"
                   ? "border-4 border-red-800 text-red-800"
                   : data.sayadConfirmAcceptStatusCode === "DONE"
@@ -241,6 +240,7 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
                 : ""}
             </div>
           )}
+        <div></div>
       </div>
     </div>
   );
