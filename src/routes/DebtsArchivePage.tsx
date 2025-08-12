@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParentGuid } from "../hooks/useParentGuid";
-import { loadDebt, type PaymentType } from "../api/getData";
-import { useEffect, useMemo, useState } from "react";
-import type { DebtType } from "../types/apiTypes";
-import { calculateRasDateDebt } from "../utils/calculateRasDate";
+import { loadDebt } from "../api/getData";
+import { useMemo } from "react";
+import type { DebtType, PaymentType } from "../types/apiTypes";
+import {
+  calculateRasDateDebt,
+  calculateRasDatePayment,
+} from "../utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "../utils/getShamsiDateFromDayOfYear";
 
 type Props = {
@@ -12,7 +15,6 @@ type Props = {
 
 function DebtsArchivePage({ paymentList }: Props) {
   const parentGUID = useParentGuid();
-  const [dueDateDisplay, setDueDateDisplay] = useState("");
 
   const {
     data: debtList = [],
@@ -51,7 +53,6 @@ function DebtsArchivePage({ paymentList }: Props) {
 
         if (remainingPayment >= currentDebt) {
           remainingPayment -= currentDebt;
-          // نگه داشتن مبلغ اصلی و عدم صفر کردن debt
           acc.push({ ...debt, originalDebt });
         }
 
@@ -68,28 +69,44 @@ function DebtsArchivePage({ paymentList }: Props) {
     );
   }, [settledDebts]);
 
-  // محاسبه و نمایش تاریخ راس
-  useEffect(() => {
-    if (settledDebts.length > 0) {
-      const debtsForRas = settledDebts.map((d) => ({
-        ...d,
-        debt: d.originalDebt, // تضمین اینکه تابع Ras مبلغ اصلی رو بگیره
-      }));
-
-      const dueDateDisplayCalculated = calculateRasDateDebt(debtsForRas);
-
-      if (
-        dueDateDisplayCalculated !== null &&
-        dueDateDisplayCalculated !== undefined
-      ) {
-        setDueDateDisplay(getShamsiDateFromDayOfYear(dueDateDisplayCalculated));
-      } else {
-        setDueDateDisplay("");
-      }
-    } else {
-      setDueDateDisplay("");
-    }
+  // داده‌های مورد نیاز برای محاسبه راس بدهی تسویه شده
+  const settledDebtsForRas = useMemo(() => {
+    return settledDebts.map((d) => ({
+      ...d,
+      debt: d.originalDebt, // تضمین اینکه تابع Ras مبلغ اصلی رو بگیره
+    }));
   }, [settledDebts]);
+
+  // محاسبه روز راس برای بدهی‌های تسویه شده
+  const dueDateDisplayCalculated = useMemo(() => {
+    if (settledDebtsForRas.length > 0) {
+      return calculateRasDateDebt(settledDebtsForRas);
+    }
+    return null;
+  }, [settledDebtsForRas]);
+
+  // تاریخ شمس از روز سال راس بدهی تسویه شده
+  const dueDateDisplay = dueDateDisplayCalculated
+    ? getShamsiDateFromDayOfYear(dueDateDisplayCalculated)
+    : "";
+
+  // محاسبه روز راس برای کل بدهی‌ها
+  const rasDayOfYearAllPaymnets = calculateRasDatePayment(paymentList);
+
+  // محاسبه اختلاف روز با علامت مثبت یا منفی
+  const dayDifference =
+    rasDayOfYearAllPaymnets !== null && dueDateDisplayCalculated !== null
+      ? rasDayOfYearAllPaymnets - dueDateDisplayCalculated
+      : null;
+
+  const differenceText =
+    dayDifference !== null
+      ? dayDifference === 0
+        ? "0 روز"
+        : dayDifference > 0
+        ? `${dayDifference} روز مانده`
+        : `${Math.abs(dayDifference)} روز گذشته`
+      : "—";
 
   if (!parentGUID) {
     return (
@@ -130,6 +147,13 @@ function DebtsArchivePage({ paymentList }: Props) {
                 {dueDateDisplay || "محاسبه نشد"}
               </span>
             </div>
+          </div>
+
+          {/* اختلاف روز */}
+          <div className="text-center mb-8">
+            <span className="text-sm font-semibold text-gray-700">
+              اختلاف با راس کل بدهی‌ها: {differenceText}
+            </span>
           </div>
 
           {/* لیست بدهی‌های تسویه شده */}

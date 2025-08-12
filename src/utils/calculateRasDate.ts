@@ -1,14 +1,19 @@
 import type { DebtType, PaymentType } from "../types/apiTypes";
 
 export function calculateRasDatePayment(data: PaymentType[]) {
-  const totalAmount = data.reduce(
+  // فیلتر کردن داده‌ها بر اساس status
+  const filteredData = data.filter(
+    (item) => item.status === "0" || item.status === "1" || item.status === "4"
+  );
+
+  const totalAmount = filteredData.reduce(
     (sum, item: PaymentType) => sum + Number(item.price),
     0
   );
   console.log("totalAmount", totalAmount);
   if (totalAmount === 0) return null;
 
-  const weightedSum = data.reduce(
+  const weightedSum = filteredData.reduce(
     (sum, item) => sum + Number(item.price) * Number(item.dayOfYear),
     0
   );
