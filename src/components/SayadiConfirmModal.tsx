@@ -176,7 +176,13 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
         <div>
           <p className="font-semibold text-gray-600"> مبلغ ثبت شده </p>
           <div className="flex flex-row-reverse gap-3 items-center justify-end">
-            <span className="font-bold text-sky-700">
+            <span
+              className={`font-bold ${
+                data.sayadConfirmAmount === data.price
+                  ? "text-green-700"
+                  : "text-red-700"
+              }`}
+            >
               {Number(data.sayadConfirmAmount).toLocaleString("fa-IR") ??
                 "درج نشده"}
             </span>
@@ -186,9 +192,18 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
 
         <div>
           <p className="font-semibold text-gray-600"> تاریخ ثبت شده </p>
-          <span className="font-bold text-sky-700">
+          <span className={`font-bold text-sky-700`}>
             {formatShamsiDate(String(data.sayadConfirmDueDate)) ?? "درج نشده"}
           </span>
+        </div>
+
+        <div className="font-semibold bg-green-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-green-700 cursorointer">
+          تایید چک صیاد{" "}
+        </div>
+
+        <div className="font-semibold bg-red-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-red-700 cursorointer">
+          {" "}
+          عدم تایید چک صیاد
         </div>
       </div>
     </div>
