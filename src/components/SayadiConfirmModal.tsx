@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import type { PaymentType } from "../types/apiTypes";
 import { Undo2 } from "lucide-react";
 import { formatShamsiDate } from "../utils/formatShamsiDate";
-import { useSayadConfirmTr } from "../hooks/useSayadConfirmTr";
-import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
+
 type Props = {
   data: PaymentType;
   closeModal: () => void;
@@ -92,10 +91,6 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
   >([]);
-  const { parentGUID, ID } = data;
-  const { mutate: mutateConfirmTr } = useSayadConfirmTr(parentGUID);
-  const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(parentGUID);
-
 
   useEffect(() => {
     if (data.sayadConfirmHolders) {
@@ -112,24 +107,6 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
 
   return (
     <div className="w-full p-6 flex flex-col   gap-4 rounded-md  ">
-      {!data.sayadConfirmAcceptStatusCode && (
-        <div className="flex justify-start items-center gap-3">
-          <div
-            onClick={() => mutateConfirmTr(ID)}
-            className="font-semibold bg-green-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-green-700 cursor-pointer h-6 px-1.5 py-1 "
-          >
-            تایید چک صیاد
-          </div>
-
-          <div
-            onClick={() => mutateRejectTr(ID)}
-            className="font-semibold bg-red-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-red-700 cursor-pointer h-6 px-1.5 py-1 "
-          >
-            {" "}
-            عدم تایید چک صیاد
-          </div>
-        </div>
-      )}
       <button
         className="bg-sky-500 px-1.5 py-1 flex gap-1 items-center justify-end rounded-md cursor-pointer text-white hover:bg-white hover:text-sky-500"
         onClick={() => closeModal()}
@@ -220,27 +197,6 @@ function SayadiConfirmModal({ data, closeModal }: Props) {
             {formatShamsiDate(String(data.sayadConfirmDueDate)) ?? "درج نشده"}
           </span>
         </div>
-        <div></div>
-        <div></div>
-        {data.sayadConfirmAcceptStatusCode !== "" &&
-          data.sayadConfirmAcceptStatusCode !== undefined &&
-          data.sayadConfirmAcceptStatusCode !== null && (
-            <div
-              className={`rounded-md font-bold text-xl flex justify-center items-center ${
-                data.sayadConfirmAcceptStatusCode === "FAILED"
-                  ? "border-4 border-red-800 text-red-800"
-                  : data.sayadConfirmAcceptStatusCode === "DONE"
-                  ? "border-4 border-green-800 text-green-800"
-                  : ""
-              } `}
-            >
-              {data.sayadConfirmAcceptStatusCode === "FAILED"
-                ? "  چک صیادی رد شده است"
-                : data.sayadConfirmAcceptStatusCode === "DONE"
-                ? "چک صیادی تایید شده است"
-                : ""}
-            </div>
-          )}
       </div>
     </div>
   );
