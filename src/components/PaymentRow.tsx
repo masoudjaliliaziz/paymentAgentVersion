@@ -119,6 +119,15 @@ export const PaymentRow = ({
                   >
                     استعلام ثبت چک
                   </button>
+                ) : String(item.VerifiedSayad) === "2" ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="bg-red-600 text-white px-4 py-2 rounded-md"
+                    onClick={() => setShowDetails(true)}
+                  >
+                    نمایش اطلاعات ثبت چک
+                  </button>
                 ) : (
                   <button
                     type="button"
