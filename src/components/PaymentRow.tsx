@@ -111,8 +111,8 @@ export const PaymentRow = ({
 
                 <ActionByRole ID={ID} />
 
-                {!item.VerifiedSayad?.trim() ||
-                  (item.VerifiedSayad === "0" && (
+                {!(String(item.VerifiedSayad) === "1") &&
+                  !(String(item.VerifiedSayad) === "2") && (
                     <button
                       type="button"
                       onClick={checkSayadConfirm}
@@ -120,7 +120,7 @@ export const PaymentRow = ({
                     >
                       استعلام ثبت چک
                     </button>
-                  ))}
+                  )}
                 {String(item.VerifiedSayad) === "1" && (
                   <button
                     type="button"
