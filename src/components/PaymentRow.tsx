@@ -111,21 +111,32 @@ export const PaymentRow = ({
 
                 <ActionByRole ID={ID} />
 
-                {!item.VerifiedSayad?.trim() || item.VerifiedSayad === "0" ? (
-                  <button
-                    type="button"
-                    onClick={checkSayadConfirm}
-                    className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
-                  >
-                    استعلام ثبت چک
-                  </button>
-                ) : (
+                {!item.VerifiedSayad?.trim() ||
+                  (item.VerifiedSayad === "0" && (
+                    <button
+                      type="button"
+                      onClick={checkSayadConfirm}
+                      className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
+                    >
+                      استعلام ثبت چک
+                    </button>
+                  ))}
+                {String(item.VerifiedSayad) === "1" && (
                   <button
                     type="button"
                     className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
                     onClick={() => setShowDetails(true)}
                   >
                     نمایش اطلاعات ثبت چک
+                  </button>
+                )}
+                {String(item.VerifiedSayad) === "2" && (
+                  <button
+                    disabled
+                    type="button"
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                  >
+                    چک به نام زرسیم ثبت نشده است
                   </button>
                 )}
 
