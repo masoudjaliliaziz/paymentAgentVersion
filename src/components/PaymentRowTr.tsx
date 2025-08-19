@@ -111,15 +111,17 @@ export const PaymentRowTr = ({
 
                 <ActionByRole ID={ID} />
 
-                {!item.VerifiedSayad?.trim() || item.VerifiedSayad === "0" ? (
-                  <button
-                    type="button"
-                    onClick={checkSayadConfirm}
-                    className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
-                  >
-                    استعلام ثبت چک
-                  </button>
-                ) : (
+                {!(String(item.VerifiedSayad) === "1") &&
+                  !(String(item.VerifiedSayad) === "2") && (
+                    <button
+                      type="button"
+                      onClick={checkSayadConfirm}
+                      className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
+                    >
+                      استعلام ثبت چک
+                    </button>
+                  )}
+                {String(item.VerifiedSayad) === "1" && (
                   <button
                     type="button"
                     className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-md"
@@ -128,7 +130,15 @@ export const PaymentRowTr = ({
                     نمایش اطلاعات ثبت چک
                   </button>
                 )}
-
+                {String(item.VerifiedSayad) === "2" && (
+                  <button
+                    disabled
+                    type="button"
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                  >
+                    چک به نام زرسیم ثبت نشده است
+                  </button>
+                )}
                 <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
                   <div className="font-bold text-sky-500 text-xl ">
                     {item.iban ? getBankNameFromIBAN(item.iban) : "نامشخص"}
