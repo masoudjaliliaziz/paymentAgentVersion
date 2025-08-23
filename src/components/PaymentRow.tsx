@@ -1,6 +1,5 @@
 import CheckPic from "./CheckPic";
 import CheckPicConfirm from "./CheckPicConfirm";
-
 import ActionByRole from "./ActionByRole";
 import type { PaymentType } from "../types/apiTypes";
 import { useSayadConfirm } from "../hooks/useSayadConfirm";
@@ -11,12 +10,28 @@ import { getBankNameFromIBAN } from "../utils/getBankNameFromIban";
 import { SayadCheckOverlay } from "./SayadCheckOverlay";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface PaymentRowProps {
-  item: PaymentType;
-  parentGuid: string;
-  onToggleSelect: () => void;
-  isSelected: boolean;
-}
+// Utility function to normalize dates for comparison
+const normalizeDate = (date: string | undefined | null): string | null => {
+  if (!date || typeof date !== "string") {
+    console.warn("normalizeDate: تاریخ نامعتبر یا وجود ندارد", date);
+    return null;
+  }
+
+  // تبدیل اعداد فارسی به انگلیسی
+  const persianToEnglishDigits = (str: string) =>
+    str.replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728));
+
+  // حذف تمام کاراکترهای غیرعددی (مثل اسلش) و تبدیل اعداد فارسی
+  const normalized = persianToEnglishDigits(date).replace(/[^0-9]/g, "");
+
+  // اطمینان از اینکه تاریخ در فرمت YYYYMMDD (8 رقم) است
+  if (/^\d{8}$/.test(normalized)) {
+    return normalized;
+  }
+
+  console.warn("normalizeDate: فرمت تاریخ نامعتبر است", date, normalized);
+  return null;
+};
 
 const getCheckColor = (colorCode: string | undefined) => {
   const colorMap: Record<string, string> = {
@@ -28,6 +43,13 @@ const getCheckColor = (colorCode: string | undefined) => {
   };
   return colorMap[colorCode ?? ""] ?? "bg-gray-500 border border-gray-700";
 };
+
+interface PaymentRowProps {
+  item: PaymentType;
+  parentGuid: string;
+  onToggleSelect: () => void;
+  isSelected: boolean;
+}
 
 export const PaymentRow = ({
   item,
@@ -43,6 +65,41 @@ export const PaymentRow = ({
 
   const [showCheckOverlay, setShowCheckOverlay] = useState(false);
   const [checkBtnColor, setCheckBtnColor] = useState("#0ea5e9");
+
+  // نرمال‌سازی مقادیر قیمت برای مقایسه
+  const normalizedPrice = item.price
+    ? String(Number(String(item.price).replace(/[^0-9]/g, "")))
+    : null;
+  const normalizedSayadAmount = item.sayadConfirmAmount
+    ? String(Number(String(item.sayadConfirmAmount).replace(/[^0-9]/g, "")))
+    : null;
+
+  // بررسی تطابق قیمت و تاریخ
+  const normalizedDueDate = normalizeDate(item.dueDate);
+  const normalizedSayadDueDate = normalizeDate(item.sayadConfirmDueDate);
+  const isPriceAndDateMatch =
+    normalizedPrice &&
+    normalizedSayadAmount &&
+    normalizedPrice === normalizedSayadAmount &&
+    normalizedDueDate &&
+    normalizedSayadDueDate &&
+    normalizedDueDate === normalizedSayadDueDate;
+
+  // لاگ‌های دیباگ
+  console.log({
+    VerifiedSayad: item.VerifiedSayad,
+    price: item.price,
+    sayadConfirmAmount: item.sayadConfirmAmount,
+    normalizedPrice,
+    normalizedSayadAmount,
+    priceMatch: normalizedPrice === normalizedSayadAmount,
+    dueDate: item.dueDate,
+    sayadConfirmDueDate: item.sayadConfirmDueDate,
+    normalizedDueDate,
+    normalizedSayadDueDate,
+    dateMatch: normalizedDueDate === normalizedSayadDueDate,
+    isPriceAndDateMatch,
+  });
 
   function checkSayadConfirm() {
     setCheckBtnColor("#0ea5e9");
@@ -141,7 +198,7 @@ export const PaymentRow = ({
                 )}
 
                 <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
-                  <div className="font-bold text-sky-500 text-xl ">
+                  <div className="font-bold text-sky-500 text-xl">
                     {item.iban ? getBankNameFromIBAN(item.iban) : "نامشخص"}
                   </div>
                   <input
@@ -152,6 +209,21 @@ export const PaymentRow = ({
                   />
                 </div>
               </div>
+
+              {/* لیبل وضعیت تطابق */}
+              {String(item.VerifiedSayad) === "1" && (
+                <div className="flex justify-end">
+                  {isPriceAndDateMatch ? (
+                    <span className="bg-green-500 text-white px-3 py-1 rounded-md text-sm font-semibold">
+                      مبلغ و تاریخ تطابق دارند
+                    </span>
+                  ) : (
+                    <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold">
+                      مبلغ یا تاریخ تطابق ندارند
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* جزئیات چک */}
               <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
