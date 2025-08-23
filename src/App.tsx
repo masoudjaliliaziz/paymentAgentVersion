@@ -14,6 +14,7 @@ import { useCustomers } from "./hooks/useCustomer";
 import DebtsArchivePage from "./routes/DebtsArchivePage";
 import { Archive, BanknoteArrowUpIcon } from "lucide-react";
 import DebtsPage from "./routes/DebtsPage";
+import { updateSayadVerified } from "./api/updateItem";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -27,6 +28,12 @@ function App() {
   const parentGUID = useParentGuid();
   const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
   const [isShownDebt, setIsShownDebt] = useState(false);
+  const [isVerifyingAll, setIsVerifyingAll] = useState(false);
+  const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
+  const [completedVerifications, setCompletedVerifications] = useState<
+    string[]
+  >([]);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const { data, isLoading: isLoadinCustomer } = useCustomers(parentGUID);
   const {
@@ -75,7 +82,24 @@ function App() {
         : [...prev, payment];
     });
   };
+  const processVerifyAll = async (ids: string[]) => {
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      try {
+        await updateSayadVerified(Number(id)); // مطمئن شوید این تابع وارد شده
+        setCompletedVerifications((prev) => [...prev, id]);
+      } catch (error) {
+        setErrorMessages((prev) => [
+          ...prev,
+          `خطا برای ID ${id}: ${error || "نامشخص"}`,
+        ]);
+      }
+      await new Promise((res) => setTimeout(res, 200)); // فاصله زمانی بین درخواست‌ها
+    }
 
+    // بعد از اتمام
+    setIsVerifyingAll(false);
+  };
   useEffect(() => {
     if (selectedPayments.length > 0) {
       const calculated = calculateRasDatePayment(selectedPayments);
@@ -84,42 +108,73 @@ function App() {
       setSelectedRasDate(null);
     }
   }, [selectedPayments]);
+
+  useEffect(() => {
+    if (
+      verifyAllIds.length > 0 &&
+      completedVerifications.length === verifyAllIds.length
+    ) {
+      setIsVerifyingAll(false);
+      setVerifyAllIds([]);
+      setCompletedVerifications([]);
+      console.log("دیباگ: همه استعلام‌ها تکمیل شدند", {
+        total: verifyAllIds.length,
+        errors: errorMessages,
+      });
+      if (errorMessages.length > 0) {
+        console.log("دیباگ: خطاها در استعلام گروهی:", errorMessages);
+      }
+    }
+  }, [completedVerifications, verifyAllIds, errorMessages]);
+
+  const verifyAllPayments = () => {
+    const eligibleIds = filteredPayments.map((p) => String(p.ID));
+    if (!eligibleIds.length) return;
+
+    // ابتدا شناسه‌ها را ست می‌کنیم
+    setVerifyAllIds(eligibleIds);
+    setIsVerifyingAll(true);
+    setCompletedVerifications([]);
+    setErrorMessages([]);
+
+    processVerifyAll(eligibleIds);
+  };
+
   let barcodeBuffer = "";
   let lastInputTime = 0;
-const handleInputChange = (
-  field: string,
-  event: React.ChangeEvent<HTMLInputElement>
-) => {
-  let value = event.target.value;
-  const now = Date.now();
 
-  if (field === "sayadiCode") {
-    const timeDiff = now - lastInputTime;
-    lastInputTime = now;
+  const handleInputChange = (
+    field: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    let value = event.target.value;
+    const now = Date.now();
 
-    // اگر ورودی خیلی سریع وارد شد (مثل بارکد اسکن)
-    if (timeDiff < 50) {
-      barcodeBuffer += value[value.length - 1] || "";
-      // وقتی طول کد به اندازه کافی رسید
-      if (barcodeBuffer.length >= 16) {
-        setFilters((prev) => ({ ...prev, sayadiCode: barcodeBuffer }));
-        barcodeBuffer = "";
+    if (field === "sayadiCode") {
+      const timeDiff = now - lastInputTime;
+      lastInputTime = now;
+
+      if (timeDiff < 50) {
+        barcodeBuffer += value[value.length - 1] || "";
+        if (barcodeBuffer.length >= 16) {
+          setFilters((prev) => ({ ...prev, sayadiCode: barcodeBuffer }));
+          barcodeBuffer = "";
+        }
+        return;
+      } else {
+        value = value.slice(-16);
       }
-      return;
-    } else {
-      // تایپ دستی → فقط ۱۶ کاراکتر آخر
-      value = value.slice(-16);
     }
-  }
 
-  setFilters((prev) => ({ ...prev, [field]: value }));
-};
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // جلوگیری از submit فرم
+      event.preventDefault();
     }
   };
+
   const filteredPayments =
     paymentData
       ?.filter((item) => {
@@ -169,17 +224,13 @@ const handleInputChange = (
     setSelectedPayments([]);
   };
 
-  if (!parentGUID || isLoading) {
-    return <div>در حال بارگذاری...</div>;
-  }
-
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
         <div className="flex justify-start items-center gap-3">
           <div
             onClick={() => setIsShownDebtArchive((cur) => !cur)}
-            className={`flex flex-row- gap-4 items-center justify-center font-bold  border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
+            className={`flex items-center justify-center font-bold border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
               isShownDebtArchive ? "bg-slate-800 text-white" : ""
             }`}
           >
@@ -187,17 +238,17 @@ const handleInputChange = (
           </div>
           <div
             onClick={() => setIsShownDebt((cur) => !cur)}
-            className={`flex flex-row- gap-4 items-center justify-center font-bold  border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
+            className={`flex items-center justify-center font-bold border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
               isShownDebt ? "bg-slate-800 text-white" : ""
             }`}
           >
             <BanknoteArrowUpIcon width={20} height={20} />
           </div>
         </div>
-        <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white ">
+        <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
           {data?.[0]?.Title ?? "در حال بارگذاری..."}
         </span>
-        <div className="flex flex-col gap-4 items-center justify-center ">
+        <div className="flex flex-col gap-4 items-center justify-center">
           <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
           </span>
@@ -219,7 +270,6 @@ const handleInputChange = (
           </div>
         </div>
 
-        {/* فیلترها */}
         <div className="flex flex-col w-full gap-2 text-sm">
           {Object.entries({
             sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
@@ -247,7 +297,7 @@ const handleInputChange = (
       </div>
 
       {isShownDebtArchive && (
-        <div className={` ${isShownDebt ? "w-1/2" : "w-3/4"} `}>
+        <div className={`${isShownDebt ? "w-1/2" : "w-3/4"}`}>
           <DebtsArchivePage paymentList={selectedPayments} />
         </div>
       )}
@@ -261,27 +311,56 @@ const handleInputChange = (
             <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
           )}
 
-          {/* انتخاب همه / عدم انتخاب همه */}
-          <div className="mb-4 flex items-center justify-end gap-2">
-            <input
-              type="checkbox"
-              checked={areAllSelected}
-              onChange={() => {
-                if (areAllSelected) {
-                  deselectAllPayments();
-                } else {
-                  selectAllPayments();
-                }
-              }}
-              id="selectAllCheckbox"
-              className="cursor-pointer"
-            />
-            <label
-              htmlFor="selectAllCheckbox"
-              className="cursor-pointer select-none text-xl font-bold"
+          {errorMessages.length > 0 && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded-md">
+              <p className="text-red-700 font-semibold">
+                خطاها در استعلام گروهی:
+              </p>
+              <ul className="list-disc list-inside">
+                {errorMessages.map((msg, index) => (
+                  <li key={index} className="text-red-600">
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mb-4 flex items-center justify-end gap-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={areAllSelected}
+                onChange={() => {
+                  if (areAllSelected) {
+                    deselectAllPayments();
+                  } else {
+                    selectAllPayments();
+                  }
+                }}
+                id="selectAllCheckbox"
+                className="cursor-pointer"
+              />
+              <label
+                htmlFor="selectAllCheckbox"
+                className="cursor-pointer select-none text-xl font-bold"
+              >
+                انتخاب همه
+              </label>
+            </div>
+            <button
+              onClick={verifyAllPayments}
+              disabled={isVerifyingAll || filteredPayments.length === 0}
+              className={`px-4 py-2 rounded-md text-white font-semibold ${
+                isVerifyingAll || filteredPayments.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-sky-500 hover:bg-sky-600"
+              }`}
             >
-              انتخاب همه
-            </label>
+              {isVerifyingAll
+                ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
+                : "استعلام همه"}
+            </button>
           </div>
 
           {filteredPayments.map((item) => (
@@ -291,6 +370,17 @@ const handleInputChange = (
               item={item}
               onToggleSelect={() => togglePaymentSelection(item)}
               isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+              isVerifyingAll={isVerifyingAll}
+              verifyAllIds={verifyAllIds}
+              onVerificationComplete={(id: string, error?: string) => {
+                setCompletedVerifications((prev) => [...prev, id]);
+                if (error) {
+                  setErrorMessages((prev) => [
+                    ...prev,
+                    `خطا برای ID ${id}: ${error}`,
+                  ]);
+                }
+              }}
             />
           ))}
         </div>
