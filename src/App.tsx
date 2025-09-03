@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
-import { useCurrentUser } from "./hooks/useUser";
+
 import { useUserRoles } from "./hooks/useUserRoles";
 import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
@@ -10,6 +10,9 @@ import type { PaymentType } from "./types/apiTypes";
 import { useAllPayment } from "./hooks/useAllPayments";
 import { PaymentRowTr } from "./components/PaymentRowTr";
 import { updateSayadVerified } from "./api/updateItem";
+import { Captions, CaptionsOff, Check, X } from "lucide-react";
+import clsx from "clsx";
+import { useCurrentUser } from "./hooks/useUser";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -21,6 +24,14 @@ function App() {
   const dispatch: AppDispatch = useDispatch();
   const [isVerifyingAll, setIsVerifyingAll] = useState(false);
   const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
+  const [shownSayadConfirmTrChecks, setShownSayadConfirmTrChecks] =
+    useState<boolean>(false);
+  const [shownSayadUnConfirmTrChecks, setShownSayadUnConfirmTrChecks] =
+    useState<boolean>(false);
+  const [shownConfirmTrChecks, setShownConfirmTrChecks] =
+    useState<boolean>(false);
+  const [shownUnConfirmTrChecks, setShownUnConfirmTrChecks] =
+    useState<boolean>(false);
   const [completedVerifications, setCompletedVerifications] = useState<
     string[]
   >([]);
@@ -29,8 +40,8 @@ function App() {
     key: string;
     direction: "asc" | "desc";
   }>({
-    key: "dueDate", // مقدار پیش‌فرض: مرتب‌سازی بر اساس تاریخ
-    direction: "asc", // مقدار پیش‌فرض: صعودی
+    key: "dueDate",
+    direction: "asc",
   });
 
   const processVerifyAll = async (ids: string[]) => {
@@ -169,7 +180,6 @@ function App() {
     }
   };
 
-  // تابع مرتب‌سازی
   const sortPayments = (payments: PaymentType[]) => {
     return [...payments].sort((a, b) => {
       const key = sortConfig.key as keyof PaymentType;
@@ -177,12 +187,10 @@ function App() {
       const valueB = b[key] ?? "";
 
       if (key === "price") {
-        // مرتب‌سازی بر اساس مبلغ (عددی)
         const numA = Number(valueA) || 0;
         const numB = Number(valueB) || 0;
         return sortConfig.direction === "asc" ? numA - numB : numB - numA;
       } else if (key === "dueDate") {
-        // مرتب‌سازی بر اساس تاریخ (رشته‌ای یا تاریخ)
         return sortConfig.direction === "asc"
           ? valueA.toString().localeCompare(valueB.toString())
           : valueB.toString().localeCompare(valueA.toString());
@@ -191,7 +199,6 @@ function App() {
     });
   };
 
-  // اعمال فیلترها
   const filteredPayments =
     paymentData
       ?.filter((item) => {
@@ -222,7 +229,6 @@ function App() {
         });
       }) ?? [];
 
-  // مرتب‌سازی داده‌ها
   const sortedPayments = sortPayments(filteredPayments);
 
   const totalSelectedPrice = selectedPayments.reduce(
@@ -244,7 +250,6 @@ function App() {
     setSelectedPayments([]);
   };
 
-  // تابع برای تغییر نوع و جهت مرتب‌سازی
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
       key,
@@ -252,9 +257,129 @@ function App() {
     }));
   };
 
+  const toggleSayadConfirmTrChecks = () => {
+    const newState = !shownSayadConfirmTrChecks;
+    setShownSayadConfirmTrChecks(newState);
+    if (newState) {
+      setShownSayadUnConfirmTrChecks(false);
+      setShownConfirmTrChecks(false);
+      setShownUnConfirmTrChecks(false);
+    }
+  };
+
+  const toggleSayadUnConfirmTrChecks = () => {
+    const newState = !shownSayadUnConfirmTrChecks;
+    setShownSayadUnConfirmTrChecks(newState);
+    if (newState) {
+      setShownSayadConfirmTrChecks(false);
+      setShownConfirmTrChecks(false);
+      setShownUnConfirmTrChecks(false);
+    }
+  };
+
+  const toggleConfirmTrChecks = () => {
+    const newState = !shownConfirmTrChecks;
+    setShownConfirmTrChecks(newState);
+    if (newState) {
+      setShownSayadConfirmTrChecks(false);
+      setShownSayadUnConfirmTrChecks(false);
+      setShownUnConfirmTrChecks(false);
+    }
+  };
+
+  const toggleUnConfirmTrChecks = () => {
+    const newState = !shownUnConfirmTrChecks;
+    setShownUnConfirmTrChecks(newState);
+    if (newState) {
+      setShownSayadConfirmTrChecks(false);
+      setShownSayadUnConfirmTrChecks(false);
+      setShownConfirmTrChecks(false);
+    }
+  };
+
+  const getDisplayedPayments = () => {
+    if (shownSayadConfirmTrChecks) {
+      return (
+        paymentData?.filter((data) => data.VerifiedConfirmSayadTr === "1") ?? []
+      );
+    }
+    if (shownSayadUnConfirmTrChecks) {
+      return (
+        paymentData?.filter((data) => data.VerifiedRejectSayadTr === "1") ?? []
+      );
+    }
+    if (shownConfirmTrChecks) {
+      return paymentData?.filter((data) => data.status === "4") ?? [];
+    }
+    if (shownUnConfirmTrChecks) {
+      return paymentData?.filter((data) => data.status === "3") ?? [];
+    }
+    return sortedPayments;
+  };
+
+  const displayedPayments = getDisplayedPayments();
+
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
+        <div className="flex w-full items-center justify-center gap-2 flex-col">
+          <div
+            className={clsx(
+              "p-1 rounded-md flex items-center justify-between gap-2 w-full",
+              {
+                "bg-sky-500 text-white": shownSayadConfirmTrChecks,
+                "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
+              }
+            )}
+            onClick={toggleSayadConfirmTrChecks}
+          >
+            <Captions />
+            <span className="text-xs font-bold">
+              چک‌های تأییدشده در سامانه صیاد
+            </span>
+          </div>
+          <div
+            className={clsx(
+              "p-1 w-full rounded-md flex items-center justify-between gap-2",
+              {
+                "bg-sky-500 text-white": shownSayadUnConfirmTrChecks,
+                "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
+              }
+            )}
+            onClick={toggleSayadUnConfirmTrChecks}
+          >
+            <CaptionsOff />
+            <span className="text-xs font-bold">
+              چک‌های ردشده در سامانه صیاد
+            </span>
+          </div>
+          <div
+            className={clsx(
+              "p-1 rounded-md flex items-center justify-between gap-2 w-full",
+              {
+                "bg-sky-500 text-white": shownConfirmTrChecks,
+                "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
+              }
+            )}
+            onClick={toggleConfirmTrChecks}
+          >
+            <Check />
+            <span className="text-xs font-bold">چک‌های تأییدشده خزانه</span>
+          </div>
+          <div
+            className={clsx(
+              "p-1 rounded-md flex items-center justify-between gap- w-full",
+              {
+                "bg-sky-500 text-white": shownUnConfirmTrChecks,
+                "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
+              }
+            )}
+            onClick={toggleUnConfirmTrChecks}
+          >
+            <X />
+            <span className="text-xs font-bold">چک‌های ردشده خزانه</span>
+          </div>
+        </div>
         <div className="flex flex-col gap-4 items-center justify-center">
           <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
@@ -277,7 +402,6 @@ function App() {
           </div>
         </div>
 
-        {/* فیلترها */}
         <div className="flex flex-col w-full gap-2 text-sm">
           {Object.entries({
             sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
@@ -286,7 +410,7 @@ function App() {
             serialNo: "شماره سریال (مثلاً ۹۸۷۶۵۴)",
             SalesExpert: "کارشناس فروش (مثلاً سمیرا علی‌پور)",
             iban: "شماره شبا (مثلاً IR123...)",
-            name: "نام مشتری (مثلاً علی رضایی)",
+            name: `نام مشتری (مثلاً ${paymentData?.[0]?.name || "علی رضایی"})`,
           }).map(([key, placeholder]) => (
             <div key={key} className="flex flex-col">
               <label className="mb-1 text-gray-600">
@@ -308,11 +432,10 @@ function App() {
         {isLoading && <p>در حال بارگذاری...</p>}
         {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
 
-        {sortedPayments.length === 0 && (
+        {displayedPayments.length === 0 && (
           <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
         )}
 
-        {/* کنترل‌های مرتب‌سازی */}
         <div className="mb-4 flex items-center justify-end gap-4">
           <div className="flex items-center gap-2">
             <button
@@ -378,7 +501,7 @@ function App() {
           </button>
         </div>
 
-        {sortedPayments.map((item, i) => (
+        {displayedPayments.map((item, i) => (
           <PaymentRowTr
             key={item.ID}
             index={i}

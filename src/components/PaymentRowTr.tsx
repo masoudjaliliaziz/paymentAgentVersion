@@ -92,6 +92,7 @@ function guaranteeStatusToMessage(code: string): string {
 import { formatShamsiDate } from "../utils/formatShamsiDate";
 import { useSayadConfirmTr } from "../hooks/useSayadConfirmTr";
 import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
+import { useCustomers } from "../hooks/useCustomer";
 
 const normalizeDate = (date: string | undefined | null): string | null => {
   if (!date || typeof date !== "string") {
@@ -147,6 +148,7 @@ export function PaymentRowTr({
     SayadHolders[]
   >([]);
   const [isVerifying, setIsVerifying] = useState(false);
+  const { data, isLoading: isLoadinCustomer } = useCustomers(item.parentGUID);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { mutate: mutateConfirmTr } = useSayadConfirmTr(item.parentGUID);
   const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(item.parentGUID);
@@ -328,7 +330,9 @@ export function PaymentRowTr({
     onVerificationComplete,
     isVerifying,
   ]);
-
+  if (isLoadinCustomer) {
+    return <span className="spin-in-6 ">در حال بارگیری</span>;
+  }
   return (
     <>
       {item.cash === "0" && (
@@ -408,6 +412,9 @@ export function PaymentRowTr({
                   className="w-4 h-4 cursor-pointer"
                 />
               </div>
+              <span className="text-sm font-bold  text-base-content  bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
+                {data?.[0]?.Title ?? "در حال بارگذاری..."}
+              </span>
               <div className="font-black text-xl">
                 {(index + 1).toLocaleString("fa-IR")}
               </div>
@@ -644,15 +651,19 @@ export function PaymentRowTr({
                           className={`rounded-md font-bold text-lg flex justify-center items-center ${
                             item.sayadConfirmAcceptStatusCode === "FAILED"
                               ? "border-4 border-red-800 text-red-800"
-                              : item.sayadConfirmAcceptStatusCode === "DONE"
+                              : item.sayadConfirmAcceptStatusCode === "DONE" &&
+                                item.sayadConfirmAcceptStatusMessage ===
+                                  "تایید چک با موفقیت انجام شد"
                               ? "border-4 border-green-800 text-green-800"
+                              : item.sayadConfirmAcceptStatusCode === "DONE"
+                              ? "border-4 border-orange-400 text-orange-400"
                               : ""
                           } `}
                         >
                           {item.sayadConfirmAcceptStatusCode === "FAILED"
-                            ? "  چک صیادی رد شده است"
+                            ? item.sayadConfirmAcceptStatusMessage
                             : item.sayadConfirmAcceptStatusCode === "DONE"
-                            ? "چک صیادی تایید شده است"
+                            ? item.sayadConfirmAcceptStatusMessage
                             : ""}
                         </div>
                       )}
@@ -726,6 +737,9 @@ export function PaymentRowTr({
                 onChange={onToggleSelect}
                 className="w-4 h-4 cursor-pointer"
               />
+              <span className="text-sm font-bold text-base-content  bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
+                {data?.[0]?.Title ?? "در حال بارگذاری..."}
+              </span>
               <div className="font-black text-xl">
                 {index.toLocaleString("fa-IR")}
               </div>
