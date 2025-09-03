@@ -2,15 +2,14 @@ import { useEffect, useState } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
-
 import { useCurrentUser } from "./hooks/useUser";
 import { useUserRoles } from "./hooks/useUserRoles";
 import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
-
 import { useAllPayment } from "./hooks/useAllPayments";
 import { PaymentRowTr } from "./components/PaymentRowTr";
+import { updateSayadVerified } from "./api/updateItem";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -20,6 +19,65 @@ const specialUsers = [
 
 function App() {
   const dispatch: AppDispatch = useDispatch();
+  const [isVerifyingAll, setIsVerifyingAll] = useState(false);
+  const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
+  const [completedVerifications, setCompletedVerifications] = useState<
+    string[]
+  >([]);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({
+    key: "dueDate", // مقدار پیش‌فرض: مرتب‌سازی بر اساس تاریخ
+    direction: "asc", // مقدار پیش‌فرض: صعودی
+  });
+
+  const processVerifyAll = async (ids: string[]) => {
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      try {
+        await updateSayadVerified(Number(id));
+        setCompletedVerifications((prev) => [...prev, id]);
+      } catch (error) {
+        setErrorMessages((prev) => [
+          ...prev,
+          `خطا برای ID ${id}: ${error || "نامشخص"}`,
+        ]);
+      }
+      await new Promise((res) => setTimeout(res, 200));
+    }
+    setIsVerifyingAll(false);
+  };
+
+  useEffect(() => {
+    if (
+      verifyAllIds.length > 0 &&
+      completedVerifications.length === verifyAllIds.length
+    ) {
+      setIsVerifyingAll(false);
+      setVerifyAllIds([]);
+      setCompletedVerifications([]);
+      console.log("دیباگ: همه استعلام‌ها تکمیل شدند", {
+        total: verifyAllIds.length,
+        errors: errorMessages,
+      });
+      if (errorMessages.length > 0) {
+        console.log("دیباگ: خطاها در استعلام گروهی:", errorMessages);
+      }
+    }
+  }, [completedVerifications, verifyAllIds, errorMessages]);
+
+  const verifyAllPayments = () => {
+    const eligibleIds = filteredPayments.map((p) => String(p.ID));
+    if (!eligibleIds.length) return;
+
+    setVerifyAllIds(eligibleIds);
+    setIsVerifyingAll(true);
+    setCompletedVerifications([]);
+    setErrorMessages([]);
+    processVerifyAll(eligibleIds);
+  };
 
   const {
     data: paymentData,
@@ -76,6 +134,7 @@ function App() {
       setSelectedRasDate(null);
     }
   }, [selectedPayments]);
+
   let barcodeBuffer = "";
   let lastInputTime = 0;
   const handleInputChange = (
@@ -89,17 +148,14 @@ function App() {
       const timeDiff = now - lastInputTime;
       lastInputTime = now;
 
-      // اگر ورودی خیلی سریع وارد شد (مثل بارکد اسکن)
       if (timeDiff < 50) {
         barcodeBuffer += value[value.length - 1] || "";
-        // وقتی طول کد به اندازه کافی رسید
         if (barcodeBuffer.length >= 16) {
           setFilters((prev) => ({ ...prev, sayadiCode: barcodeBuffer }));
           barcodeBuffer = "";
         }
         return;
       } else {
-        // تایپ دستی → فقط ۱۶ کاراکتر آخر
         value = value.slice(-16);
       }
     }
@@ -109,9 +165,33 @@ function App() {
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // جلوگیری از submit فرم
+      event.preventDefault();
     }
   };
+
+  // تابع مرتب‌سازی
+  const sortPayments = (payments: PaymentType[]) => {
+    return [...payments].sort((a, b) => {
+      const key = sortConfig.key as keyof PaymentType;
+      const valueA = a[key] ?? "";
+      const valueB = b[key] ?? "";
+
+      if (key === "price") {
+        // مرتب‌سازی بر اساس مبلغ (عددی)
+        const numA = Number(valueA) || 0;
+        const numB = Number(valueB) || 0;
+        return sortConfig.direction === "asc" ? numA - numB : numB - numA;
+      } else if (key === "dueDate") {
+        // مرتب‌سازی بر اساس تاریخ (رشته‌ای یا تاریخ)
+        return sortConfig.direction === "asc"
+          ? valueA.toString().localeCompare(valueB.toString())
+          : valueB.toString().localeCompare(valueA.toString());
+      }
+      return 0;
+    });
+  };
+
+  // اعمال فیلترها
   const filteredPayments =
     paymentData
       ?.filter((item) => {
@@ -142,6 +222,9 @@ function App() {
         });
       }) ?? [];
 
+  // مرتب‌سازی داده‌ها
+  const sortedPayments = sortPayments(filteredPayments);
+
   const totalSelectedPrice = selectedPayments.reduce(
     (sum, p) => sum + Number(p.price || 0),
     0
@@ -161,10 +244,18 @@ function App() {
     setSelectedPayments([]);
   };
 
+  // تابع برای تغییر نوع و جهت مرتب‌سازی
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
-        <div className="flex flex-col gap-4 items-center justify-center ">
+        <div className="flex flex-col gap-4 items-center justify-center">
           <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
           </span>
@@ -217,39 +308,94 @@ function App() {
         {isLoading && <p>در حال بارگذاری...</p>}
         {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
 
-        {filteredPayments.length === 0 && (
+        {sortedPayments.length === 0 && (
           <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
         )}
 
-        {/* انتخاب همه / عدم انتخاب همه */}
-        <div className="mb-4 flex items-center justify-end gap-2">
-          <input
-            type="checkbox"
-            checked={areAllSelected}
-            onChange={() => {
-              if (areAllSelected) {
-                deselectAllPayments();
-              } else {
-                selectAllPayments();
-              }
-            }}
-            id="selectAllCheckbox"
-            className="cursor-pointer"
-          />
-          <label
-            htmlFor="selectAllCheckbox"
-            className="cursor-pointer select-none text-xl font-bold"
+        {/* کنترل‌های مرتب‌سازی */}
+        <div className="mb-4 flex items-center justify-end gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleSort("price")}
+              className={`px-4 py-2 rounded-md ${
+                sortConfig.key === "price"
+                  ? sortConfig.direction === "asc"
+                    ? "bg-blue-500 text-white"
+                    : "bg-blue-600 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              مرتب‌سازی بر اساس مبلغ
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSort("dueDate")}
+              className={`px-4 py-2 rounded-md ${
+                sortConfig.key === "dueDate"
+                  ? sortConfig.direction === "asc"
+                    ? "bg-blue-500 text-white"
+                    : "bg-blue-600 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              مرتب‌سازی بر اساس تاریخ
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={areAllSelected}
+              onChange={() => {
+                if (areAllSelected) {
+                  deselectAllPayments();
+                } else {
+                  selectAllPayments();
+                }
+              }}
+              id="selectAllCheckbox"
+              className="cursor-pointer"
+            />
+            <label
+              htmlFor="selectAllCheckbox"
+              className="cursor-pointer select-none text-xl font-bold"
+            >
+              انتخاب همه
+            </label>
+          </div>
+          <button
+            onClick={verifyAllPayments}
+            disabled={isVerifyingAll || filteredPayments.length === 0}
+            className={`px-4 py-2 rounded-md text-white font-semibold ${
+              isVerifyingAll || filteredPayments.length === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-sky-500 hover:bg-sky-600"
+            }`}
           >
-            انتخاب همه
-          </label>
+            {isVerifyingAll
+              ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
+              : "استعلام همه"}
+          </button>
         </div>
 
-        {filteredPayments.map((item) => (
+        {sortedPayments.map((item, i) => (
           <PaymentRowTr
             key={item.ID}
+            index={i}
             item={item}
             onToggleSelect={() => togglePaymentSelection(item)}
             isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+            isVerifyingAll={isVerifyingAll}
+            verifyAllIds={verifyAllIds}
+            onVerificationComplete={(id: string, error?: string) => {
+              setCompletedVerifications((prev) => [...prev, id]);
+              if (error) {
+                setErrorMessages((prev) => [
+                  ...prev,
+                  `خطا برای ID ${id}: ${error}`,
+                ]);
+              }
+            }}
           />
         ))}
       </div>

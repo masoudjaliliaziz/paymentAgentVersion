@@ -125,17 +125,18 @@ const getCheckColor = (colorCode: string | undefined) => {
 
 interface PaymentRowProps {
   item: PaymentType;
-  parentGuid: string;
+
   onToggleSelect: () => void;
   isSelected: boolean;
   isVerifyingAll: boolean;
   verifyAllIds: string[];
+  index: number;
   onVerificationComplete: (id: string, error?: string) => void;
 }
 
 export function PaymentRowTr({
   item,
-  parentGuid,
+  index,
   onToggleSelect,
   isSelected,
   isVerifyingAll,
@@ -147,11 +148,11 @@ export function PaymentRowTr({
   >([]);
   const [isVerifying, setIsVerifying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { mutate: mutateConfirmTr } = useSayadConfirmTr(parentGuid);
-  const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(parentGuid);
+  const { mutate: mutateConfirmTr } = useSayadConfirmTr(item.parentGUID);
+  const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(item.parentGUID);
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
-  const updateSayadVerifiedMutation = useSayadConfirm(parentGuid);
+  const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
 
   const normalizedPrice = item.price
     ? String(Number(String(item.price).replace(/[^0-9]/g, "")))
@@ -185,7 +186,7 @@ export function PaymentRowTr({
             onSuccess: () => {
               console.log(`دیباگ: استعلام گروهی برای ID ${ID} موفق بود`);
               queryClient.invalidateQueries({
-                queryKey: ["payments", parentGuid],
+                queryKey: ["payments", item.parentGUID],
               });
               setIsVerifying(false);
               onVerificationComplete(String(ID));
@@ -225,7 +226,7 @@ export function PaymentRowTr({
     verifyAllIds,
     ID,
     item.Error,
-    parentGuid,
+    item.parentGUID,
     queryClient,
     updateSayadVerifiedMutation,
     onVerificationComplete,
@@ -242,7 +243,9 @@ export function PaymentRowTr({
       {
         onSuccess: () => {
           console.log(`دیباگ: استعلام تکی برای ID ${ID} موفق بود`);
-          queryClient.invalidateQueries({ queryKey: ["payments", parentGuid] });
+          queryClient.invalidateQueries({
+            queryKey: ["payments", item.parentGUID],
+          });
           setIsVerifying(false);
         },
         onError: (error) => {
@@ -294,7 +297,7 @@ export function PaymentRowTr({
             onSuccess: () => {
               console.log(`دیباگ: استعلام گروهی برای ID ${ID} موفق بود`);
               queryClient.invalidateQueries({
-                queryKey: ["payments", parentGuid],
+                queryKey: ["payments", item.parentGUID],
               });
               setIsVerifying(false);
               onVerificationComplete(String(ID));
@@ -319,7 +322,7 @@ export function PaymentRowTr({
     verifyAllIds,
     ID,
     item.Error,
-    parentGuid,
+    item.parentGUID,
     queryClient,
     updateSayadVerifiedMutation,
     onVerificationComplete,
@@ -357,13 +360,13 @@ export function PaymentRowTr({
                 </div>
               </div>
 
-              {itemGUID && parentGuid && (
+              {itemGUID && item.parentGUID && (
                 <>
                   <CheckPicConfirm
                     itemGuid={itemGUID}
-                    parentGuid={parentGuid}
+                    parentGuid={item.parentGUID}
                   />
-                  <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
+                  <CheckPic itemGuid={itemGUID} parentGuid={item.parentGUID} />
                 </>
               )}
 
@@ -404,6 +407,9 @@ export function PaymentRowTr({
                   onChange={onToggleSelect}
                   className="w-4 h-4 cursor-pointer"
                 />
+              </div>
+              <div className="font-black text-xl">
+                {(index + 1).toLocaleString("fa-IR")}
               </div>
             </div>
 
@@ -685,11 +691,11 @@ export function PaymentRowTr({
             className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
           >
             <div className="flex justify-end items-center gap-4 rounded-md bg-slate-100 p-1.5 px-3">
-              {itemGUID && parentGuid && (
+              {itemGUID && item.parentGUID && (
                 <CheckPicConfirm
                   title="دانلود فیش واریزی"
                   itemGuid={itemGUID}
-                  parentGuid={parentGuid}
+                  parentGuid={item.parentGUID}
                 />
               )}
 
@@ -713,12 +719,16 @@ export function PaymentRowTr({
               <ActionByRole ID={ID} />
 
               <p className="font-bold text-sky-500 text-lg">واریز نقدی</p>
+
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={onToggleSelect}
                 className="w-4 h-4 cursor-pointer"
               />
+              <div className="font-black text-xl">
+                {index.toLocaleString("fa-IR")}
+              </div>
             </div>
 
             <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
