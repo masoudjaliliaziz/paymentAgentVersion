@@ -7,6 +7,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { getBankNameFromIBAN } from "../utils/getBankNameFromIban";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatShamsiDate } from "../utils/formatShamsiDate";
+import { useSayadConfirmTr } from "../hooks/useSayadConfirmTr";
+import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
+import { useCustomers } from "../hooks/useCustomer";
 
 type SayadHolders = {
   idCode: string;
@@ -89,11 +93,6 @@ function guaranteeStatusToMessage(code: string): string {
   return guaranteeStatusMap[code] ?? "وضعیت نامشخص";
 }
 
-import { formatShamsiDate } from "../utils/formatShamsiDate";
-import { useSayadConfirmTr } from "../hooks/useSayadConfirmTr";
-import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
-import { useCustomers } from "../hooks/useCustomer";
-
 const normalizeDate = (date: string | undefined | null): string | null => {
   if (!date || typeof date !== "string") {
     console.warn("normalizeDate: تاریخ نامعتبر یا وجود ندارد", date);
@@ -126,13 +125,13 @@ const getCheckColor = (colorCode: string | undefined) => {
 
 interface PaymentRowProps {
   item: PaymentType;
-
   onToggleSelect: () => void;
   isSelected: boolean;
   isVerifyingAll: boolean;
   verifyAllIds: string[];
   index: number;
   onVerificationComplete: (id: string, error?: string) => void;
+  onUpdateTitle?: (parentGUID: string, title: string) => void; // پراپ جدید
 }
 
 export function PaymentRowTr({
@@ -143,6 +142,7 @@ export function PaymentRowTr({
   isVerifyingAll,
   verifyAllIds,
   onVerificationComplete,
+  onUpdateTitle, // اضافه کردن پراپ جدید
 }: PaymentRowProps) {
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
@@ -172,6 +172,14 @@ export function PaymentRowTr({
     normalizedDueDate &&
     normalizedSayadDueDate &&
     normalizedDueDate === normalizedSayadDueDate;
+
+  // اضافه کردن useEffect برای ارسال Title به App
+  useEffect(() => {
+    if (data?.[0]?.Title && onUpdateTitle) {
+      onUpdateTitle(item.parentGUID, data[0].Title);
+    }
+  }, [data, item.parentGUID, onUpdateTitle]);
+
   useEffect(() => {
     if (verifyAllIds.includes(String(ID)) && !item.Error && !isVerifying) {
       console.log(`دیباگ: شروع استعلام گروهی برای ID ${ID}`);
@@ -180,7 +188,6 @@ export function PaymentRowTr({
 
       const index = verifyAllIds.indexOf(String(ID));
       const timeoutId = setTimeout(() => {
-        // تغییر: timeoutId برای clear
         console.log(`دیباگ: ارسال درخواست برای ID ${ID}`);
         updateSayadVerifiedMutation.mutate(
           { ID: Number(ID) },
@@ -203,21 +210,19 @@ export function PaymentRowTr({
               setIsVerifying(false);
               onVerificationComplete(String(ID), errorMsg);
             },
-            // جدید: onSettled برای مطمئن شدن از پایان (حتی اگر retry باشه)
             onSettled: () => {
-              setIsVerifying(false); // همیشه در پایان false کن
+              setIsVerifying(false);
             },
           }
         );
       }, index * 200);
 
-      // جدید: fallback timeout برای جلوگیری از گیر کردن ابدی
       const fallbackTimeout = setTimeout(() => {
         if (isVerifying) {
           setIsVerifying(false);
           setErrorMessage("Timeout: استعلام بیش از حد طول کشید");
         }
-      }, 10000); // ۱۰ ثانیه
+      }, 10000);
 
       return () => {
         clearTimeout(timeoutId);
@@ -256,14 +261,12 @@ export function PaymentRowTr({
           setErrorMessage(errorMsg);
           setIsVerifying(false);
         },
-        // جدید: onSettled برای پایان مطمئن
         onSettled: () => {
           setIsVerifying(false);
         },
       }
     );
 
-    // جدید: fallback timeout برای تکی
     setTimeout(() => {
       if (isVerifying) {
         setIsVerifying(false);
@@ -271,6 +274,7 @@ export function PaymentRowTr({
       }
     }, 10000);
   }
+
   useEffect(() => {
     if (item.sayadConfirmHolders) {
       try {
@@ -284,55 +288,10 @@ export function PaymentRowTr({
     }
   }, [item.sayadConfirmHolders]);
 
-  useEffect(() => {
-    if (verifyAllIds.includes(String(ID)) && !item.Error && !isVerifying) {
-      console.log(`دیباگ: شروع استعلام گروهی برای ID ${ID}`);
-      setIsVerifying(true);
-      setErrorMessage(null);
-
-      const index = verifyAllIds.indexOf(String(ID));
-      const timeout = setTimeout(() => {
-        console.log(`دیباگ: ارسال درخواست برای ID ${ID}`);
-        updateSayadVerifiedMutation.mutate(
-          { ID: Number(ID) },
-          {
-            onSuccess: () => {
-              console.log(`دیباگ: استعلام گروهی برای ID ${ID} موفق بود`);
-              queryClient.invalidateQueries({
-                queryKey: ["payments", item.parentGUID],
-              });
-              setIsVerifying(false);
-              onVerificationComplete(String(ID));
-            },
-            onError: (error) => {
-              const errorMsg = error.message || "خطا در استعلام گروهی";
-              console.error(
-                `دیباگ: خطا در استعلام گروهی برای ID ${ID}:`,
-                error
-              );
-              setErrorMessage(errorMsg);
-              setIsVerifying(false);
-              onVerificationComplete(String(ID), errorMsg);
-            },
-          }
-        );
-      }, index * 200);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [
-    verifyAllIds,
-    ID,
-    item.Error,
-    item.parentGUID,
-    queryClient,
-    updateSayadVerifiedMutation,
-    onVerificationComplete,
-    isVerifying,
-  ]);
   if (isLoadinCustomer) {
     return <span className="spin-in-6 ">در حال بارگیری</span>;
   }
+
   return (
     <>
       {item.cash === "0" && (
@@ -412,7 +371,7 @@ export function PaymentRowTr({
                   className="w-4 h-4 cursor-pointer"
                 />
               </div>
-              <span className="text-sm font-bold  text-base-content  bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
+              <span className="text-sm font-bold text-base-content bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
                 {data?.[0]?.Title ?? "در حال بارگذاری..."}
               </span>
               <div className="font-black text-xl">
@@ -737,7 +696,7 @@ export function PaymentRowTr({
                 onChange={onToggleSelect}
                 className="w-4 h-4 cursor-pointer"
               />
-              <span className="text-sm font-bold text-base-content  bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
+              <span className="text-sm font-bold text-base-content bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
                 {data?.[0]?.Title ?? "در حال بارگذاری..."}
               </span>
               <div className="font-black text-xl">

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
-
 import { useUserRoles } from "./hooks/useUserRoles";
 import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
@@ -43,6 +42,40 @@ function App() {
     key: "dueDate",
     direction: "asc",
   });
+
+  const {
+    data: paymentData,
+    isLoading: paymentLoading,
+    error: paymentError,
+  } = useAllPayment();
+  const {
+    data: userData,
+    isLoading: userLoading,
+    error: userError,
+  } = useCurrentUser();
+  const { isAgent, isMaster } = useUserRoles(userData ?? null);
+  const error = userError || paymentError;
+  const isLoading = paymentLoading || userLoading;
+
+  const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
+  const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
+  // استیت جدید برای ذخیره Title‌ها
+  const [customerTitles, setCustomerTitles] = useState<Map<string, string>>(
+    new Map()
+  );
+
+  // تابع callback برای به‌روزرسانی Title
+  const updateCustomerTitle = (parentGUID: string, title: string) => {
+    setCustomerTitles((prev) => new Map(prev).set(parentGUID, title));
+  };
+
+  useEffect(() => {
+    if (userData && paymentData) {
+      dispatch(setPayments(paymentData));
+      dispatch(setUser(userData));
+      dispatch(setUserRole(isAgent ? "agent" : "master"));
+    }
+  }, [paymentData, dispatch, userData, isAgent]);
 
   const processVerifyAll = async (ids: string[]) => {
     for (let i = 0; i < ids.length; i++) {
@@ -89,44 +122,6 @@ function App() {
     setErrorMessages([]);
     processVerifyAll(eligibleIds);
   };
-
-  const {
-    data: paymentData,
-    isLoading: paymentLoading,
-    error: paymentError,
-  } = useAllPayment();
-
-  const {
-    data: userData,
-    isLoading: userLoading,
-    error: userError,
-  } = useCurrentUser();
-
-  const { isAgent, isMaster } = useUserRoles(userData ?? null);
-  const error = userError || paymentError;
-  const isLoading = paymentLoading || userLoading;
-
-  useEffect(() => {
-    if (userData && paymentData) {
-      dispatch(setPayments(paymentData));
-      dispatch(setUser(userData));
-      dispatch(setUserRole(isAgent ? "agent" : "master"));
-    }
-  }, [paymentData, dispatch, userData, isAgent]);
-
-  const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
-  const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
-
-  const [filters, setFilters] = useState({
-    sayadiCode: "",
-    dueDate: "",
-    price: "",
-    seriesNo: "",
-    serialNo: "",
-    SalesExpert: "",
-    iban: "",
-    name: "",
-  });
 
   const togglePaymentSelection = (payment: PaymentType) => {
     setSelectedPayments((prev) => {
@@ -199,6 +194,18 @@ function App() {
     });
   };
 
+  const [filters, setFilters] = useState({
+    sayadiCode: "",
+    dueDate: "",
+    price: "",
+    seriesNo: "",
+    serialNo: "",
+    SalesExpert: "",
+    iban: "",
+    name: "",
+    Title: "", // فیلتر جدید برای Title
+  });
+
   const filteredPayments =
     paymentData
       ?.filter((item) => {
@@ -223,9 +230,14 @@ function App() {
       .filter((item) => {
         return Object.entries(filters).every(([key, value]) => {
           if (!value) return true;
+          if (key === "Title") {
+            const title = customerTitles.get(item.parentGUID) ?? "";
+            return title.toLowerCase().includes(value.toLowerCase());
+          }
           return (item[key as keyof PaymentType] ?? "")
             .toString()
-            .includes(value);
+            .toLowerCase()
+            .includes(value.toLowerCase());
         });
       }) ?? [];
 
@@ -298,25 +310,31 @@ function App() {
   };
 
   const getDisplayedPayments = () => {
+    if (!Array.isArray(paymentData) || !Array.isArray(sortedPayments)) {
+      return [];
+    }
+
     if (shownSayadConfirmTrChecks) {
       return (
-        paymentData?.filter((data) => data.VerifiedConfirmSayadTr === "1") ?? []
+        paymentData.filter((data) => data?.VerifiedConfirmSayadTr === "1") ?? []
       );
     }
     if (shownSayadUnConfirmTrChecks) {
       return (
-        paymentData?.filter((data) => data.VerifiedRejectSayadTr === "1") ?? []
+        paymentData.filter((data) => data?.VerifiedRejectSayadTr === "1") ?? []
       );
     }
     if (shownConfirmTrChecks) {
-      return paymentData?.filter((data) => data.status === "4") ?? [];
+      return paymentData.filter((data) => data?.status === "4") ?? [];
     }
     if (shownUnConfirmTrChecks) {
-      return paymentData?.filter((data) => data.status === "3") ?? [];
+      return paymentData.filter((data) => data?.status === "3") ?? [];
     }
-    return sortedPayments;
+    if (isMaster) {
+      return sortedPayments.filter((data) => data?.status === "1") ?? [];
+    }
+    return [];
   };
-
   const displayedPayments = getDisplayedPayments();
 
   return (
@@ -406,11 +424,14 @@ function App() {
           {Object.entries({
             sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
             price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",
-            seriesNo: "شماره سری (مثلاً ۱۲۳)",
+
             serialNo: "شماره سریال (مثلاً ۹۸۷۶۵۴)",
             SalesExpert: "کارشناس فروش (مثلاً سمیرا علی‌پور)",
             iban: "شماره شبا (مثلاً IR123...)",
-            name: `نام مشتری (مثلاً ${paymentData?.[0]?.name || "علی رضایی"})`,
+
+            Title: `عنوان مشتری (مثلاً ${
+              customerTitles.values().next().value || "شرکت نمونه"
+            })`,
           }).map(([key, placeholder]) => (
             <div key={key} className="flex flex-col">
               <label className="mb-1 text-gray-600">
@@ -519,6 +540,7 @@ function App() {
                 ]);
               }
             }}
+            onUpdateTitle={updateCustomerTitle}
           />
         ))}
       </div>
