@@ -42,6 +42,15 @@ function App() {
     error: paymentError,
   } = usePayment(guid);
 
+  // دیباگ: بررسی GUID و payment data
+  console.log("🔍 دیباگ App.tsx:", {
+    guid,
+    parentGUID,
+    paymentData: paymentData?.length || 0,
+    paymentLoading,
+    paymentError: paymentError?.message,
+  });
+
   const {
     data: userData,
     isLoading: userLoading,
@@ -204,6 +213,48 @@ function App() {
             .includes(value);
         });
       }) ?? [];
+
+  // دیباگ: بررسی فیلترها
+  console.log("🔍 دیباگ فیلترها:", {
+    totalPayments: paymentData?.length || 0,
+    afterStatusFilter:
+      paymentData?.filter((item) => {
+        if (isAgent) return item.status === "0";
+        if (isMaster) {
+          return (
+            item.status === "1" ||
+            (item.cash === "1" && item.status !== "3" && item.status !== "4")
+          );
+        }
+        return false;
+      }).length || 0,
+    afterUserFilter:
+      paymentData
+        ?.filter((item) => {
+          if (isAgent) return item.status === "0";
+          if (isMaster) {
+            return (
+              item.status === "1" ||
+              (item.cash === "1" && item.status !== "3" && item.status !== "4")
+            );
+          }
+          return false;
+        })
+        .filter((item) => {
+          if (userData && specialUsers.includes(userData)) {
+            return true;
+          }
+          if (userData) {
+            return item.SalesExpertAcunt_text === userData;
+          }
+          return false;
+        }).length || 0,
+    finalFilteredCount: filteredPayments.length,
+    userData,
+    isAgent,
+    isMaster,
+    specialUsers,
+  });
 
   const totalSelectedPrice = selectedPayments.reduce(
     (sum, p) => sum + Number(p.price || 0),
