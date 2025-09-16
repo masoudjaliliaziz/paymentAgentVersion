@@ -78,8 +78,8 @@ export async function loadPayment(
       nextUrl = data.d.__next || null;
     }
 
-    return allResults;
     console.log("tttttttttttttttttttttttttt", allResults);
+    return allResults;
   } catch (err) {
     console.error("خطا در دریافت آیتم‌ها:", err);
     return [];
