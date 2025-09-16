@@ -59,18 +59,26 @@ export async function loadPayment(
 ): Promise<Partial<PaymentType[]>> {
   const webUrl = "https://crm.zarsim.com";
   const listName = "CustomerPayment";
-
+  let allResults: PaymentType[] = [];
+  let nextUrl = `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'`;
   try {
-    const response = await fetch(
-      `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'`,
-      {
-        headers: { Accept: "application/json;odata=verbose" },
-      }
-    );
+    while (nextUrl) {
+      const response = await fetch(nextUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json;odata=verbose",
+        },
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    return data.d.results;
+      // فرض می‌کنیم data.d.results دقیقاً CustomerItem[] هست
+      allResults = [...allResults, ...data.d.results];
+
+      nextUrl = data.d.__next || null;
+    }
+
+    return allResults;
   } catch (err) {
     console.error("خطا در دریافت آیتم‌ها:", err);
     return [];
@@ -83,18 +91,26 @@ export async function loadDebt(
 ): Promise<Partial<PaymentType[]>> {
   const webUrl = "https://crm.zarsim.com";
   const listName = "Debt";
-
+  let allResults: Partial<PaymentType[]> = [];
+  let nextUrl = `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'`;
   try {
-    const response = await fetch(
-      `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'`,
-      {
-        headers: { Accept: "application/json;odata=verbose" },
-      }
-    );
+    while (nextUrl) {
+      const response = await fetch(nextUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json;odata=verbose",
+        },
+      });
 
-    const data = await response.json();
-    console.log(data.d.results);
-    return data.d.results;
+      const data = await response.json();
+
+      // فرض می‌کنیم data.d.results دقیقاً CustomerItem[] هست
+      allResults = [...allResults, ...data.d.results];
+
+      nextUrl = data.d.__next || null;
+    }
+
+    return allResults;
   } catch (err) {
     console.error("خطا در دریافت آیتم‌ها:", err);
     return [];
