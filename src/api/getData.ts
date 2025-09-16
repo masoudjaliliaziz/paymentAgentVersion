@@ -79,6 +79,7 @@ export async function loadPayment(
     }
 
     return allResults;
+    console.log("tttttttttttttttttttttttttt", allResults);
   } catch (err) {
     console.error("خطا در دریافت آیتم‌ها:", err);
     return [];
