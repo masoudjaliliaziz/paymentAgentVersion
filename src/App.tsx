@@ -12,6 +12,8 @@ import { updateSayadVerified } from "./api/updateItem";
 import { Captions, CaptionsOff, Check, X } from "lucide-react";
 import clsx from "clsx";
 import { useCurrentUser } from "./hooks/useUser";
+import { exportToExcel } from "./utils/exportToExcel";
+import { Download } from "lucide-react";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -260,6 +262,28 @@ function App() {
 
   const deselectAllPayments = () => {
     setSelectedPayments([]);
+  };
+
+  // تابع handleExportToExcel - این تابع چک‌های فیلتر شده را به Excel export می‌کند
+  const handleExportToExcel = () => {
+    try {
+      // استفاده از displayedPayments که چک‌های فیلتر شده فعلی را شامل می‌شود
+      if (displayedPayments.length === 0) {
+        alert("هیچ چکی برای export وجود ندارد!");
+        return;
+      }
+
+      // فراخوانی تابع exportToExcel با چک‌های فیلتر شده
+      exportToExcel(
+        displayedPayments,
+        `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      console.log(`تعداد ${displayedPayments.length} چک به Excel export شد`);
+    } catch (error) {
+      console.error("خطا در export به Excel:", error);
+      alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+    }
   };
 
   const handleSort = (key: string) => {
@@ -519,6 +543,18 @@ function App() {
             {isVerifyingAll
               ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
               : "استعلام همه"}
+          </button>
+          <button
+            onClick={handleExportToExcel}
+            disabled={displayedPayments.length === 0}
+            className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
+              displayedPayments.length === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600"
+            }`}
+          >
+            <Download size={16} />
+            Export به Excel
           </button>
         </div>
 
