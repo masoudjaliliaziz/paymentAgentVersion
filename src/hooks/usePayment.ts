@@ -2,80 +2,51 @@
 import { useQuery } from "@tanstack/react-query";
 import type { PaymentType } from "../types/apiTypes";
 
+// تعریف interface برای پاسخ SharePoint - این interface ساختار پاسخ API را تعریف می‌کند
+interface SharePointResponse {
+  d: {
+    results: PaymentType[];
+    __next?: string;
+  };
+}
+
+// تابع fetchPayments برای دریافت پرداخت‌های مربوط به یک GUID خاص
+// این تابع مشابه fetchAllPayments عمل می‌کند اما فقط پرداخت‌های مربوط به یک customer را برمی‌گرداند
 const fetchPayments = async (guid: string): Promise<PaymentType[]> => {
-  console.log("🚀 در حال فچ کردن payment ها برای GUID:", guid);
-
-  const baseUrl = `https://crm.zarsim.com/_api/web/lists/getbytitle('CustomerPayment')/items?$filter=parentGUID eq '${guid}'`;
-  let allResults: PaymentType[] = [];
-  let nextUrl = baseUrl;
-  let pageCount = 0;
-
   try {
-    while (nextUrl) {
-      pageCount++;
-      console.log(`📡 درخواست صفحه ${pageCount}:`, nextUrl);
+    const res = await fetch(
+      `https://crm.zarsim.com/_api/web/lists/getbytitle('CustomerPayment')/items?$filter=parentGUID eq '${guid}'`,
+      { headers: { Accept: "application/json;odata=verbose" } }
+    );
 
-      const res = await fetch(nextUrl, {
-        headers: { Accept: "application/json;odata=verbose" },
-      });
-
-      console.log(
-        `📊 وضعیت پاسخ صفحه ${pageCount}:`,
-        res.status,
-        res.statusText
-      );
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      const pageResults = data.d?.results || [];
-
-      console.log(`📦 داده‌های صفحه ${pageCount}:`, {
-        resultsCount: pageResults.length,
-        hasResults: !!pageResults,
-        firstResult: pageResults[0] || null,
-      });
-
-      allResults = [...allResults, ...pageResults];
-
-      // بررسی وجود صفحه بعدی
-      nextUrl = data.d?.__next || null;
-
-      if (nextUrl) {
-        console.log(`➡️ صفحه بعدی موجود: ${nextUrl}`);
-      } else {
-        console.log("✅ همه صفحات دریافت شدند");
-      }
+    // بررسی وضعیت HTTP response - اگر خطا باشد، exception پرتاب می‌شود
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
 
-    console.log("🎉 کل payment های دریافت شده:", {
-      totalCount: allResults.length,
-      totalPages: pageCount,
-      firstPayment: allResults[0] || null,
-      lastPayment: allResults[allResults.length - 1] || null,
-    });
-
-    return allResults;
+    const data: SharePointResponse = await res.json();
+    return data.d.results;
   } catch (error) {
-    console.error("❌ خطا در دریافت payment ها:", error);
-    throw error;
+    // در صورت بروز خطا، آن را در console نمایش داده و دوباره پرتاب می‌کنیم
+    // تا react-query بتواند آن را مدیریت کند
+    console.error("Error fetching payments:", error);
+    throw error; // Let react-query handle the error
   }
 };
 
+// Hook اصلی usePayment - این hook برای دریافت پرداخت‌های یک customer خاص استفاده می‌شود
 export const usePayment = (guid: string) => {
   const { isLoading, isError, data, error, refetch, isFetching } = useQuery<
     PaymentType[],
-    Error,
-    PaymentType[],
-    [string, string]
+    Error
   >({
     queryKey: ["payments", guid],
     queryFn: () => fetchPayments(guid),
-    enabled: !!guid,
-    refetchInterval: 1000,
+    enabled: !!guid, // فقط زمانی که guid موجود باشد، query اجرا شود
+    refetchInterval: 1000, // هر 1 ثانیه یکبار داده‌ها را refresh کن
+    staleTime: 0, // به دلیل refresh مکرر، همیشه داده‌های تازه را درخواست کن
   });
 
-  return { isLoading, isError, data, error, refetch, isFetching };
+  // بازگرداندن state های مختلف query به همراه default value برای data
+  return { isLoading, isError, data: data ?? [], error, refetch, isFetching };
 };
