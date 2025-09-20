@@ -7,6 +7,7 @@ export const Agents = [
   "i:0#.w|zarsim\\zniati",
   "i:0#.w|zarsim\\yamani",
   "i:0#.w|zarsim\\tyousefi",
+  "i:0#.w|zarsim\\menayati",
 ];
 
 export const Masters = [
