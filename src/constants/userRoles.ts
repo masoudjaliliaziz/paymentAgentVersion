@@ -8,6 +8,7 @@ export const Agents = [
   "i:0#.w|zarsim\\yamani",
   "i:0#.w|zarsim\\tyousefi",
   "i:0#.w|zarsim\\menayati",
+  "i:0#.w|zarsim\\sfeyzabadi",
 ];
 
 export const Masters = [
