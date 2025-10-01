@@ -235,7 +235,16 @@ function App() {
           return true;
         }
         if (userData) {
-          return item.SalesExpertAcunt_text === userData;
+          const matches = item.SalesExpertAcunt_text === userData;
+          if (!matches) {
+            console.log("Payment not matching user:", {
+              paymentId: item.ID,
+              salesExpert: item.SalesExpertAcunt_text,
+              currentUser: userData,
+              status: item.status,
+            });
+          }
+          return matches;
         }
         return false;
       })
@@ -258,6 +267,14 @@ function App() {
   // Debug log to see filtered payments
   console.log("Filtered payments count:", filteredPayments.length);
   console.log("Sorted payments count:", sortedPayments.length);
+
+  // Debug log to see unique SalesExpertAcunt_text values
+  if (paymentData && paymentData.length > 0) {
+    const uniqueSalesExperts = [
+      ...new Set(paymentData.map((item) => item.SalesExpertAcunt_text)),
+    ];
+    console.log("Unique SalesExpertAcunt_text values:", uniqueSalesExperts);
+  }
 
   const totalSelectedPrice = selectedPayments.reduce(
     (sum, p) => sum + Number(p.price || 0),
