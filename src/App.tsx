@@ -18,6 +18,7 @@ import { Download } from "lucide-react";
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
   "i:0#.w|zarsim\\mesmaeili",
+  "i:0#.w|zarsim\\m.esmaeili",
   "i:0#.w|zarsim\\mmoradabadi",
 ];
 
@@ -58,6 +59,15 @@ function App() {
   const { isAgent, isMaster } = useUserRoles(userData ?? null);
   const error = userError || paymentError;
   const isLoading = paymentLoading || userLoading;
+
+  // Debug log to see the actual username
+  console.log("Current user data:", userData);
+  console.log("Is Master:", isMaster);
+  console.log("Is Agent:", isAgent);
+  console.log(
+    "Is in special users:",
+    userData ? specialUsers.includes(userData) : false
+  );
 
   const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
   const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
@@ -245,6 +255,10 @@ function App() {
 
   const sortedPayments = sortPayments(filteredPayments);
 
+  // Debug log to see filtered payments
+  console.log("Filtered payments count:", filteredPayments.length);
+  console.log("Sorted payments count:", sortedPayments.length);
+
   const totalSelectedPrice = selectedPayments.reduce(
     (sum, p) => sum + Number(p.price || 0),
     0
@@ -355,7 +369,7 @@ function App() {
       return paymentData.filter((data) => data?.status === "3") ?? [];
     }
     if (isMaster) {
-      return sortedPayments.filter((data) => data?.status === "1") ?? [];
+      return sortedPayments ?? [];
     }
     return [];
   };

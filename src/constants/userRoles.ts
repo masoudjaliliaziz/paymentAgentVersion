@@ -6,7 +6,6 @@ export const Agents = [
   "i:0#.w|zarsim\\apazoki",
   "i:0#.w|zarsim\\tyousefi",
   "i:0#.w|zarsim\\sfeyzabadi",
-
 ];
 
 export const Masters = [
@@ -15,6 +14,7 @@ export const Masters = [
   "i:0#.w|zarsim\\rashaadmin",
   "i:0#.w|zarsim\\dev1",
   "i:0#.w|zarsim\\mesmaeili",
+  "i:0#.w|zarsim\\m.esmaeili",
 ];
 
 export const address = "https://crm.zarsim.com";
