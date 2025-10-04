@@ -34,6 +34,8 @@ function App() {
     useState<boolean>(false);
   const [shownUnConfirmTrChecks, setShownUnConfirmTrChecks] =
     useState<boolean>(false);
+  const [shownUnprocessedChecks, setShownUnprocessedChecks] =
+    useState<boolean>(true); // Default to true for unprocessed checks
   const [completedVerifications, setCompletedVerifications] = useState<
     string[]
   >([]);
@@ -59,15 +61,6 @@ function App() {
   const { isAgent, isMaster } = useUserRoles(userData ?? null);
   const error = userError || paymentError;
   const isLoading = paymentLoading || userLoading;
-
-  // Debug log to see the actual username
-  console.log("Current user data:", userData);
-  console.log("Is Master:", isMaster);
-  console.log("Is Agent:", isAgent);
-  console.log(
-    "Is in special users:",
-    userData ? specialUsers.includes(userData) : false
-  );
 
   const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
   const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
@@ -221,6 +214,11 @@ function App() {
   const filteredPayments =
     paymentData
       ?.filter((item) => {
+        // Special users can see all payments regardless of status
+        if (userData && specialUsers.includes(userData)) {
+          return true;
+        }
+
         if (isAgent) return item.status === "0";
         if (isMaster) {
           return (
@@ -231,20 +229,12 @@ function App() {
         return false;
       })
       .filter((item) => {
+        // Special users can see all payments regardless of SalesExpertAcunt_text
         if (userData && specialUsers.includes(userData)) {
           return true;
         }
         if (userData) {
-          const matches = item.SalesExpertAcunt_text === userData;
-          if (!matches) {
-            console.log("Payment not matching user:", {
-              paymentId: item.ID,
-              salesExpert: item.SalesExpertAcunt_text,
-              currentUser: userData,
-              status: item.status,
-            });
-          }
-          return matches;
+          return item.SalesExpertAcunt_text === userData;
         }
         return false;
       })
@@ -263,18 +253,6 @@ function App() {
       }) ?? [];
 
   const sortedPayments = sortPayments(filteredPayments);
-
-  // Debug log to see filtered payments
-  console.log("Filtered payments count:", filteredPayments.length);
-  console.log("Sorted payments count:", sortedPayments.length);
-
-  // Debug log to see unique SalesExpertAcunt_text values
-  if (paymentData && paymentData.length > 0) {
-    const uniqueSalesExperts = [
-      ...new Set(paymentData.map((item) => item.SalesExpertAcunt_text)),
-    ];
-    console.log("Unique SalesExpertAcunt_text values:", uniqueSalesExperts);
-  }
 
   const totalSelectedPrice = selectedPayments.reduce(
     (sum, p) => sum + Number(p.price || 0),
@@ -361,6 +339,18 @@ function App() {
       setShownSayadConfirmTrChecks(false);
       setShownSayadUnConfirmTrChecks(false);
       setShownConfirmTrChecks(false);
+      setShownUnprocessedChecks(false);
+    }
+  };
+
+  const toggleUnprocessedChecks = () => {
+    const newState = !shownUnprocessedChecks;
+    setShownUnprocessedChecks(newState);
+    if (newState) {
+      setShownSayadConfirmTrChecks(false);
+      setShownSayadUnConfirmTrChecks(false);
+      setShownConfirmTrChecks(false);
+      setShownUnConfirmTrChecks(false);
     }
   };
 
@@ -385,6 +375,9 @@ function App() {
     if (shownUnConfirmTrChecks) {
       return paymentData.filter((data) => data?.status === "3") ?? [];
     }
+    if (shownUnprocessedChecks) {
+      return sortedPayments.filter((data) => data?.status === "1") ?? [];
+    }
     if (isMaster) {
       return sortedPayments ?? [];
     }
@@ -396,6 +389,19 @@ function App() {
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
         <div className="flex w-full items-center justify-center gap-2 flex-col">
+          <div
+            className={clsx(
+              "p-1 rounded-md flex items-center justify-between gap-2 w-full",
+              {
+                "bg-green-500 text-white": shownUnprocessedChecks,
+                "hover:bg-green-200 hover:text-green-800 cursor-pointer": true,
+              }
+            )}
+            onClick={toggleUnprocessedChecks}
+          >
+            <Check />
+            <span className="text-xs font-bold">چک‌های تعیین وضعیت نشده</span>
+          </div>
           <div
             className={clsx(
               "p-1 rounded-md flex items-center justify-between gap-2 w-full",
