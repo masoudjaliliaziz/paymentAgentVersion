@@ -359,29 +359,42 @@ function App() {
       return [];
     }
 
+    let basePayments: PaymentType[] = [];
+
     if (shownSayadConfirmTrChecks) {
-      return (
-        paymentData.filter((data) => data?.VerifiedConfirmSayadTr === "1") ?? []
-      );
+      basePayments =
+        paymentData.filter((data) => data?.VerifiedConfirmSayadTr === "1") ??
+        [];
+    } else if (shownSayadUnConfirmTrChecks) {
+      basePayments =
+        paymentData.filter((data) => data?.VerifiedRejectSayadTr === "1") ?? [];
+    } else if (shownConfirmTrChecks) {
+      basePayments = paymentData.filter((data) => data?.status === "4") ?? [];
+    } else if (shownUnConfirmTrChecks) {
+      basePayments = paymentData.filter((data) => data?.status === "3") ?? [];
+    } else if (shownUnprocessedChecks) {
+      basePayments =
+        sortedPayments.filter((data) => data?.status === "1") ?? [];
+    } else if (isMaster) {
+      basePayments = sortedPayments ?? [];
+    } else {
+      return [];
     }
-    if (shownSayadUnConfirmTrChecks) {
-      return (
-        paymentData.filter((data) => data?.VerifiedRejectSayadTr === "1") ?? []
-      );
-    }
-    if (shownConfirmTrChecks) {
-      return paymentData.filter((data) => data?.status === "4") ?? [];
-    }
-    if (shownUnConfirmTrChecks) {
-      return paymentData.filter((data) => data?.status === "3") ?? [];
-    }
-    if (shownUnprocessedChecks) {
-      return sortedPayments.filter((data) => data?.status === "1") ?? [];
-    }
-    if (isMaster) {
-      return sortedPayments ?? [];
-    }
-    return [];
+
+    // Apply search filters to all payment states
+    return basePayments.filter((item) => {
+      return Object.entries(filters).every(([key, value]) => {
+        if (!value) return true;
+        if (key === "Title") {
+          const title = customerTitles.get(item.parentGUID) ?? "";
+          return title.toLowerCase().includes(value.toLowerCase());
+        }
+        return (item[key as keyof PaymentType] ?? "")
+          .toString()
+          .toLowerCase()
+          .includes(value.toLowerCase());
+      });
+    });
   };
   const displayedPayments = getDisplayedPayments();
 
