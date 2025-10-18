@@ -60,7 +60,7 @@ export async function loadPayment(
   const webUrl = "https://crm.zarsim.com";
   const listName = "CustomerPayment";
   let allResults: PaymentType[] = [];
-  let nextUrl = `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'`;
+  let nextUrl = `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'&$top=5000`;
   try {
     while (nextUrl) {
       const response = await fetch(nextUrl, {
@@ -93,7 +93,7 @@ export async function loadDebt(
   const webUrl = "https://crm.zarsim.com";
   const listName = "Debt";
   let allResults: Partial<PaymentType[]> = [];
-  let nextUrl = `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'`;
+  let nextUrl = `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=parentGUID eq '${parentGUID}'&$top=5000`;
   try {
     while (nextUrl) {
       const response = await fetch(nextUrl, {
