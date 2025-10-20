@@ -20,6 +20,7 @@ const specialUsers = [
   "i:0#.w|zarsim\\mesmaeili",
   "i:0#.w|zarsim\\m.esmaeili",
   "i:0#.w|zarsim\\mmoradabadi",
+  "i:0#.w|zarsim\\rparsaei",
 ];
 
 function App() {
