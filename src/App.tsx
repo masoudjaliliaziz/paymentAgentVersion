@@ -3,8 +3,8 @@ import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
 import { useUserRoles } from "./hooks/useUserRoles";
-import { calculateRasDatePayment } from "./utils/calculateRasDate";
-import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
+// import { calculateRasDatePayment } from "./utils/calculateRasDate";
+// import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
 import { useAllPayment } from "./hooks/useAllPayments";
 import { PaymentRowTr } from "./components/PaymentRowTr";
@@ -64,7 +64,7 @@ function App() {
   const isLoading = paymentLoading || userLoading;
 
   const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
-  const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
+  // const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
   // استیت جدید برای ذخیره Title‌ها
   const [customerTitles, setCustomerTitles] = useState<Map<string, string>>(
     new Map()
@@ -138,14 +138,14 @@ function App() {
     });
   };
 
-  useEffect(() => {
-    if (selectedPayments.length > 0) {
-      const calculated = calculateRasDatePayment(selectedPayments);
-      setSelectedRasDate(calculated);
-    } else {
-      setSelectedRasDate(null);
-    }
-  }, [selectedPayments]);
+  // useEffect(() => {
+  //   if (selectedPayments.length > 0) {
+  //     const calculated = calculateRasDatePayment(selectedPayments);
+  //     setSelectedRasDate(calculated);
+  //   } else {
+  //     setSelectedRasDate(null);
+  //   }
+  // }, [selectedPayments]);
 
   let barcodeBuffer = "";
   let lastInputTime = 0;
@@ -255,10 +255,10 @@ function App() {
 
   const sortedPayments = sortPayments(filteredPayments);
 
-  const totalSelectedPrice = selectedPayments.reduce(
-    (sum, p) => sum + Number(p.price || 0),
-    0
-  );
+  // const totalSelectedPrice = selectedPayments.reduce(
+  //   (sum, p) => sum + Number(p.price || 0),
+  //   0
+  // );
 
   const areAllSelected =
     filteredPayments.length > 0 &&
@@ -399,6 +399,10 @@ function App() {
   };
   const displayedPayments = getDisplayedPayments();
 
+  const totalSelectedPrice = selectedPayments
+    .filter((p) => displayedPayments.some((dp) => dp.ID === p.ID))
+    .reduce((sum, p) => sum + Number(p.price.replaceAll(",", "") || 0), 0);
+
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
@@ -474,14 +478,14 @@ function App() {
           </div>
         </div>
         <div className="flex flex-col gap-4 items-center justify-center">
-          <span className="text-sky-500 text-sm font-bold">
+          {/* <span className="text-sky-500 text-sm font-bold">
             راس پرداخت‌های انتخاب‌شده
           </span>
           <span className="text-slate-500 text-lg font-bold">
             {selectedRasDate
               ? getShamsiDateFromDayOfYear(selectedRasDate)
               : "چکی انتخاب نشده"}
-          </span>
+          </span> */}
           <span className="text-green-500 text-sm font-bold">
             جمع کل چک‌های انتخاب‌شده
           </span>

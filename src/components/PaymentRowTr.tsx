@@ -424,7 +424,9 @@ export function PaymentRowTr({
                   <div>
                     <p className="font-semibold text-gray-500">مبلغ</p>
                     <div className="flex items-center gap-1">
-                      <span>{Number(price ?? 0).toLocaleString()}</span>
+                      {Number(price?.replaceAll(",", "") ?? 0).toLocaleString(
+                        "fa-IR"
+                      )}
                       <span className="font-semibold text-sky-700 text-sm">
                         ریال
                       </span>
@@ -723,7 +725,11 @@ export function PaymentRowTr({
                 <div>
                   <p className="font-semibold text-gray-500">مبلغ</p>
                   <div className="flex items-center gap-1">
-                    <span>{Number(price ?? 0).toLocaleString("fa-IR")}</span>
+                    <span>
+                      {Number(price?.replaceAll(",", "") ?? 0).toLocaleString(
+                        "fa-IR"
+                      )}
+                    </span>
                     <span className="font-semibold text-sky-700 text-sm">
                       ریال
                     </span>
