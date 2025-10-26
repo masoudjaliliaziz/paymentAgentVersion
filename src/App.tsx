@@ -11,10 +11,11 @@ import { calculateRasDatePayment } from "./utils/calculateRasDate";
 import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
 import { useCustomers } from "./hooks/useCustomer";
-import DebtsArchivePage from "./routes/DebtsArchivePage";
-import { Archive, BanknoteArrowUpIcon } from "lucide-react";
-import DebtsPage from "./routes/DebtsPage";
-import { updateSayadVerified } from "./api/updateItem";
+// import DebtsArchivePage from "./routes/DebtsArchivePage";
+import { BanknoteArrowUpIcon } from "lucide-react";
+// import DebtsPage from "./routes/DebtsPage";
+// import { updateSayadVerified } from "./api/updateItem";
+import UploadFormTabs from "./components/UploadFormTabs";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -26,8 +27,12 @@ function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
   const parentGUID = useParentGuid();
-  const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
-  const [isShownDebt, setIsShownDebt] = useState(false);
+  // const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
+  // const [isShownDebt, setIsShownDebt] = useState(false);
+  const [isShownNewPayment, setIsShownNewPayment] = useState(false);
+  const [activeTab, setActiveTab] = useState<"normal" | "pending" | "treasury">(
+    "normal"
+  );
   const [isVerifyingAll, setIsVerifyingAll] = useState(false);
   const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
   const [completedVerifications, setCompletedVerifications] = useState<
@@ -83,6 +88,10 @@ function App() {
     name: "",
   });
 
+  const [typeactiveTab, setTypeActiveTab] = useState<"1" | "2">("1");
+  const [customerCode, setCustomerCode] = useState<string>("");
+  const [customerTitle, setCustomerTitle] = useState<string>("");
+
   const togglePaymentSelection = (payment: PaymentType) => {
     setSelectedPayments((prev) => {
       const exists = prev.find((p) => p.ID === payment.ID);
@@ -91,24 +100,24 @@ function App() {
         : [...prev, payment];
     });
   };
-  const processVerifyAll = async (ids: string[]) => {
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      try {
-        await updateSayadVerified(Number(id)); // مطمئن شوید این تابع وارد شده
-        setCompletedVerifications((prev) => [...prev, id]);
-      } catch (error) {
-        setErrorMessages((prev) => [
-          ...prev,
-          `خطا برای ID ${id}: ${error || "نامشخص"}`,
-        ]);
-      }
-      await new Promise((res) => setTimeout(res, 200)); // فاصله زمانی بین درخواست‌ها
-    }
+  // const processVerifyAll = async (ids: string[]) => {
+  //   for (let i = 0; i < ids.length; i++) {
+  //     const id = ids[i];
+  //     try {
+  //       await updateSayadVerified(Number(id)); // مطمئن شوید این تابع وارد شده
+  //       setCompletedVerifications((prev) => [...prev, id]);
+  //     } catch (error) {
+  //       setErrorMessages((prev) => [
+  //         ...prev,
+  //         `خطا برای ID ${id}: ${error || "نامشخص"}`,
+  //       ]);
+  //     }
+  //     await new Promise((res) => setTimeout(res, 200)); // فاصله زمانی بین درخواست‌ها
+  //   }
 
-    // بعد از اتمام
-    setIsVerifyingAll(false);
-  };
+  //   // بعد از اتمام
+  //   setIsVerifyingAll(false);
+  // };
   useEffect(() => {
     if (selectedPayments.length > 0) {
       const calculated = calculateRasDatePayment(selectedPayments);
@@ -136,18 +145,18 @@ function App() {
     }
   }, [completedVerifications, verifyAllIds, errorMessages]);
 
-  const verifyAllPayments = () => {
-    const eligibleIds = filteredPayments.map((p) => String(p.ID));
-    if (!eligibleIds.length) return;
+  // const verifyAllPayments = () => {
+  //   const eligibleIds = filteredPayments.map((p) => String(p.ID));
+  //   if (!eligibleIds.length) return;
 
-    // ابتدا شناسه‌ها را ست می‌کنیم
-    setVerifyAllIds(eligibleIds);
-    setIsVerifyingAll(true);
-    setCompletedVerifications([]);
-    setErrorMessages([]);
+  //   // ابتدا شناسه‌ها را ست می‌کنیم
+  //   setVerifyAllIds(eligibleIds);
+  //   setIsVerifyingAll(true);
+  //   setCompletedVerifications([]);
+  //   setErrorMessages([]);
 
-    processVerifyAll(eligibleIds);
-  };
+  //   processVerifyAll(eligibleIds);
+  // };
 
   let barcodeBuffer = "";
   let lastInputTime = 0;
@@ -187,14 +196,15 @@ function App() {
   const filteredPayments =
     paymentData
       ?.filter((item) => {
-        if (isAgent) return item.status === "0";
-        if (isMaster) {
-          return (
-            item.status === "1" ||
-            (item.cash === "1" && item.status !== "3" && item.status !== "4")
-          );
+        // فیلتر بر اساس تب فعال
+        if (activeTab === "treasury") {
+          return item.status === "4"; // چک‌های تایید شده توسط خزانه
+        } else if (activeTab === "pending") {
+          return item.status === "1"; // چک‌های در انتظار تایید خزانه
+        } else {
+          // حالت عادی - چک‌های در انتظار تایید کارشناس
+          return item.status === "0";
         }
-        return false;
       })
       .filter((item) => {
         if (userData && specialUsers.includes(userData)) {
@@ -205,6 +215,7 @@ function App() {
         }
         return false;
       })
+
       .filter((item) => {
         return Object.entries(filters).every(([key, value]) => {
           if (!value) return true;
@@ -277,84 +288,131 @@ function App() {
 
   return (
     <div className="flex gap-6 mt-6 px-4">
-      <div className="w-1/4 sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto">
-        <div className="flex justify-start items-center gap-3">
-          <div
-            onClick={() => setIsShownDebtArchive((cur) => !cur)}
-            className={`flex items-center justify-center font-bold border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
-              isShownDebtArchive ? "bg-slate-800 text-white" : ""
-            }`}
-          >
-            <Archive width={20} height={20} />
-          </div>
-          <div
-            onClick={() => setIsShownDebt((cur) => !cur)}
-            className={`flex items-center justify-center font-bold border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer w-8 h-8 hover:bg-slate-800 hover:text-white ${
-              isShownDebt ? "bg-slate-800 text-white" : ""
-            }`}
-          >
-            <BanknoteArrowUpIcon width={20} height={20} />
-          </div>
-        </div>
-        <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
-          {data?.[0]?.Title ?? "در حال بارگذاری..."}
-        </span>
-        <div className="flex flex-col gap-4 items-center justify-center">
-          <span className="text-sky-500 text-sm font-bold">
-            راس پرداخت‌های انتخاب‌شده
-          </span>
-          <span className="text-slate-500 text-lg font-bold">
-            {selectedRasDate
-              ? getShamsiDateFromDayOfYear(selectedRasDate)
-              : "چکی انتخاب نشده"}
-          </span>
-          <span className="text-green-500 text-sm font-bold">
-            جمع کل چک‌های انتخاب‌شده
-          </span>
-          <div className="flex flex-row-reverse gap-3 items-center justify-center">
-            <span className="text-slate-700 text-lg font-bold mt-2">
-              {totalSelectedPrice.toLocaleString("fa-IR")}
-            </span>
-            <span className="text-sky-700 text-sm font-semibold mt-2">
-              ریال
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col w-full gap-2 text-sm">
-          {Object.entries({
-            sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
-            price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",
-            seriesNo: "شماره سری (مثلاً ۱۲۳)",
-            serialNo: "شماره سریال (مثلاً ۹۸۷۶۵۴)",
-            SalesExpert: "کارشناس فروش (مثلاً سمیرا علی‌پور)",
-            iban: "شماره شبا (مثلاً IR123...)",
-            name: "نام مشتری (مثلاً علی رضایی)",
-          }).map(([key, placeholder]) => (
-            <div key={key} className="flex flex-col">
-              <label className="mb-1 text-gray-600">
-                {placeholder.split(" (")[0]}
-              </label>
-              <input
-                className="border p-1 rounded-md"
-                placeholder={placeholder}
-                value={filters[key as keyof typeof filters]}
-                onChange={(e) => handleInputChange(key, e)}
-                onKeyDown={handleInputKeyDown}
-              />
+      <div className="w-[40%] sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto ">
+        {/* تب‌های اصلی */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center gap-3">
+            <div
+              onClick={() => setIsShownNewPayment((cur) => !cur)}
+              className={`flex items-center justify-center text-xs font-bold border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer hover:bg-slate-800 hover:text-white px-2 py-1 gap-2 ${
+                isShownNewPayment ? "bg-slate-800 text-white" : ""
+              }`}
+            >
+              ثبت پرداخت جدید
+              <BanknoteArrowUpIcon width={20} height={20} />
             </div>
-          ))}
+            {/* تب‌های نمایش چک‌ها */}
+
+            <div
+              onClick={() => setActiveTab("normal")}
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
+                activeTab === "normal"
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              چک‌های در انتظار تایید کارشناس
+            </div>
+            <div
+              onClick={() => setActiveTab("pending")}
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
+                activeTab === "pending"
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              چک‌های در انتظار تایید خزانه
+            </div>
+            <div
+              onClick={() => setActiveTab("treasury")}
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
+                activeTab === "treasury"
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              چک‌های تایید شده توسط خزانه
+            </div>
+          </div>
         </div>
+        {isShownNewPayment && (
+          <div className="flex flex-col w-full gap-2 text-sm">
+            <UploadFormTabs
+              parent_GUID={guid}
+              typeactiveTab={typeactiveTab}
+              setTypeActiveTab={setTypeActiveTab}
+              customerCode={customerCode}
+              customerTitle={customerTitle}
+              onCustomerDataChange={(code, title) => {
+                setCustomerCode(code);
+                setCustomerTitle(title);
+              }}
+            />
+          </div>
+        )}{" "}
+        {!isShownNewPayment && (
+          <>
+            <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
+              {data?.[0]?.Title ?? "در حال بارگذاری..."}
+            </span>
+            <div className="flex flex-col gap-4 items-center justify-center">
+              <span className="text-sky-500 text-sm font-bold">
+                راس پرداخت‌های انتخاب‌شده
+              </span>
+              <span className="text-slate-500 text-lg font-bold">
+                {selectedRasDate
+                  ? getShamsiDateFromDayOfYear(selectedRasDate)
+                  : "چکی انتخاب نشده"}
+              </span>
+              <span className="text-green-500 text-sm font-bold">
+                جمع کل چک‌های انتخاب‌شده
+              </span>
+              <div className="flex flex-row-reverse gap-3 items-center justify-center">
+                <span className="text-slate-700 text-lg font-bold mt-2">
+                  {totalSelectedPrice.toLocaleString("fa-IR")}
+                </span>
+                <span className="text-sky-700 text-sm font-semibold mt-2">
+                  ریال
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col w-full gap-2 text-sm">
+              {Object.entries({
+                sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
+                price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",
+                seriesNo: "شماره سری (مثلاً ۱۲۳)",
+                serialNo: "شماره سریال (مثلاً ۹۸۷۶۵۴)",
+                SalesExpert: "کارشناس فروش (مثلاً سمیرا علی‌پور)",
+                iban: "شماره شبا (مثلاً IR123...)",
+                name: "نام مشتری (مثلاً علی رضایی)",
+              }).map(([key, placeholder]) => (
+                <div key={key} className="flex flex-col">
+                  <label className="mb-1 text-gray-600">
+                    {placeholder.split(" (")[0]}
+                  </label>
+                  <input
+                    className="border p-1 rounded-md"
+                    placeholder={placeholder}
+                    value={filters[key as keyof typeof filters]}
+                    onChange={(e) => handleInputChange(key, e)}
+                    onKeyDown={handleInputKeyDown}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      {isShownDebtArchive && (
+      {/* {isShownDebtArchive && (
         <div className={`${isShownDebt ? "w-1/2" : "w-3/4"}`}>
           <DebtsArchivePage paymentList={selectedPayments} />
         </div>
-      )}
+      )} */}
 
-      {!isShownDebtArchive && !isShownDebt && (
-        <div className="w-3/4">
+      {
+        <div className="w-[60%]">
           {isLoading && <p>در حال بارگذاری...</p>}
           {error && <p>خطا در دریافت اطلاعات: {error.message}</p>}
 
@@ -399,7 +457,7 @@ function App() {
                 انتخاب همه
               </label>
             </div>
-            <button
+            {/* <button
               onClick={verifyAllPayments}
               disabled={isVerifyingAll || filteredPayments.length === 0}
               className={`px-4 py-2 rounded-md text-white font-semibold ${
@@ -411,7 +469,7 @@ function App() {
               {isVerifyingAll
                 ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
                 : "استعلام همه"}
-            </button>
+            </button> */}
           </div>
 
           {filteredPayments.map((item) => (
@@ -435,12 +493,12 @@ function App() {
             />
           ))}
         </div>
-      )}
-      {isShownDebt && (
+      }
+      {/* {isShownDebt && (
         <div className={`${isShownDebtArchive ? "w-1/2" : "w-3/4"}`}>
           <DebtsPage paymentList={selectedPayments} />
         </div>
-      )}
+      )}  */}
     </div>
   );
 }

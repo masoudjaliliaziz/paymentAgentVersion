@@ -40,6 +40,9 @@ export type PaymentType = {
   acceptDescrptionFromSP: string;
   VerifiedConfirmSayadTr: string;
   VerifiedRejectSayadTr: string;
+  invoiceType: "1" | "2";
+  customerTitle: string;
+  customerCode: string;
 };
 
 export type DebtType = {
@@ -52,6 +55,28 @@ export type DebtType = {
   status: string;
 };
 
+export type Data = {
+  __metadata: { type: string };
+  Title: string;
+  price: string;
+  dueDate: string;
+  sayadiCode: string;
+  dayOfYear: string;
+  nationalId: string;
+  nationalIdHoghoghi: string;
+  cash: string;
+  status: string;
+  bankName: string;
+  SalesExpert: string;
+  SalesExpertAcunt_text: string;
+  parentGUID: string;
+  itemGUID: string;
+  Verified?: string;
+  VerifiedHoghoghi?: string;
+  invoiceType: "1" | "2";
+  customerTitle: string;
+  customerCode: string;
+};
 export type CustomerType = {
   Id: number;
   ID: number;

@@ -117,3 +117,45 @@ export async function loadDebt(
     return [];
   }
 }
+
+
+export async function getRemainingDebt(cc: string): Promise<number> {
+  if (!cc || cc.trim() === "") {
+    return 0;
+  }
+
+  const webUrl = "https://crm.zarsim.com";
+  const listName = "Store_Transfer_List";
+
+  try {
+    const res = await fetch(
+      `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Customer_Code eq '${cc}'`,
+      { headers: { Accept: "application/json;odata=verbose" } }
+    );
+
+    if (!res.ok) {
+      console.error("API request failed:", res.status, res.statusText);
+      return 0;
+    }
+
+    const json = await res.json();
+    const items = json?.d?.results;
+
+    if (!items || items.length === 0) {
+      return 0;
+    }
+
+    // محاسبه مجموع Remain_Price
+    const totalRemainPrice = items.reduce(
+      (sum: number, item: { Remain_Price?: string | number }) => {
+        const remainPrice = Number(item.Remain_Price || 0);
+        return sum + remainPrice;
+      },
+      0
+    );
+    return totalRemainPrice;
+  } catch (err) {
+    console.error("خطا در گرفتن آیتم:", err);
+    return 0;
+  }
+}
