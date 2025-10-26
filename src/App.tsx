@@ -9,11 +9,19 @@ import type { PaymentType } from "./types/apiTypes";
 import { useAllPayment } from "./hooks/useAllPayments";
 import { PaymentRowTr } from "./components/PaymentRowTr";
 import { updateSayadVerified } from "./api/updateItem";
-import { Captions, CaptionsOff, Check, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Captions,
+  CaptionsOff,
+  Check,
+  FileTerminal,
+  X,
+} from "lucide-react";
 import clsx from "clsx";
 import { useCurrentUser } from "./hooks/useUser";
 import { exportToExcel } from "./utils/exportToExcel";
-import { Download } from "lucide-react";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -536,12 +544,11 @@ function App() {
           <p>هیچ پرداختی مطابق فیلتر یافت نشد.</p>
         )}
 
-        <div className="mb-4 flex items-center justify-end gap-4">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
+        <div className="mb-4 flex items-center justify-between gap-4 bg-white p-2 rounded-md shadow-sm">
+          <div className="flex items-center justify-center gap-2">
+            <div
               onClick={() => handleSort("price")}
-              className={`px-4 py-2 rounded-md ${
+              className={`px-4 py-2 rounded-md cursor-pointer flex items-center gap-2 ${
                 sortConfig.key === "price"
                   ? sortConfig.direction === "asc"
                     ? "bg-blue-500 text-white"
@@ -549,12 +556,20 @@ function App() {
                   : "bg-gray-200"
               }`}
             >
-              مرتب‌سازی بر اساس مبلغ
-            </button>
-            <button
-              type="button"
+              <span className="text-sm font-bold">مبلغ</span>
+              <span className="text-sm font-bold">
+                {sortConfig.direction === "asc" ? (
+                  <ArrowUp size={16} className="mt-1" />
+                ) : sortConfig.direction === "desc" ? (
+                  <ArrowDown size={16} className="mt-1" />
+                ) : (
+                  <ArrowUpDown size={16} className="mt-1" />
+                )}
+              </span>
+            </div>
+            <div
               onClick={() => handleSort("dueDate")}
-              className={`px-4 py-2 rounded-md ${
+              className={`px-4 py-2 rounded-md cursor-pointer flex items-center gap-2 ${
                 sortConfig.key === "dueDate"
                   ? sortConfig.direction === "asc"
                     ? "bg-blue-500 text-white"
@@ -562,56 +577,67 @@ function App() {
                   : "bg-gray-200"
               }`}
             >
-              مرتب‌سازی بر اساس تاریخ
+              <span className="text-sm font-bold">تاریخ</span>
+              <span className="text-sm font-bold">
+                {sortConfig.direction === "asc" ? (
+                  <ArrowUp size={16} className="mt-1" />
+                ) : sortConfig.direction === "desc" ? (
+                  <ArrowDown size={16} className="mt-1" />
+                ) : (
+                  <ArrowUpDown size={16} className="mt-1" />
+                )}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleExportToExcel}
+              disabled={displayedPayments.length === 0}
+              className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
+                displayedPayments.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-500 hover:bg-green-600"
+              }`}
+            >
+              <FileTerminal size={16} />
+              <span className="text-sm font-bold">اکسل</span>
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={areAllSelected}
-              onChange={() => {
+            <div
+              onClick={() => {
                 if (areAllSelected) {
                   deselectAllPayments();
                 } else {
                   selectAllPayments();
                 }
               }}
-              id="selectAllCheckbox"
-              className="cursor-pointer"
-            />
-            <label
-              htmlFor="selectAllCheckbox"
-              className="cursor-pointer select-none text-xl font-bold"
+              className={`px-4 py-2 rounded-md cursor-pointer flex items-center gap-2 ${
+                areAllSelected ? "bg-green-500 text-white" : "bg-gray-200"
+              }`}
             >
-              انتخاب همه
-            </label>
+              <span className="text-sm font-bold">انتخاب همه</span>
+              <span className="text-sm font-bold">
+                {areAllSelected ? (
+                  <Check size={16} className="mt-1" />
+                ) : (
+                  <ArrowUpDown size={16} className="mt-1" />
+                )}
+              </span>
+            </div>
+            <button
+              onClick={verifyAllPayments}
+              disabled={isVerifyingAll || filteredPayments.length === 0}
+              className={`px-4 py-2 rounded-md text-white font-semibold ${
+                isVerifyingAll || filteredPayments.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-sky-500 hover:bg-sky-600"
+              }`}
+            >
+              {isVerifyingAll
+                ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
+                : "استعلام همه"}
+            </button>
           </div>
-          <button
-            onClick={verifyAllPayments}
-            disabled={isVerifyingAll || filteredPayments.length === 0}
-            className={`px-4 py-2 rounded-md text-white font-semibold ${
-              isVerifyingAll || filteredPayments.length === 0
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-sky-500 hover:bg-sky-600"
-            }`}
-          >
-            {isVerifyingAll
-              ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
-              : "استعلام همه"}
-          </button>
-          <button
-            type="button"
-            onClick={handleExportToExcel}
-            disabled={displayedPayments.length === 0}
-            className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
-              displayedPayments.length === 0
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-500 hover:bg-green-600"
-            }`}
-          >
-            <Download size={16} />
-            Export به Excel
-          </button>
         </div>
 
         {displayedPayments.map((item, i) => (
