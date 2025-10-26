@@ -298,7 +298,7 @@ function App() {
                 isShownNewPayment ? "bg-slate-800 text-white" : ""
               }`}
             >
-              ثبت پرداخت جدید
+              ثبت پرداخت 
               <BanknoteArrowUpIcon width={20} height={20} />
             </div>
             {/* تب‌های نمایش چک‌ها */}
@@ -311,7 +311,7 @@ function App() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              چک‌های در انتظار تایید کارشناس
+               در انتظار تایید کارشناس
             </div>
             <div
               onClick={() => setActiveTab("pending")}
@@ -321,7 +321,7 @@ function App() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              چک‌های در انتظار تایید خزانه
+               در انتظار تایید خزانه
             </div>
             <div
               onClick={() => setActiveTab("treasury")}
@@ -331,7 +331,7 @@ function App() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              چک‌های تایید شده توسط خزانه
+               تایید شده توسط خزانه
             </div>
           </div>
         </div>
