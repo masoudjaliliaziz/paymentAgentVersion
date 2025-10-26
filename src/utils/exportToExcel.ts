@@ -8,7 +8,7 @@ interface ExcelRowData {
   ردیف: number; // شماره ردیف از 1 شروع می‌شود
   نوع: string; // همیشه "چک"
   کد: string; // همیشه "24"
-  ماهیت: string; // 1 برای حقوقی، 2 برای حقیقی
+  ماهیت: string; // 2 برای حقوقی، 1 برای حقیقی
   شماره: string; // سریال چک
   "تاریخ سر رسید": string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
   مبلغ: string; // مبلغ از استعلام صیاد
@@ -19,8 +19,8 @@ interface ExcelRowData {
 }
 
 /**
- * تابع exportToExcel - این تابع چک‌های فیلتر شده را به فرمت Excel تبدیل می‌کند
- * @param payments آرایه‌ای از چک‌های فیلتر شده
+ * تابع exportToExcel - این تابع پرداخت‌های فیلتر شده (چک‌ها و واریزهای نقدی) را به فرمت Excel تبدیل می‌کند
+ * @param payments آرایه‌ای از پرداخت‌های فیلتر شده
  * @param filename نام فایل Excel (اختیاری)
  */
 export const exportToExcel = (
@@ -28,20 +28,18 @@ export const exportToExcel = (
   filename?: string
 ): void => {
   try {
-    // فیلتر کردن واریزهای نقدی - فقط چک‌ها را export می‌کنیم
-    const checkPayments = payments.filter((payment) => payment.cash !== "1");
-
-    if (checkPayments.length === 0) {
-      console.log("هیچ چکی برای export وجود ندارد (همه واریزهای نقدی هستند)");
+    // export کردن همه پرداخت‌ها (چک‌ها و واریزهای نقدی)
+    if (payments.length === 0) {
+      console.log("هیچ پرداختی برای export وجود ندارد");
       return;
     }
 
-    // تبدیل داده‌های چک به فرمت Excel
-    const excelData: ExcelRowData[] = checkPayments.map((payment, index) => ({
+    // تبدیل داده‌های پرداخت به فرمت Excel
+    const excelData: ExcelRowData[] = payments.map((payment, index) => ({
       ردیف: index + 1, // شماره ردیف از 1 شروع می‌شود
-      نوع: "چك", // همیشه "چک" طبق درخواست
+      نوع: payment.cash === "1" ? "نقدي" : "چك", // "نقدي" برای واریز نقدی، "چک" برای چک
       کد: "24", // همیشه "24" طبق درخواست
-      ماهیت: determineEntityType(payment), // 1 برای حقوقی، 2 برای حقیقی
+      ماهیت: determineEntityType(payment), // 2 برای حقوقی، 1 برای حقیقی
       شماره: payment.serialNo || "", // سریال چک
       "تاریخ سر رسید": convertToEnglishDate(
         payment.sayadConfirmDueDate || payment.dueDate || ""
@@ -78,10 +76,10 @@ export const exportToExcel = (
     worksheet["!cols"] = columnWidths;
 
     // اضافه کردن worksheet به workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, "چک‌های فیلتر شده");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "پرداخت‌های فیلتر شده");
 
     // تولید نام فایل با timestamp اگر نام مشخص نشده باشد
-    const defaultFilename = `چک_های_فیلتر_شده_${new Date()
+    const defaultFilename = `پرداخت_های_فیلتر_شده_${new Date()
       .toISOString()
       .slice(0, 19)
       .replace(/:/g, "-")}.xlsx`;
@@ -101,17 +99,17 @@ export const exportToExcel = (
 /**
  * تابع تعیین نوع شخصیت (حقیقی یا حقوقی) - این تابع بر اساس فیلدهای موجود نوع شخصیت را تشخیص می‌دهد
  * @param payment داده چک
- * @returns "1" برای حقوقی، "2" برای حقیقی
+ * @returns "2" برای حقوقی، "1" برای حقیقی
  */
 const determineEntityType = (payment: PaymentType): string => {
   // اگر nationalIdHoghoghi موجود باشد، حقوقی است
   if (payment.nationalIdHoghoghi && payment.nationalIdHoghoghi.trim() !== "") {
-    return "1"; // حقوقی
+    return "2"; // حقوقی
   }
 
   // اگر nationalId موجود باشد، حقیقی است
   if (payment.nationalId && payment.nationalId.trim() !== "") {
-    return "2"; // حقیقی
+    return "1"; // حقیقی
   }
 
   // اگر هیچ‌کدام موجود نباشد، بر اساس نام قضاوت می‌کنیم
@@ -129,10 +127,10 @@ const determineEntityType = (payment: PaymentType): string => {
   const name = payment.name || "";
 
   if (legalKeywords.some((keyword) => name.includes(keyword))) {
-    return "1"; // حقوقی
+    return "2"; // حقوقی
   }
 
-  return "2"; // پیش‌فرض: حقیقی
+  return "1"; // پیش‌فرض: حقیقی
 };
 
 /**
