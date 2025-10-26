@@ -596,6 +596,7 @@ function App() {
               : "استعلام همه"}
           </button>
           <button
+            type="button"
             onClick={handleExportToExcel}
             disabled={displayedPayments.length === 0}
             className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
