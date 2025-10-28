@@ -309,79 +309,98 @@ export function PaymentRowTr({
               transition={{ duration: 0.3 }}
               className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-6"
             >
-              <div className="flex justify-between items-center gap-4 rounded-md bg-slate-100 p-1.5">
-                <div>
-                  <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
-                  <div className="flex gap-1 items-center">
-                    {Array.from(
-                      { length: Number(item.checksColor ?? 0) || 0 },
-                      (_, i) => (
-                        <span
-                          key={i}
-                          className={`rounded-sm w-4 h-4 ${getCheckColor(
-                            item.checksColor
-                          )}`}
-                        ></span>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                {itemGUID && item.parentGUID && (
-                  <>
-                    <CheckPicConfirm
-                      itemGuid={itemGUID}
-                      parentGuid={item.parentGUID}
-                    />
-                    <CheckPic
-                      itemGuid={itemGUID}
-                      parentGuid={item.parentGUID}
-                    />
-                  </>
-                )}
-
-                <ActionByRole ID={ID} />
-
-                <button
-                  type="button"
-                  onClick={checkSayadConfirm}
-                  disabled={isVerifyingAll || isVerifying}
-                  className={`px-4 py-2 rounded-md text-white font-semibold ${
-                    isVerifyingAll || isVerifying
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-sky-500 hover:bg-sky-600"
-                  }`}
-                >
-                  {isVerifyingAll || isVerifying
-                    ? "در حال استعلام..."
-                    : "استعلام ثبت چک"}
-                </button>
-
-                {String(item.VerifiedSayad) === "2" && (
-                  <button
-                    disabled
-                    type="button"
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-                  >
-                    چک به نام زرسیم ثبت نشده است
-                  </button>
-                )}
-
-                <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
-                  <div className="font-bold text-sky-500 text-xl">
-                    {item.iban ? getBankNameFromIBAN(item.iban) : "نامشخص"}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={onToggleSelect}
-                    className="w-4 h-4 cursor-pointer"
-                  />
-                </div>
-                <span className="text-sm font-bold text-base-content bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
-                  {data?.[0]?.Title ?? "در حال بارگذاری..."}
-                </span>
-              </div>
+              <table className="w-full rounded-lg bg-slate-100 border-collapse">
+                <tbody>
+                  <tr className="border-b border-slate-200">
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="font-semibold text-gray-600 text-sm">
+                          استعلام رنگ چک
+                        </p>
+                        <div className="flex gap-1 items-center">
+                          {Array.from(
+                            { length: Number(item.checksColor ?? 0) || 0 },
+                            (_, i) => (
+                              <span
+                                key={i}
+                                className={`rounded-sm w-4 h-4 ${getCheckColor(
+                                  item.checksColor
+                                )}`}
+                              ></span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex items-center justify-center gap-2">
+                        {itemGUID && item.parentGUID && (
+                          <>
+                            <CheckPicConfirm
+                              itemGuid={itemGUID}
+                              parentGuid={item.parentGUID}
+                            />
+                            <CheckPic
+                              itemGuid={itemGUID}
+                              parentGuid={item.parentGUID}
+                            />
+                          </>
+                        )}
+                        <ActionByRole ID={ID} />
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <button
+                        type="button"
+                        onClick={checkSayadConfirm}
+                        disabled={isVerifyingAll || isVerifying}
+                        className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
+                          w-32 h-10 text-center items-center justify-center flex 
+                          ${
+                            isVerifyingAll || isVerifying
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-sky-500 hover:bg-sky-600"
+                          }`}
+                      >
+                        {isVerifyingAll || isVerifying
+                          ? "در حال استعلام..."
+                          : "استعلام ثبت چک"}
+                      </button>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="font-bold text-sky-500 text-lg">
+                        {item.iban ? getBankNameFromIBAN(item.iban) : "نامشخص"}
+                      </div>
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="text-sm font-bold text-white bg-slate-800 text-center rounded-lg px-3 py-2 whitespace-nowrap">
+                          {data?.[0]?.Title ?? "در حال بارگذاری..."}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={onToggleSelect}
+                          className="w-5 h-5 cursor-pointer"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  {String(item.VerifiedSayad) === "2" && (
+                    <tr>
+                      <td colSpan={5} className="p-3 text-center">
+                        <button
+                          disabled
+                          type="button"
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm whitespace-nowrap"
+                        >
+                          چک به نام زرسیم ثبت نشده است
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
 
               {errorMessage && (
                 <div className="flex justify-end">
@@ -671,46 +690,73 @@ export function PaymentRowTr({
               transition={{ duration: 0.3 }}
               className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
             >
-              <div className="flex justify-end items-center gap-4 rounded-md bg-slate-100 p-1.5 px-3">
-                {itemGUID && item.parentGUID && (
-                  <CheckPicConfirm
-                    title="دانلود فیش واریزی"
-                    itemGuid={itemGUID}
-                    parentGuid={item.parentGUID}
-                  />
-                )}
-
-                {status && (
-                  <span
-                    className={`font-bold text-xs ${
-                      status === "1"
-                        ? "text-green-700"
-                        : status === "2"
-                        ? "text-red-700"
-                        : ""
-                    }`}
-                  >
-                    {status === "1"
-                      ? "تایید توسط کارشناس"
-                      : status === "2"
-                      ? "رد شده توسط کارشناس"
-                      : ""}
-                  </span>
-                )}
-                <ActionByRole ID={ID} />
-
-                <p className="font-bold text-sky-500 text-lg">واریز نقدی</p>
-
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={onToggleSelect}
-                  className="w-4 h-4 cursor-pointer"
-                />
-                <span className="text-sm font-bold text-base-content bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
-                  {data?.[0]?.Title ?? "در حال بارگذاری..."}
-                </span>
-              </div>
+              <table className="w-full rounded-lg bg-slate-100 border-collapse">
+                <tbody>
+                  <tr className="border-b border-slate-200">
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="font-semibold text-gray-600 text-sm">
+                          نوع پرداخت
+                        </p>
+                        <p className="font-bold text-sky-500 text-lg">
+                          واریز نقدی
+                        </p>
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex items-center justify-center gap-2">
+                        {itemGUID && item.parentGUID && (
+                          <CheckPicConfirm
+                            title="دانلود فیش واریزی"
+                            itemGuid={itemGUID}
+                            parentGuid={item.parentGUID}
+                          />
+                        )}
+                        <ActionByRole ID={ID} />
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex items-center justify-center">
+                        {status && (
+                          <span
+                            className={`font-bold text-sm px-3 py-1 rounded-md ${
+                              status === "1"
+                                ? "text-green-700 bg-green-100"
+                                : status === "2"
+                                ? "text-red-700 bg-red-100"
+                                : ""
+                            }`}
+                          >
+                            {status === "1"
+                              ? "تایید توسط کارشناس"
+                              : status === "2"
+                              ? "رد شده توسط کارشناس"
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="font-bold text-sky-500 text-lg">
+                        {item.bankName ?? "نامشخص"}
+                      </div>
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="text-sm font-bold text-white bg-slate-800 text-center rounded-lg px-3 py-2 whitespace-nowrap">
+                          {data?.[0]?.Title ?? "در حال بارگذاری..."}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={onToggleSelect}
+                          className="w-5 h-5 cursor-pointer"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
               <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
                 <div>

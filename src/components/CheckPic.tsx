@@ -18,12 +18,16 @@ function CheckPic({ parentGuid, itemGuid }: Props) {
       {checkFiles?.length === 0 && <p>تصویری یافت نشد</p>}
       <ul className="list-disc list-inside">
         {checkFiles?.map((file) => (
-          <div key={file.Name}>
+          <div
+            className="flex items-center justify-center
+          gap-2  w-32 h-10 bg-blue-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white active:text-white focus:text-white hover:bg-blue-800"
+            key={file.Name}
+          >
             <a
               href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
               target="_blank"
               rel="noreferrer"
-              className="bg-blue-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-blue-800"
+              className=" text-white active:text-white focus:text-white hover:bg-blue-800"
             >
               دانلود تصویر چک
             </a>

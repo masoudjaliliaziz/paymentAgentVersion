@@ -87,7 +87,7 @@ function ActionByRole({ ID }: Props) {
         <button
           onClick={() => setIsTruOpen(true)}
           type="button"
-          className="bg-orange-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-orange-800 relative "
+          className="bg-orange-600 w-32 h-10 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-orange-800 relative "
         >
           اعلان وضعیت خزانه
         </button>
@@ -107,17 +107,36 @@ function ActionByRole({ ID }: Props) {
               اعلان وضعیت خزانه
             </span>
 
-            <div className="w-full flex flex-col items-end gap-2">
-              <label className="block text-sm font-semibold ">وضعیت</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full border rounded-md p-2 text-end"
-              >
-                <option value="">انتخاب وضعیت</option>
-                <option value="accepted">مورد تایید</option>
-                <option value="rejected">رد شده</option>
-              </select>
+            <div className="w-full flex flex-col items-end gap-3">
+              <label className="block text-sm font-semibold text-gray-700">
+                وضعیت
+              </label>
+              <div className="w-full flex gap-3">
+                <button
+                  onClick={() => setStatus("rejected")}
+                  type="button"
+                  className={`flex-1 py-3 px-4 rounded-md font-semibold text-sm cursor-pointer transition-colors duration-200
+                  ${
+                    status === "rejected"
+                      ? "bg-red-600 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  رد
+                </button>
+                <button
+                  onClick={() => setStatus("accepted")}
+                  type="button"
+                  className={`flex-1 py-3 px-4 rounded-md font-semibold text-sm cursor-pointer transition-colors duration-200
+                  ${
+                    status === "accepted"
+                      ? "bg-green-600 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  تایید
+                </button>
+              </div>
             </div>
 
             {status === "rejected" && (
