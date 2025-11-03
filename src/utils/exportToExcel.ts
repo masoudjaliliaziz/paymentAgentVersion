@@ -104,12 +104,12 @@ export const exportToExcel = (
 const determineEntityType = (payment: PaymentType): string => {
   // اگر nationalIdHoghoghi موجود باشد، حقوقی است
   if (payment.nationalIdHoghoghi && payment.nationalIdHoghoghi.trim() !== "") {
-    return "2"; // حقوقی
+    return "1"; // حقوقی
   }
 
   // اگر nationalId موجود باشد، حقیقی است
   if (payment.nationalId && payment.nationalId.trim() !== "") {
-    return "1"; // حقیقی
+    return "2"; // حقیقی
   }
 
   // اگر هیچ‌کدام موجود نباشد، بر اساس نام قضاوت می‌کنیم
