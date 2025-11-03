@@ -127,10 +127,10 @@ const determineEntityType = (payment: PaymentType): string => {
   const name = payment.name || "";
 
   if (legalKeywords.some((keyword) => name.includes(keyword))) {
-    return "2"; // حقوقی
+    return "1"; // حقوقی
   }
 
-  return "1"; // پیش‌فرض: حقیقی
+  return "2"; // پیش‌فرض: حقیقی
 };
 
 /**
