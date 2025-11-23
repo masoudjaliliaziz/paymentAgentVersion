@@ -130,6 +130,7 @@ interface PaymentRowProps {
   index: number;
   onVerificationComplete: (id: string, error?: string) => void;
   onUpdateTitle?: (parentGUID: string, title: string) => void; // پراپ جدید
+  onUpdateCustomerCode?: (parentGUID: string, code: string) => void; // پراپ جدید برای CustomerCode
 }
 
 export function PaymentRowTr({
@@ -141,6 +142,7 @@ export function PaymentRowTr({
   verifyAllIds,
   onVerificationComplete,
   onUpdateTitle, // اضافه کردن پراپ جدید
+  onUpdateCustomerCode, // اضافه کردن پراپ جدید
 }: PaymentRowProps) {
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
@@ -177,6 +179,13 @@ export function PaymentRowTr({
       onUpdateTitle(item.parentGUID, data[0].Title);
     }
   }, [data, item.parentGUID, onUpdateTitle]);
+
+  // اضافه کردن useEffect برای ارسال CustomerCode به App
+  useEffect(() => {
+    if (data?.[0]?.CustomerCode && onUpdateCustomerCode) {
+      onUpdateCustomerCode(item.parentGUID, data[0].CustomerCode);
+    }
+  }, [data, item.parentGUID, onUpdateCustomerCode]);
 
   useEffect(() => {
     if (verifyAllIds.includes(String(ID)) && !item.Error && !isVerifying) {
@@ -377,6 +386,17 @@ export function PaymentRowTr({
                         <span className="text-sm font-bold text-white bg-slate-800 text-center rounded-lg px-3 py-2 whitespace-nowrap">
                           {data?.[0]?.Title ?? "در حال بارگذاری..."}
                         </span>
+                        {item.invoiceType && (
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                              String(item.invoiceType) === "1"
+                                ? "bg-blue-500 text-white"
+                                : "bg-purple-500 text-white"
+                            }`}
+                          >
+                            نوع {item.invoiceType}
+                          </span>
+                        )}
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -746,6 +766,17 @@ export function PaymentRowTr({
                         <span className="text-sm font-bold text-white bg-slate-800 text-center rounded-lg px-3 py-2 whitespace-nowrap">
                           {data?.[0]?.Title ?? "در حال بارگذاری..."}
                         </span>
+                        {item.invoiceType && (
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                              String(item.invoiceType) === "1"
+                                ? "bg-blue-500 text-white"
+                                : "bg-purple-500 text-white"
+                            }`}
+                          >
+                            نوع {item.invoiceType}
+                          </span>
+                        )}
                         <input
                           type="checkbox"
                           checked={isSelected}

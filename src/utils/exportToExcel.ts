@@ -18,6 +18,11 @@ interface ExcelRowData {
   تاریخ: string; // تاریخ ثبت چک (انگلیسی)
 }
 
+// تعریف interface برای داده‌های Excel نوع 2 - شامل customerCode
+interface ExcelRowDataType2 extends ExcelRowData {
+  "تفصیلی 3": string; // CustomerCode
+}
+
 /**
  * تابع exportToExcel - این تابع پرداخت‌های فیلتر شده (چک‌ها و واریزهای نقدی) را به فرمت Excel تبدیل می‌کند
  * @param payments آرایه‌ای از پرداخت‌های فیلتر شده
@@ -91,6 +96,86 @@ export const exportToExcel = (
     console.log(`فایل Excel با موفقیت ایجاد شد: ${finalFilename}`);
   } catch (error) {
     // مدیریت خطا در صورت بروز مشکل
+    console.error("خطا در ایجاد فایل Excel:", error);
+    throw new Error("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+  }
+};
+
+/**
+ * تابع exportToExcelType2 - این تابع پرداخت‌های نوع 2 را به فرمت Excel تبدیل می‌کند با ستون customerCode
+ * @param payments آرایه‌ای از پرداخت‌های فیلتر شده
+ * @param customerCodes Map از parentGUID به CustomerCode
+ * @param filename نام فایل Excel (اختیاری)
+ */
+export const exportToExcelType2 = (
+  payments: PaymentType[],
+  customerCodes: Map<string, string>,
+  filename?: string
+): void => {
+  try {
+    if (payments.length === 0) {
+      console.log("هیچ پرداختی برای export وجود ندارد");
+      return;
+    }
+
+    // تبدیل داده‌های پرداخت به فرمت Excel با ستون customerCode
+    const excelData: ExcelRowDataType2[] = payments.map((payment, index) => ({
+      ردیف: index + 1,
+      نوع: payment.cash === "1" ? "نقدي" : "چك",
+      کد: "24",
+      ماهیت: determineEntityType(payment),
+      شماره: payment.serialNo || "",
+      "تاریخ سر رسید": convertToEnglishDate(
+        payment.sayadConfirmDueDate || payment.dueDate || ""
+      ),
+      مبلغ: payment.sayadConfirmAmount || payment.price || "",
+      "عهدة بانك": payment.iban
+        ? getBankNameFromIBAN(payment.iban)
+        : payment.bankName || "",
+      شهر: "",
+      شعبه: payment.branchCode || "",
+      تاریخ: convertToEnglishDate(payment.dueDate || ""),
+      "تفصیلی 3": customerCodes.get(payment.parentGUID) || "", // اضافه کردن customerCode
+    }));
+
+    // ایجاد workbook جدید
+    const workbook = XLSX.utils.book_new();
+
+    // تبدیل داده‌ها به worksheet
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // تنظیم عرض ستون‌ها برای بهتر نمایش داده‌ها
+    const columnWidths = [
+      { wch: 8 }, // ردیف
+      { wch: 10 }, // نوع
+      { wch: 8 }, // کد
+      { wch: 12 }, // ماهیت
+      { wch: 15 }, // شماره
+      { wch: 18 }, // تاریخ سر رسید
+      { wch: 15 }, // مبلغ
+      { wch: 20 }, // عهده بانک
+      { wch: 10 }, // شهر
+      { wch: 12 }, // شعبه
+      { wch: 18 }, // تاریخ
+      { wch: 15 }, // کد مشتری
+    ];
+    worksheet["!cols"] = columnWidths;
+
+    // اضافه کردن worksheet به workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "پرداخت‌های نوع 2");
+
+    // تولید نام فایل با timestamp اگر نام مشخص نشده باشد
+    const defaultFilename = `پرداخت_های_نوع_2_${new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/:/g, "-")}.xlsx`;
+    const finalFilename = filename || defaultFilename;
+
+    // دانلود فایل Excel
+    XLSX.writeFile(workbook, finalFilename);
+
+    console.log(`فایل Excel نوع 2 با موفقیت ایجاد شد: ${finalFilename}`);
+  } catch (error) {
     console.error("خطا در ایجاد فایل Excel:", error);
     throw new Error("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
   }

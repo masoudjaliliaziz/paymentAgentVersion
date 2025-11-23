@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { useCurrentUser } from "./hooks/useUser";
-import { exportToExcel } from "./utils/exportToExcel";
+import { exportToExcel, exportToExcelType2 } from "./utils/exportToExcel";
 import DatePicker from "react-multi-date-picker";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
@@ -81,10 +81,19 @@ function App() {
   const [customerTitles, setCustomerTitles] = useState<Map<string, string>>(
     new Map()
   );
+  // استیت جدید برای ذخیره CustomerCode‌ها
+  const [customerCodes, setCustomerCodes] = useState<Map<string, string>>(
+    new Map()
+  );
 
   // تابع callback برای به‌روزرسانی Title
   const updateCustomerTitle = (parentGUID: string, title: string) => {
     setCustomerTitles((prev) => new Map(prev).set(parentGUID, title));
+  };
+
+  // تابع callback برای به‌روزرسانی CustomerCode
+  const updateCustomerCode = (parentGUID: string, code: string) => {
+    setCustomerCodes((prev) => new Map(prev).set(parentGUID, code));
   };
 
   useEffect(() => {
@@ -290,6 +299,7 @@ function App() {
     iban: "",
     name: "",
     Title: "", // فیلتر جدید برای Title
+    invoiceType: "", // فیلتر نوع فاکتور (1 یا 2)
   });
   const [dateRange, setDateRange] = useState<DateObject[]>([]); // بازه تاریخ برای فیلتر
 
@@ -332,6 +342,10 @@ function App() {
           if (key === "Title") {
             const title = customerTitles.get(item.parentGUID) ?? "";
             return title.toLowerCase().includes(value.toLowerCase());
+          }
+          if (key === "invoiceType") {
+            // فیلتر بر اساس نوع فاکتور
+            return String(item.invoiceType) === value;
           }
           return (item[key as keyof PaymentType] ?? "")
             .toString()
@@ -419,8 +433,9 @@ function App() {
         return;
       }
 
-      exportToExcel(
+      exportToExcelType2(
         type2Payments,
+        customerCodes,
         `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`
       );
 
@@ -530,6 +545,10 @@ function App() {
         if (key === "Title") {
           const title = customerTitles.get(item.parentGUID) ?? "";
           return title.toLowerCase().includes(value.toLowerCase());
+        }
+        if (key === "invoiceType") {
+          // فیلتر بر اساس نوع فاکتور
+          return String(item.invoiceType) === value;
         }
         return (item[key as keyof PaymentType] ?? "")
           .toString()
@@ -672,6 +691,22 @@ function App() {
                 پاک کردن فیلتر تاریخ
               </button>
             )}
+          </div>
+
+          {/* فیلتر نوع فاکتور */}
+          <div className="flex flex-col">
+            <label className="mb-1 text-gray-600">نوع فاکتور</label>
+            <select
+              className="border p-1 rounded-md text-right"
+              value={filters.invoiceType}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, invoiceType: e.target.value }))
+              }
+            >
+              <option value="">همه</option>
+              <option value="1">نوع 1</option>
+              <option value="2">نوع 2</option>
+            </select>
           </div>
 
           {Object.entries({
@@ -863,6 +898,7 @@ function App() {
               }
             }}
             onUpdateTitle={updateCustomerTitle}
+            onUpdateCustomerCode={updateCustomerCode}
           />
         ))}
       </div>
