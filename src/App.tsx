@@ -22,6 +22,10 @@ import {
 import clsx from "clsx";
 import { useCurrentUser } from "./hooks/useUser";
 import { exportToExcel } from "./utils/exportToExcel";
+import DatePicker from "react-multi-date-picker";
+import DateObject from "react-date-object";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -189,6 +193,74 @@ function App() {
     }
   };
 
+  // تابع تبدیل تاریخ شمسی به فرمت YYYYMMDD برای مقایسه
+  const normalizeDateForComparison = (
+    dateString: string | undefined | null
+  ): string | null => {
+    if (!dateString || typeof dateString !== "string") {
+      return null;
+    }
+
+    // تبدیل اعداد فارسی به انگلیسی
+    const persianToEnglishDigits = (str: string) =>
+      str.replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728));
+
+    const normalized = persianToEnglishDigits(dateString).replace(
+      /[^0-9]/g,
+      ""
+    );
+
+    // اگر تاریخ به فرمت YYYYMMDD باشد
+    if (/^\d{8}$/.test(normalized)) {
+      return normalized;
+    }
+
+    // اگر تاریخ به فرمت YYYY/MM/DD یا YYYY-MM-DD باشد
+    if (normalized.length >= 8) {
+      return normalized.slice(0, 8);
+    }
+
+    return null;
+  };
+
+  // تابع بررسی اینکه آیا تاریخ در بازه مشخص شده است
+  const isDateInRange = (dueDate: string | undefined | null): boolean => {
+    if (!dateRange || !Array.isArray(dateRange) || dateRange.length === 0) {
+      return true; // اگر بازه تاریخ انتخاب نشده باشد، همه را نشان بده
+    }
+
+    const normalizedDueDate = normalizeDateForComparison(dueDate);
+    if (!normalizedDueDate) {
+      return false;
+    }
+
+    // تبدیل تاریخ‌های انتخاب شده به فرمت YYYYMMDD
+    const dates = dateRange
+      .map((date) => {
+        if (date instanceof DateObject) {
+          const year = String(date.year);
+          const month = String(date.month).padStart(2, "0");
+          const day = String(date.day).padStart(2, "0");
+          return `${year}${month}${day}`;
+        }
+        return null;
+      })
+      .filter((d): d is string => d !== null);
+
+    if (dates.length === 0) {
+      return true;
+    }
+
+    if (dates.length === 1) {
+      // اگر فقط یک تاریخ انتخاب شده، همان تاریخ را فیلتر کن
+      return normalizedDueDate === dates[0];
+    }
+
+    // اگر دو تاریخ انتخاب شده، بازه را بررسی کن
+    const [startDate, endDate] = dates.sort();
+    return normalizedDueDate >= startDate && normalizedDueDate <= endDate;
+  };
+
   const sortPayments = (payments: PaymentType[]) => {
     return [...payments].sort((a, b) => {
       const key = sortConfig.key as keyof PaymentType;
@@ -219,6 +291,7 @@ function App() {
     name: "",
     Title: "", // فیلتر جدید برای Title
   });
+  const [dateRange, setDateRange] = useState<DateObject[]>([]); // بازه تاریخ برای فیلتر
 
   const filteredPayments =
     paymentData
@@ -248,6 +321,12 @@ function App() {
         return false;
       })
       .filter((item) => {
+        // فیلتر بازه تاریخ
+        if (!isDateInRange(item.dueDate)) {
+          return false;
+        }
+
+        // فیلترهای دیگر
         return Object.entries(filters).every(([key, value]) => {
           if (!value) return true;
           if (key === "Title") {
@@ -298,6 +377,54 @@ function App() {
       );
 
       console.log(`تعداد ${displayedPayments.length} چک به Excel export شد`);
+    } catch (error) {
+      console.error("خطا در export به Excel:", error);
+      alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+    }
+  };
+
+  // تابع handleExportToExcelByInvoiceType1 - این تابع چک‌های نوع 1 را به Excel export می‌کند
+  const handleExportToExcelByInvoiceType1 = () => {
+    try {
+      const type1Payments = displayedPayments.filter(
+        (payment) => String(payment.invoiceType) === "1"
+      );
+
+      if (type1Payments.length === 0) {
+        alert("هیچ چک نوع 1 برای export وجود ندارد!");
+        return;
+      }
+
+      exportToExcel(
+        type1Payments,
+        `چک_های_نوع_1_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      console.log(`تعداد ${type1Payments.length} چک نوع 1 به Excel export شد`);
+    } catch (error) {
+      console.error("خطا در export به Excel:", error);
+      alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+    }
+  };
+
+  // تابع handleExportToExcelByInvoiceType2 - این تابع چک‌های نوع 2 را به Excel export می‌کند
+  const handleExportToExcelByInvoiceType2 = () => {
+    try {
+      const type2Payments = displayedPayments.filter(
+        (payment) => String(payment.invoiceType) === "2"
+      );
+
+      if (type2Payments.length === 0) {
+        alert("هیچ چک نوع 2 برای export وجود ندارد!");
+        return;
+      }
+
+      exportToExcel(
+        type2Payments,
+        `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      console.log(`تعداد ${type2Payments.length} چک نوع 2 به Excel export شد`);
     } catch (error) {
       console.error("خطا در export به Excel:", error);
       alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
@@ -392,6 +519,12 @@ function App() {
 
     // Apply search filters to all payment states
     return basePayments.filter((item) => {
+      // فیلتر بازه تاریخ
+      if (!isDateInRange(item.dueDate)) {
+        return false;
+      }
+
+      // فیلترهای دیگر
       return Object.entries(filters).every(([key, value]) => {
         if (!value) return true;
         if (key === "Title") {
@@ -508,6 +641,39 @@ function App() {
         </div>
 
         <div className="flex flex-col w-full gap-2 text-sm">
+          {/* فیلتر بازه تاریخ */}
+          <div className="flex flex-col">
+            <label className="mb-1 text-gray-600">بازه تاریخ سررسید</label>
+            <DatePicker
+              value={dateRange}
+              onChange={(dates) => {
+                if (Array.isArray(dates)) {
+                  setDateRange(dates);
+                } else {
+                  setDateRange([]);
+                }
+              }}
+              calendar={persian}
+              locale={persian_fa}
+              range
+              rangeHover
+              numberOfMonths={2}
+              className="w-full"
+              containerClassName="w-full"
+              inputClass="border p-1 rounded-md w-full text-right"
+              placeholder="از تاریخ - تا تاریخ"
+            />
+            {dateRange && Array.isArray(dateRange) && dateRange.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setDateRange([])}
+                className="mt-1 text-xs text-red-600 hover:text-red-800"
+              >
+                پاک کردن فیلتر تاریخ
+              </button>
+            )}
+          </div>
+
           {Object.entries({
             sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
             price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",
@@ -600,6 +766,44 @@ function App() {
             >
               <FileTerminal size={16} />
               <span className="text-sm font-bold">اکسل</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportToExcelByInvoiceType1}
+              disabled={
+                displayedPayments.length === 0 ||
+                displayedPayments.filter((p) => String(p.invoiceType) === "1")
+                  .length === 0
+              }
+              className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
+                displayedPayments.length === 0 ||
+                displayedPayments.filter((p) => String(p.invoiceType) === "1")
+                  .length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
+            >
+              <FileTerminal size={16} />
+              <span className="text-sm font-bold">اکسل نوع 1</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportToExcelByInvoiceType2}
+              disabled={
+                displayedPayments.length === 0 ||
+                displayedPayments.filter((p) => String(p.invoiceType) === "2")
+                  .length === 0
+              }
+              className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
+                displayedPayments.length === 0 ||
+                displayedPayments.filter((p) => String(p.invoiceType) === "2")
+                  .length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-purple-500 hover:bg-purple-600"
+              }`}
+            >
+              <FileTerminal size={16} />
+              <span className="text-sm font-bold">اکسل نوع 2</span>
             </button>
           </div>
           <div className="flex items-center gap-2">
