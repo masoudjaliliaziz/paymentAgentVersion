@@ -30,9 +30,9 @@ function App() {
   // const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
   // const [isShownDebt, setIsShownDebt] = useState(false);
   const [isShownNewPayment, setIsShownNewPayment] = useState(false);
-  const [activeTab, setActiveTab] = useState<"normal" | "pending" | "treasury">(
-    "normal"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "normal" | "pending" | "treasury" | "trDenied"
+  >("normal");
   const [isVerifyingAll, setIsVerifyingAll] = useState(false);
   const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
   const [completedVerifications, setCompletedVerifications] = useState<
@@ -201,6 +201,8 @@ function App() {
           return item.status === "4"; // چک‌های تایید شده توسط خزانه
         } else if (activeTab === "pending") {
           return item.status === "1"; // چک‌های در انتظار تایید خزانه
+        } else if (activeTab === "trDenied") {
+          return item.status === "3"; // چک‌های رد شده توسط خزانه
         } else {
           // حالت عادی - چک‌های در انتظار تایید کارشناس
           return item.status === "0";
@@ -298,7 +300,7 @@ function App() {
                 isShownNewPayment ? "bg-slate-800 text-white" : ""
               }`}
             >
-              ثبت پرداخت 
+              ثبت پرداخت
               <BanknoteArrowUpIcon width={20} height={20} />
             </div>
             {/* تب‌های نمایش چک‌ها */}
@@ -311,7 +313,7 @@ function App() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-               در انتظار تایید کارشناس
+              در انتظار تایید کارشناس
             </div>
             <div
               onClick={() => setActiveTab("pending")}
@@ -321,7 +323,17 @@ function App() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-               در انتظار تایید خزانه
+              در انتظار تایید خزانه
+            </div>
+            <div
+              onClick={() => setActiveTab("trDenied")}
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
+                activeTab === "trDenied"
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              رد شده توسط خزانه
             </div>
             <div
               onClick={() => setActiveTab("treasury")}
@@ -331,7 +343,7 @@ function App() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-               تایید شده توسط خزانه
+              تایید شده توسط خزانه
             </div>
           </div>
         </div>

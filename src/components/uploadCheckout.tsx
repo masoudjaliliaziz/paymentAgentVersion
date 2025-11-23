@@ -75,7 +75,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
   setTypeActiveTab,
 }) => {
   const [activeTab, setActiveTab] = useState<"hoghoghi" | "haghighi">(
-    "haghighi"
+    "hoghoghi"
   );
 
   const [itemGUID, setItemGUID] = useState("");
