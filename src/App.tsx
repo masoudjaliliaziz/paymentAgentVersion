@@ -219,6 +219,10 @@ function App() {
       })
 
       .filter((item) => {
+        // فیلتر بر اساس invoiceType
+        if (typeactiveTab && item.invoiceType !== typeactiveTab) {
+          return false;
+        }
         return Object.entries(filters).every(([key, value]) => {
           if (!value) return true;
           return (item[key as keyof PaymentType] ?? "")
@@ -390,6 +394,21 @@ function App() {
             </div>
 
             <div className="flex flex-col w-full gap-2 text-sm">
+              {/* فیلتر نوع فاکتور */}
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">نوع فاکتور</label>
+                <select
+                  className="border p-1 rounded-md text-right"
+                  value={typeactiveTab}
+                  onChange={(e) =>
+                    setTypeActiveTab(e.target.value as "1" | "2")
+                  }
+                >
+                  <option value="1">نوع 1</option>
+                  <option value="2">نوع 2</option>
+                </select>
+              </div>
+
               {Object.entries({
                 sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
                 price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",

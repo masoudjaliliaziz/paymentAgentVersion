@@ -447,6 +447,17 @@ export const PaymentRow = ({
                   className="w-4 h-4 cursor-pointer"
                 />
               </div>
+              {item.invoiceType && (
+                <span
+                  className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                    String(item.invoiceType) === "1"
+                      ? "bg-blue-500 text-white"
+                      : "bg-purple-500 text-white"
+                  }`}
+                >
+                  نوع {item.invoiceType}
+                </span>
+              )}
             </div>
 
             {errorMessage && (
@@ -724,6 +735,17 @@ export const PaymentRow = ({
                 onChange={onToggleSelect}
                 className="w-4 h-4 cursor-pointer"
               />
+              {item.invoiceType && (
+                <span
+                  className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                    String(item.invoiceType) === "1"
+                      ? "bg-blue-500 text-white"
+                      : "bg-purple-500 text-white"
+                  }`}
+                >
+                  نوع {item.invoiceType}
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
