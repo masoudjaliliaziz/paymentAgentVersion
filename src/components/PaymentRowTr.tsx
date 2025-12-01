@@ -93,6 +93,45 @@ function guaranteeStatusToMessage(code: string): string {
   return guaranteeStatusMap[code] ?? "وضعیت نامشخص";
 }
 
+// تعیین متن و رنگ badge وضعیت کلی هر ردیف بر اساس status
+function getStatusBadge(status: string | undefined | null): {
+  label: string;
+  colorClass: string;
+} {
+  switch (status) {
+    case "0":
+      return {
+        label: "در انتظار تایید کارشناس",
+        colorClass: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+      };
+    case "1":
+      return {
+        label: "در انتظار تایید خزانه",
+        colorClass: "bg-blue-100 text-blue-800 border border-blue-300",
+      };
+    case "2":
+      return {
+        label: "رد شده توسط کارشناس",
+        colorClass: "bg-red-100 text-red-800 border border-red-300",
+      };
+    case "3":
+      return {
+        label: "رد شده توسط خزانه",
+        colorClass: "bg-red-100 text-red-800 border border-red-300",
+      };
+    case "4":
+      return {
+        label: "تایید نهایی",
+        colorClass: "bg-green-100 text-green-800 border border-green-300",
+      };
+    default:
+      return {
+        label: "وضعیت نامشخص",
+        colorClass: "bg-gray-100 text-gray-700 border border-gray-300",
+      };
+  }
+}
+
 const normalizeDate = (date: string | undefined | null): string | null => {
   if (!date || typeof date !== "string") {
     return null;
@@ -316,8 +355,19 @@ export function PaymentRowTr({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.3 }}
-              className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-6"
+              className="relative transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-6"
             >
+              {/* Badge وضعیت کلی ردیف بر اساس status */}
+              {status && (
+                <span
+                  className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm ${
+                    getStatusBadge(status).colorClass
+                  }`}
+                >
+                  {getStatusBadge(status).label}
+                </span>
+              )}
+
               <table className="w-full rounded-lg bg-slate-100 border-collapse">
                 <tbody>
                   <tr className="border-b border-slate-200">
@@ -708,8 +758,19 @@ export function PaymentRowTr({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.3 }}
-              className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
+              className="relative transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
             >
+              {/* Badge وضعیت کلی ردیف بر اساس status */}
+              {status && (
+                <span
+                  className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm ${
+                    getStatusBadge(status).colorClass
+                  }`}
+                >
+                  {getStatusBadge(status).label}
+                </span>
+              )}
+
               <table className="w-full rounded-lg bg-slate-100 border-collapse">
                 <tbody>
                   <tr className="border-b border-slate-200">
