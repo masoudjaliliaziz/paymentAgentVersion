@@ -284,6 +284,13 @@ function App() {
         return sortConfig.direction === "asc"
           ? valueA.toString().localeCompare(valueB.toString())
           : valueB.toString().localeCompare(valueA.toString());
+      } else if (key === "Title") {
+        // Sort based on customer title from customerTitles map
+        const titleA = customerTitles.get(a.parentGUID) ?? "";
+        const titleB = customerTitles.get(b.parentGUID) ?? "";
+        return sortConfig.direction === "asc"
+          ? titleA.localeCompare(titleB, "fa")
+          : titleB.localeCompare(titleA, "fa");
       }
       return 0;
     });
@@ -759,9 +766,11 @@ function App() {
             >
               <span className="text-sm font-bold">مبلغ</span>
               <span className="text-sm font-bold">
-                {sortConfig.direction === "asc" ? (
+                {sortConfig.key === "price" &&
+                sortConfig.direction === "asc" ? (
                   <ArrowUp size={16} className="mt-1" />
-                ) : sortConfig.direction === "desc" ? (
+                ) : sortConfig.key === "price" &&
+                  sortConfig.direction === "desc" ? (
                   <ArrowDown size={16} className="mt-1" />
                 ) : (
                   <ArrowUpDown size={16} className="mt-1" />
@@ -780,9 +789,34 @@ function App() {
             >
               <span className="text-sm font-bold">تاریخ</span>
               <span className="text-sm font-bold">
-                {sortConfig.direction === "asc" ? (
+                {sortConfig.key === "dueDate" &&
+                sortConfig.direction === "asc" ? (
                   <ArrowUp size={16} className="mt-1" />
-                ) : sortConfig.direction === "desc" ? (
+                ) : sortConfig.key === "dueDate" &&
+                  sortConfig.direction === "desc" ? (
+                  <ArrowDown size={16} className="mt-1" />
+                ) : (
+                  <ArrowUpDown size={16} className="mt-1" />
+                )}
+              </span>
+            </div>
+            <div
+              onClick={() => handleSort("Title")}
+              className={`px-4 py-2 rounded-md cursor-pointer flex items-center gap-2 ${
+                sortConfig.key === "Title"
+                  ? sortConfig.direction === "asc"
+                    ? "bg-blue-500 text-white"
+                    : "bg-blue-600 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              <span className="text-sm font-bold">نام مشتری</span>
+              <span className="text-sm font-bold">
+                {sortConfig.key === "Title" &&
+                sortConfig.direction === "asc" ? (
+                  <ArrowUp size={16} className="mt-1" />
+                ) : sortConfig.key === "Title" &&
+                  sortConfig.direction === "desc" ? (
                   <ArrowDown size={16} className="mt-1" />
                 ) : (
                   <ArrowUpDown size={16} className="mt-1" />
