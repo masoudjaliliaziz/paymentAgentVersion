@@ -15,7 +15,7 @@ import { handleAddItem } from "../api/addData";
 import { FileUploader, type FileUploaderHandle } from "./FileUploader";
 
 import { useCustomers } from "../hooks/useCustomerData";
-import { loadPayment, getRemainingDebt } from "../api/getData";
+import { loadPayment } from "../api/getData";
 import type { PaymentType } from "../types/apiTypes";
 import toast from "react-hot-toast";
 
@@ -110,30 +110,30 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const [customer, setCustomer] = useState<CustomerType>();
 
   // محاسبه باقی‌مانده بدهی
-  const [remainingDebt, setRemainingDebt] = useState<number>(0);
+  // const [remainingDebt, setRemainingDebt] = useState<number>(0);
 
   // Fallback value اگر API کار نکرد
-  const FALLBACK_DEBT = 1000000; // 1 میلیون ریال
+  // const FALLBACK_DEBT = 1000000; // 1 میلیون ریال
 
   // محاسبه باقی‌مانده بدهی
-  useEffect(() => {
-    const fetchRemainingDebt = async () => {
-      if (!customer?.CustomerCode) {
-        setRemainingDebt(0);
-        return;
-      }
+  // useEffect(() => {
+  //   const fetchRemainingDebt = async () => {
+  //     if (!customer?.CustomerCode) {
+  //       setRemainingDebt(0);
+  //       return;
+  //     }
 
-      try {
-        const debt = await getRemainingDebt(customer.CustomerCode);
-        setRemainingDebt(debt);
-      } catch (error) {
-        console.error("Error fetching remaining debt:", error);
-        setRemainingDebt(FALLBACK_DEBT);
-      }
-    };
+  //     try {
+  //       const debt = await getRemainingDebt(customer.CustomerCode);
+  //       setRemainingDebt(debt);
+  //     } catch (error) {
+  //       console.error("Error fetching remaining debt:", error);
+  //       setRemainingDebt(FALLBACK_DEBT);
+  //     }
+  //   };
 
-    fetchRemainingDebt();
-  }, [customer?.CustomerCode]);
+  //   fetchRemainingDebt();
+  // }, [customer?.CustomerCode]);
 
   useEffect(() => {
     if (customerData !== undefined) {
@@ -146,12 +146,12 @@ const UploadCheckoutForm: React.FC<Props> = ({
   }, [formKey]);
 
   // محاسبه مجموع پرداخت‌های نوع ۲
-  const totalType2Payments = paymentList.reduce((sum, payment) => {
-    if (payment.invoiceType === "2") {
-      return sum + Number(payment.price || 0);
-    }
-    return sum;
-  }, 0);
+  // const totalType2Payments = paymentList.reduce((sum, payment) => {
+  //   if (payment.invoiceType === "2") {
+  //     return sum + Number(payment.price || 0);
+  //   }
+  //   return sum;
+  // }, 0);
 
   useEffect(() => {
     if (qrInputRef.current) qrInputRef.current.focus();
@@ -208,25 +208,25 @@ const UploadCheckoutForm: React.FC<Props> = ({
       }
 
       // بررسی محدودیت Remain_Price برای نوع ۲
-      if (typeactiveTab === "2") {
-        const currentPaymentAmount =
-          type === "check" ? Number(price || 0) : Number(priceCash || 0);
-        const totalType2PaymentsValue = totalType2Payments || 0;
-        const remainingDebtValue = remainingDebt || 0;
-        const totalAfterPayment =
-          totalType2PaymentsValue + currentPaymentAmount;
+      // if (typeactiveTab === "2") {
+      //   const currentPaymentAmount =
+      //     type === "check" ? Number(price || 0) : Number(priceCash || 0);
+      //   const totalType2PaymentsValue = totalType2Payments || 0;
+      //   // const remainingDebtValue = remainingDebt || 0;
+      //   // const totalAfterPayment =
+      //   //   totalType2PaymentsValue + currentPaymentAmount;
 
-        if (totalAfterPayment > remainingDebtValue && remainingDebtValue > 0) {
-          toast.error(
-            `مجموع پرداخت‌ها (${totalAfterPayment.toLocaleString(
-              "fa-IR"
-            )} ریال) نمی‌تواند از باقی‌مانده بدهی (${remainingDebtValue.toLocaleString(
-              "fa-IR"
-            )} ریال) بیشتر باشد.`
-          );
-          throw new Error("Total payments exceed remaining debt");
-        }
-      }
+      //   // if (totalAfterPayment > remainingDebtValue && remainingDebtValue > 0) {
+      //   //   toast.error(
+      //   //     `مجموع پرداخت‌ها (${totalAfterPayment.toLocaleString(
+      //   //       "fa-IR"
+      //   //     )} ریال) نمی‌تواند از باقی‌مانده بدهی (${remainingDebtValue.toLocaleString(
+      //   //       "fa-IR"
+      //   //     )} ریال) بیشتر باشد.`
+      //   //   );
+      //   //   throw new Error("Total payments exceed remaining debt");
+      //   // }
+      // }
 
       let data = {} as {
         price: string;
