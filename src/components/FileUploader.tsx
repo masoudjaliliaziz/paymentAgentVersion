@@ -1,7 +1,13 @@
 import { Paperclip } from "lucide-react";
-import { useState, useRef, useImperativeHandle, forwardRef } from "react";
+import {
+  useState,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  useEffect,
+} from "react";
 import toast from "react-hot-toast";
-
+import clsx from "clsx";
 
 interface FileUploaderProps {
   orderNumber?: string;
@@ -23,14 +29,25 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
     const [uploadStatus, setUploadStatus] = useState("");
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isDragOver, setIsDragOver] = useState(false); // وضعیت drag over برای نمایش بصری
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
+    const [isStartingCamera, setIsStartingCamera] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isVideoReady, setIsVideoReady] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
 
     // تابع برای پردازش فایل انتخاب شده (از input یا drag & drop)
     const handleFileSelect = (file: File) => {
       setSelectedFile(file);
       setUploadStatus("");
       setUploadProgress(0);
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
     };
 
     // مدیریت رویدادهای drag & drop
@@ -57,13 +74,144 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
       }
     };
 
+    const stopCamera = () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      setIsCameraOpen(false);
+      setIsVideoReady(false);
+    };
+
+    const startCamera = async () => {
+      setCameraError(null);
+      setIsVideoReady(false);
+      setIsCameraOpen(true);
+      if (!navigator.mediaDevices?.getUserMedia) {
+        const message = "دسترسی به دوربین در این مرورگر پشتیبانی نمی‌شود";
+        setCameraError(message);
+        toast.error(message);
+        return;
+      }
+
+      setIsStartingCamera(true);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await new Promise<void>((resolve) => {
+            const video = videoRef.current;
+            if (!video) return resolve();
+            const onReady = async () => {
+              try {
+                await video.play();
+              } catch (err) {
+                console.error("پخش ویدیو ناکام ماند:", err);
+              }
+              setIsVideoReady(true);
+              video.removeEventListener("loadedmetadata", onReady);
+              resolve();
+            };
+            video.addEventListener("loadedmetadata", onReady);
+          });
+        }
+        streamRef.current = stream;
+        setTimeout(() => setIsVideoReady(true), 500); // اطمینان از آماده شدن تصویر
+      } catch (error) {
+        console.error("اشکال در راه‌اندازی دوربین:", error);
+        const message = "باز کردن دوربین ممکن نشد";
+        setCameraError(message);
+        toast.error(message);
+      } finally {
+        setIsStartingCamera(false);
+      }
+    };
+
+    const capturePhoto = () => {
+      if (!videoRef.current) return;
+      if (!isVideoReady) {
+        toast.error("کمی صبر کنید تا تصویر دوربین آماده شود");
+        return;
+      }
+
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      const width = video.videoWidth || video.clientWidth || 1280;
+      const height = video.videoHeight || video.clientHeight || 720;
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return;
+          const file = new File([blob], `capture-${Date.now()}.jpg`, {
+            type: blob.type,
+          });
+          handleFileSelect(file);
+          stopCamera();
+        },
+        "image/jpeg",
+        0.9
+      );
+    };
+
+    useEffect(() => {
+      return () => {
+        stopCamera();
+        setPreviewUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
+      };
+    }, []);
+
+    const handleToggleCamera = () => {
+      if (isStartingCamera) return;
+      if (isCameraOpen) {
+        stopCamera();
+      } else {
+        startCamera();
+      }
+    };
+
+    const handleCapture = () => {
+      if (isStartingCamera) return;
+      capturePhoto();
+    };
+
+    const handleKeyActivate = (
+      e: React.KeyboardEvent<HTMLDivElement>,
+      action: () => void
+    ) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        action();
+      }
+    };
+
+    const clearSelection = () => {
+      setSelectedFile(null);
+      setUploadStatus("");
+      setUploadProgress(0);
+      setPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
     useImperativeHandle(ref, () => ({
       getFile: () => selectedFile,
       clearFile: () => {
-        setSelectedFile(null);
-        setUploadStatus("");
-        setUploadProgress(0);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        clearSelection();
+        stopCamera();
       },
       uploadFile: async () => {
         if (!selectedFile) {
@@ -162,6 +310,8 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           type="file"
           ref={fileInputRef}
           className="hidden"
+          accept="image/*"
+          capture="environment"
           onChange={(e) => {
             if (e.target.files && e.target.files[0]) {
               handleFileSelect(e.target.files[0]);
@@ -169,16 +319,68 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           }}
         />
 
+        <div className="flex w-full justify-end gap-3">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-pressed={isCameraOpen}
+            aria-disabled={isStartingCamera}
+            onClick={handleToggleCamera}
+            onKeyDown={(e) => handleKeyActivate(e, handleToggleCamera)}
+            className={clsx(
+              "btn btn-sm btn-outline",
+              isStartingCamera && "opacity-60 cursor-not-allowed pointer-events-none"
+            )}
+          >
+            {isCameraOpen ? "بستن دوربین" : "باز کردن دوربین"}
+          </div>
+          {isCameraOpen && (
+            <div
+              role="button"
+              tabIndex={0}
+              aria-disabled={isStartingCamera}
+              onClick={handleCapture}
+              onKeyDown={(e) => handleKeyActivate(e, handleCapture)}
+              className={clsx(
+                "btn btn-sm btn-primary",
+                isStartingCamera && "opacity-60 cursor-not-allowed pointer-events-none"
+              )}
+            >
+              ثبت عکس لحظه‌ای
+            </div>
+          )}
+        </div>
+
+        {isCameraOpen && (
+          <div className="w-full flex flex-col gap-2 items-end">
+            <video
+              ref={videoRef}
+              className="w-full h-64 rounded-md border border-gray-200 bg-black object-contain"
+              autoPlay
+              muted
+              playsInline
+            />
+            <p className="text-xs text-gray-500">
+              دوربین USB را متصل کنید و پس از ثبت، تصویر به عنوان فایل انتخاب
+              می‌شود.
+            </p>
+          </div>
+        )}
+
+        {cameraError && (
+          <p className="text-xs text-red-600 font-semibold text-right w-full">
+            {cameraError}
+          </p>
+        )}
+
         {selectedFile ? (
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-bold">{selectedFile.name}</p>
             <button
               type="button"
               onClick={() => {
-                setSelectedFile(null);
-                setUploadStatus("");
-                setUploadProgress(0);
-                if (fileInputRef.current) fileInputRef.current.value = "";
+                clearSelection();
+                stopCamera();
               }}
               aria-label="پاک کردن فایل"
               className="w-[30px] h-[30px] flex items-center justify-center bg-red-600 text-white rounded-md text-lg font-bold cursor-pointer transition-colors duration-300 hover:bg-white hover:text-red-600"
@@ -194,6 +396,17 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
             <p className="text-xs text-gray-500">
               فایل را اینجا بکشید یا روی دکمه کلیک کنید
             </p>
+          </div>
+        )}
+
+        {previewUrl && (
+          <div className="w-full flex flex-col gap-2 items-end">
+            <p className="text-xs text-gray-500">پیش‌نمایش تصویر</p>
+            <img
+              src={previewUrl}
+              alt="preview"
+              className="w-full max-h-64 object-contain rounded-md border border-gray-200 bg-white"
+            />
           </div>
         )}
 
