@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
@@ -26,6 +26,8 @@ import DatePicker from "react-multi-date-picker";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { BankFilter } from "./components/BankFilter";
+import { getBankNameFromIBAN } from "./utils/getBankNameFromIban";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -309,6 +311,8 @@ function App() {
     invoiceType: "", // فیلتر نوع فاکتور (1 یا 2)
   });
   const [dateRange, setDateRange] = useState<DateObject[]>([]); // بازه تاریخ برای فیلتر
+  const [selectedBanks, setSelectedBanks] = useState<string[]>([]); // فیلتر بانک‌ها
+  const [paymentType, setPaymentType] = useState<string>(""); // فیلتر نوع پرداخت: "" = همه، "0" = چک، "1" = نقدی
 
   const filteredPayments =
     paymentData
@@ -362,6 +366,24 @@ function App() {
       }) ?? [];
 
   const sortedPayments = sortPayments(filteredPayments);
+
+  // استخراج لیست منحصر به فرد نام بانک‌ها از پرداخت‌ها
+  const uniqueBanks = useMemo(() => {
+    const banksSet = new Set<string>();
+    if (Array.isArray(paymentData)) {
+      paymentData.forEach((payment) => {
+        if (payment.cash === "0" && payment.iban) {
+          const bankName = getBankNameFromIBAN(payment.iban);
+          if (bankName && bankName !== "شماره شبا معتبر نیست") {
+            banksSet.add(bankName);
+          }
+        } else if (payment.cash === "1" && payment.bankName) {
+          banksSet.add(payment.bankName);
+        }
+      });
+    }
+    return Array.from(banksSet).sort();
+  }, [paymentData]);
 
   // const totalSelectedPrice = selectedPayments.reduce(
   //   (sum, p) => sum + Number(p.price || 0),
@@ -546,6 +568,26 @@ function App() {
         return false;
       }
 
+      // فیلتر نوع پرداخت
+      if (paymentType !== "") {
+        if (item.cash !== paymentType) {
+          return false;
+        }
+      }
+
+      // فیلتر بانک
+      if (selectedBanks.length > 0) {
+        let itemBankName = "";
+        if (item.cash === "0" && item.iban) {
+          itemBankName = getBankNameFromIBAN(item.iban);
+        } else if (item.cash === "1" && item.bankName) {
+          itemBankName = item.bankName;
+        }
+        if (!itemBankName || !selectedBanks.includes(itemBankName)) {
+          return false;
+        }
+      }
+
       // فیلترهای دیگر
       return Object.entries(filters).every(([key, value]) => {
         if (!value) return true;
@@ -715,6 +757,27 @@ function App() {
               <option value="2">نوع 2</option>
             </select>
           </div>
+
+          {/* فیلتر نوع پرداخت */}
+          <div className="flex flex-col">
+            <label className="mb-1 text-gray-600">نوع پرداخت</label>
+            <select
+              className="border p-1 rounded-md text-right"
+              value={paymentType}
+              onChange={(e) => setPaymentType(e.target.value)}
+            >
+              <option value="">همه</option>
+              <option value="0">چک</option>
+              <option value="1">نقدی</option>
+            </select>
+          </div>
+
+          {/* فیلتر بانک */}
+          <BankFilter
+            banks={uniqueBanks}
+            selectedBanks={selectedBanks}
+            onSelectionChange={setSelectedBanks}
+          />
 
           {Object.entries({
             sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
