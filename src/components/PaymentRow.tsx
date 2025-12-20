@@ -455,7 +455,9 @@ export const PaymentRow = ({
                       : "bg-purple-500 text-white"
                   }`}
                 >
-                  نوع {item.invoiceType}
+                  {item.invoiceType === "1" && "نوع ۱"}
+                  {item.invoiceType === "2" && "نوع ۲"}
+                  {item.invoiceType === "3" && " دانش بنیان"}
                 </span>
               )}
             </div>

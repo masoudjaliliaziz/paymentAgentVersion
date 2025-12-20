@@ -40,7 +40,7 @@ export type PaymentType = {
   acceptDescrptionFromSP: string;
   VerifiedConfirmSayadTr: string;
   VerifiedRejectSayadTr: string;
-  invoiceType: "1" | "2";
+  invoiceType: "1" | "2" | "3";
   customerTitle: string;
   customerCode: string;
 };
@@ -73,7 +73,7 @@ export type Data = {
   itemGUID: string;
   Verified?: string;
   VerifiedHoghoghi?: string;
-  invoiceType: "1" | "2";
+  invoiceType: "1" | "2" | "3";
   customerTitle: string;
   customerCode: string;
 };

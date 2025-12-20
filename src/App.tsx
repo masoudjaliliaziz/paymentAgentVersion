@@ -1,4 +1,4 @@
-import { usePayment } from "./hooks/usePayment";
+﻿import { usePayment } from "./hooks/usePayment";
 import { useParentGuid } from "./hooks/useParentGuid";
 import { useEffect, useState } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
@@ -88,7 +88,7 @@ function App() {
     name: "",
   });
 
-  const [typeactiveTab, setTypeActiveTab] = useState<"1" | "2">("1");
+  const [typeactiveTab, setTypeActiveTab] = useState<"1" | "2" | "3">("1");
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
 
@@ -406,6 +406,7 @@ function App() {
                 >
                   <option value="1">نوع 1</option>
                   <option value="2">نوع 2</option>
+                  <option value="3">دانش بنیان </option>
                 </select>
               </div>
 
