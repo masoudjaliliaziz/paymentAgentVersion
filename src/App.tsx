@@ -206,10 +206,27 @@ function App() {
 
   // تابع تبدیل تاریخ شمسی به فرمت YYYYMMDD برای مقایسه
   const normalizeDateForComparison = (
-    dateString: string | undefined | null
+    dateString: string | undefined | null,
+    convertGregorianToShamsi: boolean = false
   ): string | null => {
     if (!dateString || typeof dateString !== "string") {
       return null;
+    }
+
+    // اگر ورودی میلادی بود و باید به شمسی تبدیل شود
+    if (convertGregorianToShamsi) {
+      const parsed = new Date(dateString);
+      if (!isNaN(parsed.getTime())) {
+        try {
+          const persianDate = new DateObject(parsed).convert(persian);
+          const year = String(persianDate.year);
+          const month = String(persianDate.month).padStart(2, "0");
+          const day = String(persianDate.day).padStart(2, "0");
+          return `${year}${month}${day}`;
+        } catch (error) {
+          console.warn("خطا در تبدیل تاریخ میلادی به شمسی:", error);
+        }
+      }
     }
 
     // تبدیل اعداد فارسی به انگلیسی
@@ -235,18 +252,25 @@ function App() {
   };
 
   // تابع بررسی اینکه آیا تاریخ در بازه مشخص شده است
-  const isDateInRange = (dueDate: string | undefined | null): boolean => {
-    if (!dateRange || !Array.isArray(dateRange) || dateRange.length === 0) {
+  const isDateInRange = (
+    targetDate: string | undefined | null,
+    range: DateObject[],
+    convertGregorianToShamsi: boolean = false
+  ): boolean => {
+    if (!range || !Array.isArray(range) || range.length === 0) {
       return true; // اگر بازه تاریخ انتخاب نشده باشد، همه را نشان بده
     }
 
-    const normalizedDueDate = normalizeDateForComparison(dueDate);
-    if (!normalizedDueDate) {
+    const normalizedTargetDate = normalizeDateForComparison(
+      targetDate,
+      convertGregorianToShamsi
+    );
+    if (!normalizedTargetDate) {
       return false;
     }
 
     // تبدیل تاریخ‌های انتخاب شده به فرمت YYYYMMDD
-    const dates = dateRange
+    const dates = range
       .map((date) => {
         if (date instanceof DateObject) {
           const year = String(date.year);
@@ -264,12 +288,12 @@ function App() {
 
     if (dates.length === 1) {
       // اگر فقط یک تاریخ انتخاب شده، همان تاریخ را فیلتر کن
-      return normalizedDueDate === dates[0];
+      return normalizedTargetDate === dates[0];
     }
 
     // اگر دو تاریخ انتخاب شده، بازه را بررسی کن
     const [startDate, endDate] = dates.sort();
-    return normalizedDueDate >= startDate && normalizedDueDate <= endDate;
+    return normalizedTargetDate >= startDate && normalizedTargetDate <= endDate;
   };
 
   const sortPayments = (payments: PaymentType[]) => {
@@ -311,6 +335,7 @@ function App() {
     invoiceType: "", // فیلتر نوع فاکتور (1 یا 2)
   });
   const [dateRange, setDateRange] = useState<DateObject[]>([]); // بازه تاریخ برای فیلتر
+  const [createdDateRange, setCreatedDateRange] = useState<DateObject[]>([]); // بازه تاریخ ثبت چک
   const [selectedBanks, setSelectedBanks] = useState<string[]>([]); // فیلتر بانک‌ها
   const [paymentType, setPaymentType] = useState<string>(""); // فیلتر نوع پرداخت: "" = همه، "0" = چک، "1" = نقدی
 
@@ -343,7 +368,12 @@ function App() {
       })
       .filter((item) => {
         // فیلتر بازه تاریخ
-        if (!isDateInRange(item.dueDate)) {
+        if (!isDateInRange(item.dueDate, dateRange)) {
+          return false;
+        }
+
+        // فیلتر بازه تاریخ ثبت
+        if (!isDateInRange(item.Created, createdDateRange, true)) {
           return false;
         }
 
@@ -564,7 +594,12 @@ function App() {
     // Apply search filters to all payment states
     return basePayments.filter((item) => {
       // فیلتر بازه تاریخ
-      if (!isDateInRange(item.dueDate)) {
+      if (!isDateInRange(item.dueDate, dateRange)) {
+        return false;
+      }
+
+      // فیلتر بازه تاریخ ثبت
+      if (!isDateInRange(item.Created, createdDateRange, true)) {
         return false;
       }
 
@@ -740,6 +775,41 @@ function App() {
                 پاک کردن فیلتر تاریخ
               </button>
             )}
+          </div>
+
+          {/* فیلتر تاریخ ثبت در سیستم */}
+          <div className="flex flex-col">
+            <label className="mb-1 text-gray-600">بازه تاریخ ثبت چک</label>
+            <DatePicker
+              value={createdDateRange}
+              onChange={(dates) => {
+                if (Array.isArray(dates)) {
+                  setCreatedDateRange(dates);
+                } else {
+                  setCreatedDateRange([]);
+                }
+              }}
+              calendar={persian}
+              locale={persian_fa}
+              range
+              rangeHover
+              numberOfMonths={2}
+              className="w-full"
+              containerClassName="w-full"
+              inputClass="border p-1 rounded-md w-full text-right"
+              placeholder="از تاریخ ثبت - تا تاریخ ثبت"
+            />
+            {createdDateRange &&
+              Array.isArray(createdDateRange) &&
+              createdDateRange.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCreatedDateRange([])}
+                  className="mt-1 text-xs text-red-600 hover:text-red-800"
+                >
+                  پاک کردن فیلتر تاریخ ثبت
+                </button>
+              )}
           </div>
 
           {/* فیلتر نوع فاکتور */}

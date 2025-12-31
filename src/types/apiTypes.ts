@@ -40,6 +40,7 @@ export type PaymentType = {
   acceptDescrptionFromSP: string;
   VerifiedConfirmSayadTr: string;
   VerifiedRejectSayadTr: string;
+  Created?: string;
   invoiceType?: string | number; // نوع فاکتور: 1 یا 2
 };
 

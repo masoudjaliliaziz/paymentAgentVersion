@@ -10,6 +10,7 @@ interface ExcelRowData {
   کد: string; // همیشه "24"
   ماهیت: string; // 2 برای حقوقی، 1 برای حقیقی
   شماره: string; // سریال چک
+  "کد صیادی": string; // کد صیادی چک
   "تاریخ سر رسید": string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
   مبلغ: string; // مبلغ از استعلام صیاد
   "عهدة بانك": string; // نام بانک
@@ -46,6 +47,7 @@ export const exportToExcel = (
       کد: "24", // همیشه "24" طبق درخواست
       ماهیت: determineEntityType(payment), // 2 برای حقوقی، 1 برای حقیقی
       شماره: payment.serialNo || "", // سریال چک
+      "کد صیادی": payment.sayadiCode || "", // کد صیادی چک
       "تاریخ سر رسید": convertToEnglishDate(
         payment.sayadConfirmDueDate || payment.dueDate || ""
       ), // تاریخ سر رسید از استعلام صیاد
@@ -71,6 +73,7 @@ export const exportToExcel = (
       { wch: 8 }, // کد
       { wch: 12 }, // ماهیت
       { wch: 15 }, // شماره
+      { wch: 18 }, // کد صیادی
       { wch: 18 }, // تاریخ سر رسید
       { wch: 15 }, // مبلغ
       { wch: 20 }, // عهده بانک
@@ -125,6 +128,7 @@ export const exportToExcelType2 = (
       کد: "24",
       ماهیت: determineEntityType(payment),
       شماره: payment.serialNo || "",
+      "کد صیادی": payment.sayadiCode || "",
       "تاریخ سر رسید": convertToEnglishDate(
         payment.sayadConfirmDueDate || payment.dueDate || ""
       ),
@@ -151,6 +155,7 @@ export const exportToExcelType2 = (
       { wch: 8 }, // کد
       { wch: 12 }, // ماهیت
       { wch: 15 }, // شماره
+      { wch: 18 }, // کد صیادی
       { wch: 18 }, // تاریخ سر رسید
       { wch: 15 }, // مبلغ
       { wch: 20 }, // عهده بانک

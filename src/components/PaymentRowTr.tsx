@@ -5,6 +5,9 @@ import type { PaymentType } from "../types/apiTypes";
 import { useSayadConfirm } from "../hooks/useSayadConfirm";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import DateObject from "react-date-object";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 import { getBankNameFromIBAN } from "../utils/getBankNameFromIban";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatShamsiDate } from "../utils/formatShamsiDate";
@@ -146,7 +149,37 @@ const normalizeDate = (date: string | undefined | null): string | null => {
     return normalized;
   }
 
+  // اگر طول بیشتر از 8 بود، 8 رقم اول را بگیر
+  if (normalized.length >= 8) {
+    return normalized.slice(0, 8);
+  }
+
   return null;
+};
+
+const formatCreatedDate = (created?: string | null): string => {
+  if (!created) return "ثبت نامشخص";
+
+  // ابتدا تلاش برای تبدیل به شمسی با تاریخ و ساعت
+  const parsed = new Date(created);
+  if (!isNaN(parsed.getTime())) {
+    try {
+      const dateObj = new DateObject({
+        date: parsed,
+        calendar: persian,
+        locale: persian_fa,
+      });
+      return dateObj.format("YYYY/MM/DD HH:mm");
+    } catch (error) {
+      console.warn("خطا در فرمت تاریخ ثبت:", error);
+    }
+  }
+
+  // fallback به نرمالایز و فرمت قبلی
+  const normalized = normalizeDate(created);
+  if (normalized) return formatShamsiDate(normalized);
+
+  return "ثبت نامشخص";
 };
 
 const getCheckColor = (colorCode: string | undefined) => {
@@ -194,6 +227,7 @@ export function PaymentRowTr({
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
+  const createdDateLabel = formatCreatedDate(item.Created);
 
   const normalizedPrice = item.price
     ? String(Number(String(item.price).replace(/[^0-9]/g, "")))
@@ -365,6 +399,16 @@ export function PaymentRowTr({
                   }`}
                 >
                   {getStatusBadge(status).label}
+                </span>
+              )}
+              {item.Created && (
+                <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm bg-slate-100 text-slate-700 border border-slate-300">
+                  ثبت: {createdDateLabel}
+                </span>
+              )}
+              {item.Created && (
+                <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm bg-slate-100 text-slate-700 border border-slate-300">
+                  ثبت: {createdDateLabel}
                 </span>
               )}
 
