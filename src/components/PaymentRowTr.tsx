@@ -485,10 +485,17 @@ export function PaymentRowTr({
                             className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
                               String(item.invoiceType) === "1"
                                 ? "bg-blue-500 text-white"
-                                : "bg-purple-500 text-white"
+                                : String(item.invoiceType) === "2"
+                                ? "bg-purple-500 text-white"
+                                : String(item.invoiceType) === "3"
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-500 text-white"
                             }`}
                           >
-                            نوع {item.invoiceType}
+                            {item.invoiceType === "1" && "نوع ۱"}
+                            {item.invoiceType === "2" && "نوع ۲"}
+                            {item.invoiceType === "3" && "دانش بنیان"}
+                            {item.invoiceType === "4" && "نامشخص"}
                           </span>
                         )}
                         <input
@@ -876,10 +883,17 @@ export function PaymentRowTr({
                             className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
                               String(item.invoiceType) === "1"
                                 ? "bg-blue-500 text-white"
-                                : "bg-purple-500 text-white"
+                                : String(item.invoiceType) === "2"
+                                ? "bg-purple-500 text-white"
+                                : String(item.invoiceType) === "3"
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-500 text-white"
                             }`}
                           >
-                            نوع {item.invoiceType}
+                            {item.invoiceType === "1" && "نوع ۱"}
+                            {item.invoiceType === "2" && "نوع ۲"}
+                            {item.invoiceType === "3" && "دانش بنیان"}
+                            {item.invoiceType === "4" && "نامشخص"}
                           </span>
                         )}
                         <input

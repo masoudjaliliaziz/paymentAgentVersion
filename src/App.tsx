@@ -825,6 +825,8 @@ function App() {
               <option value="">همه</option>
               <option value="1">نوع 1</option>
               <option value="2">نوع 2</option>
+              <option value="3">دانش بنیان</option>
+              <option value="4">نامشخص</option>
             </select>
           </div>
 
