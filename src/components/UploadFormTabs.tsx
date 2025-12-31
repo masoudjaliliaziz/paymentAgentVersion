@@ -8,8 +8,8 @@ import PaymentTypeDropdown from "./PaymentTypeDropdown";
 
 type Props = {
   parent_GUID: string;
-  typeactiveTab: "1" | "2" | "3";
-  setTypeActiveTab: (value: "1" | "2" | "3") => void;
+  typeactiveTab: "1" | "2" | "3" | "4";
+  setTypeActiveTab: (value: "1" | "2" | "3" | "4") => void;
   customerCode: string;
   customerTitle: string;
   onCustomerDataChange?: (customerCode: string, customerTitle: string) => void;

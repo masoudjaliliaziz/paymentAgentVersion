@@ -88,7 +88,9 @@ function App() {
     name: "",
   });
 
-  const [typeactiveTab, setTypeActiveTab] = useState<"1" | "2" | "3">("1");
+  const [typeactiveTab, setTypeActiveTab] = useState<"1" | "2" | "3" | "4">(
+    "1"
+  );
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
 
@@ -401,12 +403,13 @@ function App() {
                   className="border p-1 rounded-md text-right"
                   value={typeactiveTab}
                   onChange={(e) =>
-                    setTypeActiveTab(e.target.value as "1" | "2")
+                    setTypeActiveTab(e.target.value as "1" | "2" | "3" | "4")
                   }
                 >
                   <option value="1">نوع 1</option>
                   <option value="2">نوع 2</option>
                   <option value="3">دانش بنیان </option>
+                  <option value="4">نامشخص </option>
                 </select>
               </div>
 

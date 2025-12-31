@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-type InvoiceType = "1" | "2" | "3";
+type InvoiceType = "1" | "2" | "3" | "4";
 
 type Props = {
   value: InvoiceType;
@@ -20,6 +20,7 @@ const InvoiceTypeDropdown: React.FC<Props> = ({
     { value: "1" as InvoiceType, label: "فاکتور نوع ۱" },
     { value: "2" as InvoiceType, label: "فاکتور نوع ۲" },
     { value: "3" as InvoiceType, label: "فاکتور  دانش بنیان" },
+    { value: "4" as InvoiceType, label: "نامشخص" },
   ];
 
   const selectedType = invoiceTypes.find((type) => type.value === value);

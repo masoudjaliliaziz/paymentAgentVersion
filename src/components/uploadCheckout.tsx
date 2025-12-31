@@ -60,9 +60,9 @@ type Props = {
   type: "check" | "cash";
   formKey: number;
   setFormKey: Dispatch<SetStateAction<number>>;
-  typeactiveTab: "1" | "2" | "3";
+  typeactiveTab: "1" | "2" | "3" | "4";
   customerData: CustomerType[];
-  setTypeActiveTab: (value: "1" | "2" | "3") => void;
+  setTypeActiveTab: (value: "1" | "2" | "3" | "4") => void;
   // 👈 نوع فرم
 };
 
@@ -244,7 +244,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         bankName?: string;
         Verified?: string;
         VerifiedHoghoghi?: string;
-        invoiceType: "1" | "2" | "3";
+        invoiceType: "1" | "2" | "3" | "4";
         customerCode: string;
         customerTitle: string;
       };
