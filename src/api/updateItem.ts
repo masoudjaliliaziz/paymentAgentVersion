@@ -1,6 +1,9 @@
 import { address } from "../constants/userRoles";
 import { getDigest } from "../utils/getDigest";
-
+interface UpdateInvoiceTypeParams {
+  ID: number;
+  invoiceType: "1" | "2" | "3";
+}
 export async function updateSayadVerified(ID: number) {
   const digest = await getDigest();
   const res = await fetch(
@@ -73,4 +76,32 @@ export async function updateSayadRejectVerifiedTr(ID: number) {
   );
 
   if (!res.ok) throw new Error("استعلام ثبت چک با خطا مواجه شد");
+}
+export async function updateInvoiceType({
+  ID,
+  invoiceType,
+}: UpdateInvoiceTypeParams) {
+  const digest = await getDigest();
+
+  const res = await fetch(
+    `${address}/_api/web/lists/getbytitle('CustomerPayment')/items(${ID})`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "X-HTTP-Method": "MERGE",
+        "IF-MATCH": "*",
+      },
+      body: JSON.stringify({
+        __metadata: { type: "SP.Data.CustomerPaymentListItem" },
+        invoiceType: invoiceType,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("به‌روزرسانی نوع فاکتور با خطا مواجه شد");
+  }
 }

@@ -22,7 +22,8 @@ const specialUsers = [
   "i:0#.w|zarsim\\mesmaeili",
   "i:0#.w|zarsim\\mmoradabadi",
 ];
-
+export type InvoiceType = "1" | "2" | "3" | "4";
+export type InvoiceTypeFilter = InvoiceType | "all";
 function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
@@ -88,9 +89,7 @@ function App() {
     name: "",
   });
 
-  const [typeactiveTab, setTypeActiveTab] = useState<"1" | "2" | "3" | "4">(
-    "1"
-  );
+  const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("all");
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
 
@@ -195,43 +194,43 @@ function App() {
     }
   };
 
-  const filteredPayments =
-    paymentData
-      ?.filter((item) => {
-        // فیلتر بر اساس تب فعال
-        if (activeTab === "treasury") {
-          return item.status === "4"; // چک‌های تایید شده توسط خزانه
-        } else if (activeTab === "pending") {
-          return item.status === "1"; // چک‌های در انتظار تایید خزانه
-        } else if (activeTab === "trDenied") {
-          return item.status === "3"; // چک‌های رد شده توسط خزانه
-        } else {
-          // حالت عادی - چک‌های در انتظار تایید کارشناس
-          return item.status === "0";
-        }
-      })
-      .filter((item) => {
-        if (userData && specialUsers.includes(userData)) {
-          return true;
-        }
-        if (userData) {
-          return item.SalesExpertAcunt_text === userData;
-        }
-        return false;
-      })
+  const filteredPayments = paymentData
+    ?.filter((item) => {
+      // فیلتر بر اساس تب فعال
+      if (activeTab === "treasury") {
+        return item.status === "4"; // چک‌های تایید شده توسط خزانه
+      } else if (activeTab === "pending") {
+        return item.status === "1"; // چک‌های در انتظار تایید خزانه
+      } else if (activeTab === "trDenied") {
+        return item.status === "3"; // چک‌های رد شده توسط خزانه
+      } else {
+        // حالت عادی - چک‌های در انتظار تایید کارشناس
+        return item.status === "0";
+      }
+    })
+    .filter((item) => {
+      if (userData && specialUsers.includes(userData)) {
+        return true;
+      }
+      if (userData) {
+        return item.SalesExpertAcunt_text === userData;
+      }
+      return false;
+    })
 
-      .filter((item) => {
-        // فیلتر بر اساس invoiceType
-        if (typeactiveTab && item.invoiceType !== typeactiveTab) {
-          return false;
-        }
-        return Object.entries(filters).every(([key, value]) => {
-          if (!value) return true;
-          return (item[key as keyof PaymentType] ?? "")
-            .toString()
-            .includes(value);
-        });
-      }) ?? [];
+    .filter((item) => {
+      // اگر "همه" انتخاب شده، اصلاً فیلتر invoiceType نزن
+      if (typeactiveTab !== "all" && item.invoiceType !== typeactiveTab) {
+        return false;
+      }
+
+      return Object.entries(filters).every(([key, value]) => {
+        if (!value) return true;
+        return (item[key as keyof PaymentType] ?? "")
+          .toString()
+          .includes(value);
+      });
+    });
 
   // دیباگ: بررسی فیلترها
   console.log("🔍 دیباگ فیلترها:", {
@@ -357,8 +356,8 @@ function App() {
           <div className="flex flex-col w-full gap-2 text-sm">
             <UploadFormTabs
               parent_GUID={guid}
-              typeactiveTab={typeactiveTab}
-              setTypeActiveTab={setTypeActiveTab}
+              typeactiveTab={typeactiveTab === "all" ? "4" : typeactiveTab}
+              setTypeActiveTab={setTypeActiveTab as (v: InvoiceType) => void}
               customerCode={customerCode}
               customerTitle={customerTitle}
               onCustomerDataChange={(code, title) => {
@@ -403,13 +402,14 @@ function App() {
                   className="border p-1 rounded-md text-right"
                   value={typeactiveTab}
                   onChange={(e) =>
-                    setTypeActiveTab(e.target.value as "1" | "2" | "3" | "4")
+                    setTypeActiveTab(e.target.value as InvoiceTypeFilter)
                   }
                 >
+                  <option value="all">همه</option>
                   <option value="1">نوع 1</option>
                   <option value="2">نوع 2</option>
-                  <option value="3">دانش بنیان </option>
-                  <option value="4">نامشخص </option>
+                  <option value="3">دانش بنیان</option>
+                  <option value="4">نامشخص</option>
                 </select>
               </div>
 
