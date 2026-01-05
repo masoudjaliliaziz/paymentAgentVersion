@@ -89,7 +89,7 @@ function App() {
     name: "",
   });
 
-  const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("all");
+  const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("1");
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
 

@@ -3,8 +3,9 @@ import UploadCheckoutForm from "./uploadCheckout"; // فرم اصلی رو از 
 import { useCustomers } from "../hooks/useCustomerData";
 import Loading from "./Loading";
 import { Error } from "./Error";
-import InvoiceTypeDropdown from "./InvoiceTypeDropdown";
+
 import PaymentTypeDropdown from "./PaymentTypeDropdown";
+import InvoiceTypeRadioGroup from "./InvoiceTypeRadioGroup";
 
 type Props = {
   parent_GUID: string;
@@ -49,12 +50,12 @@ const UploadFormTabs: React.FC<Props> = ({
     <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       {/* Controls Section */}
       <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-end">
-          <div className="w-full sm:w-64">
+        <div className="flex flex-col  items-center justify-end">
+          <div className="w-full ">
             <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
               نوع فاکتور
             </label>
-            <InvoiceTypeDropdown
+            <InvoiceTypeRadioGroup
               value={typeactiveTab}
               onChange={setTypeActiveTab}
             />
