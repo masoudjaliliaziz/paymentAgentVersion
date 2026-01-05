@@ -14,7 +14,8 @@ import { formatShamsiDate } from "../utils/formatShamsiDate";
 import { useSayadConfirmTr } from "../hooks/useSayadConfirmTr";
 import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
 import { useCustomers } from "../hooks/useCustomer";
-
+import { useClearPaymentError } from "./../hooks/useClearPaymentError";
+import { Trash2 } from "lucide-react";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -219,6 +220,7 @@ export function PaymentRowTr({
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
   >([]);
+  const { mutate: clearError } = useClearPaymentError(item.parentGUID);
   const [isVerifying, setIsVerifying] = useState(false);
   const { data, isLoading: isLoadinCustomer } = useCustomers(item.parentGUID);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -792,6 +794,14 @@ export function PaymentRowTr({
                         <p className="text-red-600 text-center">
                           خطا: {item.Error}
                         </p>
+                      )}
+                      {item.Error && (
+                        <div
+                          onClick={() => clearError(Number(ID))}
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
+                        >
+                          <Trash2 width={20} height={20} />
+                        </div>
                       )}
                     </div>
                   )
