@@ -6,29 +6,12 @@ import { getBankNameFromIBAN } from "./getBankNameFromIban";
 // تعریف interface برای داده‌های Excel - این interface ساختار فایل Excel خروجی را تعریف می‌کند
 interface ExcelRowData {
   ردیف: number; // شماره ردیف از 1 شروع می‌شود
-  نوع: string; // همیشه "چک"
-  کد: string; // "24" به صورت پیش‌فرض، "78" اگر invoiceType = 3 باشد
-  ماهیت: string; // 2 برای حقوقی، 1 برای حقیقی
-  شماره: string; // سریال چک
-  "کد صیادی": string; // کد صیادی چک
-  "تاریخ سر رسید": string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
+  روز: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
+  ماه: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
+  سال: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
   مبلغ: string; // مبلغ از استعلام صیاد
-  "عهدة بانك": string; // نام بانک
-  شهر: string; // فعلاً خالی
-  شعبه: string; // branchCode
-  تاریخ: string; // تاریخ ثبت چک (انگلیسی)
 }
 
-// تعریف interface برای داده‌های Excel نوع 2 - شامل customerCode
-interface ExcelRowDataType2 extends ExcelRowData {
-  "تفصیلی 3": string; // CustomerCode
-}
-
-/**
- * تابع exportToExcel - این تابع پرداخت‌های فیلتر شده (چک‌ها و واریزهای نقدی) را به فرمت Excel تبدیل می‌کند
- * @param payments آرایه‌ای از پرداخت‌های فیلتر شده
- * @param filename نام فایل Excel (اختیاری)
- */
 export const exportToExcel = (
   payments: PaymentType[],
   filename?: string
@@ -43,22 +26,16 @@ export const exportToExcel = (
     // تبدیل داده‌های پرداخت به فرمت Excel
     const excelData: ExcelRowData[] = payments.map((payment, index) => ({
       ردیف: index + 1, // شماره ردیف از 1 شروع می‌شود
-      نوع: payment.cash === "1" ? "نقدي" : "چك", // "نقدي" برای واریز نقدی، "چک" برای چک
-      کد:
-        payment.invoiceType === 3 || payment.invoiceType === "3" ? "78" : "24", // "78" اگر invoiceType = 3 باشد، در غیر این صورت "24"
-      ماهیت: determineEntityType(payment), // 2 برای حقوقی، 1 برای حقیقی
-      شماره: payment.serialNo || "", // سریال چک
-      "کد صیادی": payment.sayadiCode || "", // کد صیادی چک
-      "تاریخ سر رسید": convertToEnglishDate(
-        payment.sayadConfirmDueDate || payment.dueDate || ""
-      ), // تاریخ سر رسید از استعلام صیاد
-      مبلغ: payment.sayadConfirmAmount || payment.price || "", // مبلغ از استعلام صیاد
-      "عهدة بانك": payment.iban
-        ? getBankNameFromIBAN(payment.iban)
-        : payment.bankName || "", // نام بانک از IBAN یا bankName
-      شهر: "", // فعلاً خالی طبق درخواست
-      شعبه: payment.branchCode || "", // branchCode
-      تاریخ: convertToEnglishDate(payment.dueDate || ""), // تاریخ ثبت چک
+      نوع: payment.cash === "1" ? "نقدي" : "چك",
+      // "نقدي" برای واریز نقدی، "چک" برای چک
+      روز: convertToEnglishDate(payment.dueDate).slice(6, 8),
+      ماه: convertToEnglishDate(payment.dueDate).slice(4, 6),
+      سال:
+        convertToEnglishDate(payment.dueDate).slice(0, 4) === "1404"
+          ? "104"
+          : "105",
+
+      مبلغ: payment.price || "", // مبلغ از استعلام صیاد
     }));
 
     // ایجاد workbook جدید
@@ -105,12 +82,6 @@ export const exportToExcel = (
   }
 };
 
-/**
- * تابع exportToExcelType2 - این تابع پرداخت‌های نوع 2 را به فرمت Excel تبدیل می‌کند با ستون customerCode
- * @param payments آرایه‌ای از پرداخت‌های فیلتر شده
- * @param customerCodes Map از parentGUID به CustomerCode
- * @param filename نام فایل Excel (اختیاری)
- */
 export const exportToExcelType2 = (
   payments: PaymentType[],
   customerCodes: Map<string, string>,
@@ -123,7 +94,20 @@ export const exportToExcelType2 = (
     }
 
     // تبدیل داده‌های پرداخت به فرمت Excel با ستون customerCode
-    const excelData: ExcelRowDataType2[] = payments.map((payment, index) => ({
+    const excelData: ExcelRowData[] = payments.map((payment, index) => ({
+      ردیف: index + 1, // شماره ردیف از 1 شروع می‌شود
+      نوع: payment.cash === "1" ? "نقدي" : "چك",
+      // "نقدي" برای واریز نقدی، "چک" برای چک
+      روز: convertToEnglishDate(payment.dueDate).slice(6, 8),
+      ماه: convertToEnglishDate(payment.dueDate).slice(4, 6),
+      سال:
+        convertToEnglishDate(payment.dueDate).slice(0, 4) === "1404"
+          ? "104"
+          : "105",
+
+      مبلغ: payment.price || "", // مبلغ از استعلام صیاد
+    }));
+    payments.map((payment, index) => ({
       ردیف: index + 1,
       نوع: payment.cash === "1" ? "نقدي" : "چك",
       کد:
@@ -188,11 +172,6 @@ export const exportToExcelType2 = (
   }
 };
 
-/**
- * تابع تعیین نوع شخصیت (حقیقی یا حقوقی) - این تابع بر اساس فیلدهای موجود نوع شخصیت را تشخیص می‌دهد
- * @param payment داده چک
- * @returns "2" برای حقوقی، "1" برای حقیقی
- */
 const determineEntityType = (payment: PaymentType): string => {
   // اگر nationalIdHoghoghi موجود باشد، حقوقی است
   if (payment.nationalIdHoghoghi && payment.nationalIdHoghoghi.trim() !== "") {
@@ -225,11 +204,6 @@ const determineEntityType = (payment: PaymentType): string => {
   return "2"; // پیش‌فرض: حقیقی
 };
 
-/**
- * تابع تبدیل اعداد فارسی به انگلیسی - این تابع اعداد فارسی را به انگلیسی تبدیل می‌کند
- * @param persianNumber رشته شامل اعداد فارسی
- * @returns رشته با اعداد انگلیسی
- */
 const convertPersianToEnglishNumbers = (persianNumber: string): string => {
   const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
   const englishDigits = "0123456789";
@@ -240,12 +214,7 @@ const convertPersianToEnglishNumbers = (persianNumber: string): string => {
   });
 };
 
-/**
- * تابع تبدیل تاریخ فارسی به انگلیسی - این تابع تاریخ‌های فارسی را به فرمت انگلیسی تبدیل می‌کند
- * @param dateString رشته تاریخ (فارسی یا انگلیسی)
- * @returns تاریخ انگلیسی بدون / و با فرمت YYYY-MM-DD
- */
-const convertToEnglishDate = (dateString: string): string => {
+export const convertToEnglishDate = (dateString: string): string => {
   if (!dateString) return "";
 
   try {
@@ -295,11 +264,6 @@ const convertToEnglishDate = (dateString: string): string => {
   }
 };
 
-/**
- * تابع کمکی برای فرمت کردن تاریخ - این تابع تاریخ را به فرمت مناسب تبدیل می‌کند
- * @param dateString رشته تاریخ
- * @returns تاریخ فرمت شده
- */
 export const formatDateForExcel = (dateString: string): string => {
   if (!dateString) return "";
 
@@ -318,11 +282,6 @@ export const formatDateForExcel = (dateString: string): string => {
   }
 };
 
-/**
- * تابع کمکی برای فرمت کردن مبلغ - این تابع مبلغ را به فرمت مناسب تبدیل می‌کند
- * @param amount مبلغ
- * @returns مبلغ فرمت شده
- */
 export const formatAmountForExcel = (amount: string | number): string => {
   if (!amount) return "0";
 
