@@ -7,12 +7,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { getBankNameFromIBAN } from "../utils/getBankNameFromIban";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useUpdateInvoiceType } from "../hooks/useUpdateInvoiceType";
 type SayadHolders = {
   idCode: string;
   idType: number;
   name: string;
 };
+const invoiceTypeOptions = [
+  { value: "1", label: "نوع ۱" },
+  { value: "2", label: "نوع ۲" },
+  { value: "3", label: "دانش‌بنیان" },
+];
 
 const getPaymentStage = (status: string) => {
   switch (status) {
@@ -174,9 +179,12 @@ export const PaymentRow = ({
   verifyAllIds,
   onVerificationComplete,
 }: PaymentRowProps) => {
+  const updateInvoiceTypeMutation = useUpdateInvoiceType(parentGuid);
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
   >([]);
+  const [manualInvoiceType, setManualInvoiceType] = useState<string>("");
+
   const [isVerifying, setIsVerifying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -356,6 +364,21 @@ export const PaymentRow = ({
     onVerificationComplete,
     isVerifying,
   ]);
+  function handleUpdateInvoiceType() {
+    if (!manualInvoiceType) return;
+
+    updateInvoiceTypeMutation.mutate(
+      {
+        ID: Number(ID),
+        invoiceType: manualInvoiceType as "1" | "2" | "3",
+      },
+      {
+        onSuccess: () => {
+          setManualInvoiceType("");
+        },
+      }
+    );
+  }
 
   return (
     <>
@@ -464,6 +487,31 @@ export const PaymentRow = ({
                   {item.invoiceType === "3" && " دانش بنیان"}
                   {item.invoiceType === "4" && "نامشخص"}
                 </span>
+              )}
+              {String(item.invoiceType) === "4" && (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={manualInvoiceType}
+                    onChange={(e) => setManualInvoiceType(e.target.value)}
+                    className="border rounded-md px-2 py-1 text-sm"
+                  >
+                    <option value="">انتخاب نوع فاکتور</option>
+                    {invoiceTypeOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    disabled={!manualInvoiceType}
+                    onClick={handleUpdateInvoiceType}
+                    className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 text-white px-3 py-1 rounded-md text-sm font-semibold"
+                  >
+                    ثبت
+                  </button>
+                </div>
               )}
             </div>
 
@@ -756,9 +804,34 @@ export const PaymentRow = ({
                 >
                   {item.invoiceType === "1" && "نوع ۱"}
                   {item.invoiceType === "2" && "نوع ۲"}
-                  {item.invoiceType === "3" && "دانش بنیان"}
+                  {item.invoiceType === "3" && " دانش بنیان"}
                   {item.invoiceType === "4" && "نامشخص"}
                 </span>
+              )}
+              {String(item.invoiceType) === "4" && (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={manualInvoiceType}
+                    onChange={(e) => setManualInvoiceType(e.target.value)}
+                    className="border rounded-md px-2 py-1 text-sm"
+                  >
+                    <option value="">انتخاب نوع فاکتور</option>
+                    {invoiceTypeOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    disabled={!manualInvoiceType}
+                    onClick={handleUpdateInvoiceType}
+                    className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 text-white px-3 py-1 rounded-md text-sm font-semibold"
+                  >
+                    ثبت
+                  </button>
+                </div>
               )}
             </div>
 
