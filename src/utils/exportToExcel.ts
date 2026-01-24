@@ -16,7 +16,13 @@ interface ExcelRowData {
   "عهدة بانك": string; // نام بانک
   شهر: string; // فعلاً خالی
   شعبه: string; // branchCode
-  تاریخ: string; // تاریخ ثبت چک (انگلیسی)
+  تاریخ: string;
+  سری: string;
+  سریال: string;
+  کارشناس: string;
+  صادرکننده: string;
+  شبا: string;
+  // تاریخ ثبت چک (انگلیسی)
 }
 
 // تعریف interface برای داده‌های Excel نوع 2 - شامل customerCode
@@ -31,7 +37,7 @@ interface ExcelRowDataType2 extends ExcelRowData {
  */
 export const exportToExcel = (
   payments: PaymentType[],
-  filename?: string
+  filename?: string,
 ): void => {
   try {
     // export کردن همه پرداخت‌ها (چک‌ها و واریزهای نقدی)
@@ -49,7 +55,7 @@ export const exportToExcel = (
       شماره: payment.serialNo || "", // سریال چک
       "کد صیادی": payment.sayadiCode || "", // کد صیادی چک
       "تاریخ سر رسید": convertToEnglishDate(
-        payment.sayadConfirmDueDate || payment.dueDate || ""
+        payment.sayadConfirmDueDate || payment.dueDate || "",
       ), // تاریخ سر رسید از استعلام صیاد
       مبلغ: payment.sayadConfirmAmount || payment.price || "", // مبلغ از استعلام صیاد
       "عهدة بانك": payment.iban
@@ -57,7 +63,13 @@ export const exportToExcel = (
         : payment.bankName || "", // نام بانک از IBAN یا bankName
       شهر: "", // فعلاً خالی طبق درخواست
       شعبه: payment.branchCode || "", // branchCode
-      تاریخ: convertToEnglishDate(payment.dueDate || ""), // تاریخ ثبت چک
+      تاریخ: convertToEnglishDate(payment.dueDate || ""),
+      سری: payment.seriesNo,
+      سریال: payment.serialNo,
+      شبا: payment.iban,
+      صادرکننده: payment.name,
+      کارشناس: payment.SalesExpert,
+      // تاریخ ثبت چک
     }));
 
     // ایجاد workbook جدید
@@ -113,7 +125,7 @@ export const exportToExcel = (
 export const exportToExcelType2 = (
   payments: PaymentType[],
   customerCodes: Map<string, string>,
-  filename?: string
+  filename?: string,
 ): void => {
   try {
     if (payments.length === 0) {
@@ -130,7 +142,7 @@ export const exportToExcelType2 = (
       شماره: payment.serialNo || "",
       "کد صیادی": payment.sayadiCode || "",
       "تاریخ سر رسید": convertToEnglishDate(
-        payment.sayadConfirmDueDate || payment.dueDate || ""
+        payment.sayadConfirmDueDate || payment.dueDate || "",
       ),
       مبلغ: payment.sayadConfirmAmount || payment.price || "",
       "عهدة بانك": payment.iban
@@ -139,7 +151,12 @@ export const exportToExcelType2 = (
       شهر: "",
       شعبه: payment.branchCode || "",
       تاریخ: convertToEnglishDate(payment.dueDate || ""),
-      "تفصیلی 3": customerCodes.get(payment.parentGUID) || "", // اضافه کردن customerCode
+      "تفصیلی 3": customerCodes.get(payment.parentGUID) || "",
+      سری: payment.seriesNo,
+      سریال: payment.serialNo,
+      شبا: payment.iban,
+      صادرکننده: payment.name,
+      کارشناس: payment.SalesExpert, // اضافه کردن customerCode
     }));
 
     // ایجاد workbook جدید
