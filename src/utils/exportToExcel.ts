@@ -7,7 +7,7 @@ import { getBankNameFromIBAN } from "./getBankNameFromIban";
 interface ExcelRowData {
   ردیف: number; // شماره ردیف از 1 شروع می‌شود
   نوع: string; // همیشه "چک"
-  کد: string; // همیشه "24"
+  کد: string; // "24" به صورت پیش‌فرض، "78" اگر invoiceType = 3 باشد
   ماهیت: string; // 2 برای حقوقی، 1 برای حقیقی
   شماره: string; // سریال چک
   "کد صیادی": string; // کد صیادی چک
@@ -50,7 +50,8 @@ export const exportToExcel = (
     const excelData: ExcelRowData[] = payments.map((payment, index) => ({
       ردیف: index + 1, // شماره ردیف از 1 شروع می‌شود
       نوع: payment.cash === "1" ? "نقدي" : "چك", // "نقدي" برای واریز نقدی، "چک" برای چک
-      کد: "24", // همیشه "24" طبق درخواست
+      کد:
+        payment.invoiceType === 3 || payment.invoiceType === "3" ? "78" : "24", // "78" اگر invoiceType = 3 باشد، در غیر این صورت "24"
       ماهیت: determineEntityType(payment), // 2 برای حقوقی، 1 برای حقیقی
       شماره: payment.serialNo || "", // سریال چک
       "کد صیادی": payment.sayadiCode || "", // کد صیادی چک
@@ -137,7 +138,8 @@ export const exportToExcelType2 = (
     const excelData: ExcelRowDataType2[] = payments.map((payment, index) => ({
       ردیف: index + 1,
       نوع: payment.cash === "1" ? "نقدي" : "چك",
-      کد: "24",
+      کد:
+        payment.invoiceType === 3 || payment.invoiceType === "3" ? "78" : "24", // "78" اگر invoiceType = 3 باشد، در غیر این صورت "24"
       ماهیت: determineEntityType(payment),
       شماره: payment.serialNo || "",
       "کد صیادی": payment.sayadiCode || "",

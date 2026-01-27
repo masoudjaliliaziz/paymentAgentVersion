@@ -14,7 +14,9 @@ import { formatShamsiDate } from "../utils/formatShamsiDate";
 import { useSayadConfirmTr } from "../hooks/useSayadConfirmTr";
 import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
 import { useCustomers } from "../hooks/useCustomer";
-
+import { useClearPaymentError } from "./../hooks/useClearPaymentError";
+import { useResetVerified } from "./../hooks/useResetVerified";
+import { Trash2 } from "lucide-react";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -219,11 +221,14 @@ export function PaymentRowTr({
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
   >([]);
+  const { mutate: clearError } = useClearPaymentError(item.parentGUID);
   const [isVerifying, setIsVerifying] = useState(false);
   const { data, isLoading: isLoadinCustomer } = useCustomers(item.parentGUID);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { mutate: mutateConfirmTr } = useSayadConfirmTr(item.parentGUID);
   const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(item.parentGUID);
+  const { mutate: resetVerifiedMutation, isPending: isResettingVerified } =
+    useResetVerified(item.parentGUID);
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
@@ -453,22 +458,40 @@ export function PaymentRowTr({
                       </div>
                     </td>
                     <td className="p-3 text-center border-r border-slate-200">
-                      <button
-                        type="button"
-                        onClick={checkSayadConfirm}
-                        disabled={isVerifyingAll || isVerifying}
-                        className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
-                          w-32 h-10 text-center items-center justify-center flex 
-                          ${
-                            isVerifyingAll || isVerifying
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-sky-500 hover:bg-sky-600"
-                          }`}
-                      >
-                        {isVerifyingAll || isVerifying
-                          ? "در حال استعلام..."
-                          : "استعلام ثبت چک"}
-                      </button>
+                      <div className="flex flex-col gap-2 items-center">
+                        <button
+                          type="button"
+                          onClick={checkSayadConfirm}
+                          disabled={isVerifyingAll || isVerifying}
+                          className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
+                            w-32 h-10 text-center items-center justify-center flex 
+                            ${
+                              isVerifyingAll || isVerifying
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-sky-500 hover:bg-sky-600"
+                            }`}
+                        >
+                          {isVerifyingAll || isVerifying
+                            ? "در حال استعلام..."
+                            : "استعلام ثبت چک"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => resetVerifiedMutation(Number(ID))}
+                          disabled={isResettingVerified}
+                          className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
+                            w-32 h-10 text-center items-center justify-center flex 
+                            ${
+                              isResettingVerified
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-orange-500 hover:bg-orange-600"
+                            }`}
+                        >
+                          {isResettingVerified
+                            ? "در حال انجام..."
+                            : "استعلام اطلاعات چک"}
+                        </button>
+                      </div>
                     </td>
                     <td className="p-3 text-center border-r border-slate-200">
                       <div className="font-bold text-sky-500 text-lg">
@@ -792,6 +815,14 @@ export function PaymentRowTr({
                         <p className="text-red-600 text-center">
                           خطا: {item.Error}
                         </p>
+                      )}
+                      {item.Error && (
+                        <div
+                          onClick={() => clearError(Number(ID))}
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
+                        >
+                          <Trash2 width={20} height={20} />
+                        </div>
                       )}
                     </div>
                   )
