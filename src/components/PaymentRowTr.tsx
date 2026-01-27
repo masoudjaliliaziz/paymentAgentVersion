@@ -17,6 +17,7 @@ import { useCustomers } from "../hooks/useCustomer";
 import { useClearPaymentError } from "./../hooks/useClearPaymentError";
 import { useResetVerified } from "./../hooks/useResetVerified";
 import { Trash2 } from "lucide-react";
+import { useResetVerifiedHoghoghi } from "../hooks/useResetVerifiedHoghoghi";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -229,6 +230,8 @@ export function PaymentRowTr({
   const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(item.parentGUID);
   const { mutate: resetVerifiedMutation, isPending: isResettingVerified } =
     useResetVerified(item.parentGUID);
+      const { mutate: resetVerifiedHoghoghiMutation, isPending: isResettingVerifiedHoghoghi } =
+    useResetVerifiedHoghoghi(item.parentGUID);
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
@@ -475,7 +478,7 @@ export function PaymentRowTr({
                             ? "در حال استعلام..."
                             : "استعلام ثبت چک"}
                         </button>
-                        <button
+              {item.nationalId&&          <button
                           type="button"
                           onClick={() => resetVerifiedMutation(Number(ID))}
                           disabled={isResettingVerified}
@@ -490,7 +493,24 @@ export function PaymentRowTr({
                           {isResettingVerified
                             ? "در حال انجام..."
                             : "استعلام اطلاعات چک"}
-                        </button>
+                        </button>}
+                        {item.nationalIdHoghoghi&&       <button
+                          type="button"
+                          onClick={() => resetVerifiedHoghoghiMutation(Number(ID))}
+                          disabled={isResettingVerifiedHoghoghi}
+                          className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
+                            w-32 h-10 text-center items-center justify-center flex 
+                            ${
+                              isResettingVerifiedHoghoghi
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-orange-500 hover:bg-orange-600"
+                            }`}
+                        >
+                          {isResettingVerifiedHoghoghi
+                            ? "در حال انجام..."
+                            : "تنظیم VerifiedHoghoghi به 0"}
+                        </button>}
+                 
                       </div>
                     </td>
                     <td className="p-3 text-center border-r border-slate-200">
