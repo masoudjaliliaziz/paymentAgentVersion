@@ -1,8 +1,11 @@
-import type { CustomerType } from "../types/apiTypes";
+import type {
+  CommunicationCustomersListItem,
+  CustomerType,
+} from "../types/apiTypes";
 
 //load currentUser ---------------------------
 export async function loadCurrentUser(
-  parentGUID: string
+  parentGUID: string,
 ): Promise<CustomerType[]> {
   if (!parentGUID) return [];
 
@@ -14,9 +17,30 @@ export async function loadCurrentUser(
       `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=guid_form eq guid'${parentGUID}'`,
       {
         headers: { Accept: "application/json;odata=verbose" },
-      }
+      },
     );
 
+    const data = await response.json();
+    return data.d.results;
+  } catch (err) {
+    console.error("خطا در دریافت اطلاعات مشتری:", err);
+    return [];
+  }
+}
+
+export async function loadSubCustomers(
+  CodeM2: string,
+): Promise<CommunicationCustomersListItem[]> {
+  if (!CodeM2) return [];
+  const webUrl = "https://crm.zarsim.com";
+  const listName = "Communication_customers";
+  try {
+    const response = await fetch(
+      `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=CodeM2 eq '${CodeM2}'`,
+      {
+        headers: { Accept: "application/json;odata=verbose" },
+      },
+    );
     const data = await response.json();
     return data.d.results;
   } catch (err) {
@@ -55,7 +79,7 @@ export type PaymentType = {
 
 //load paymentrs byu guyid for each customer -=------------------------------
 export async function loadPayment(
-  parentGUID: string
+  parentGUID: string,
 ): Promise<Partial<PaymentType[]>> {
   const webUrl = "https://crm.zarsim.com";
   const listName = "CustomerPayment";
@@ -78,7 +102,7 @@ export async function loadPayment(
       nextUrl = data.d.__next || null;
     }
 
-    console.log("tttttttttttttttttttttttttt", allResults);
+ 
     return allResults;
   } catch (err) {
     console.error("خطا در دریافت آیتم‌ها:", err);
@@ -88,7 +112,7 @@ export async function loadPayment(
 
 //temp for develop ( this have been load from farvardin)----------------------
 export async function loadDebt(
-  parentGUID: string
+  parentGUID: string,
 ): Promise<Partial<PaymentType[]>> {
   const webUrl = "https://crm.zarsim.com";
   const listName = "Debt";
@@ -118,7 +142,6 @@ export async function loadDebt(
   }
 }
 
-
 export async function getRemainingDebt(cc: string): Promise<number> {
   if (!cc || cc.trim() === "") {
     return 0;
@@ -130,7 +153,7 @@ export async function getRemainingDebt(cc: string): Promise<number> {
   try {
     const res = await fetch(
       `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=Customer_Code eq '${cc}'`,
-      { headers: { Accept: "application/json;odata=verbose" } }
+      { headers: { Accept: "application/json;odata=verbose" } },
     );
 
     if (!res.ok) {
@@ -151,7 +174,7 @@ export async function getRemainingDebt(cc: string): Promise<number> {
         const remainPrice = Number(item.Remain_Price || 0);
         return sum + remainPrice;
       },
-      0
+      0,
     );
     return totalRemainPrice;
   } catch (err) {

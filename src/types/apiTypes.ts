@@ -43,6 +43,8 @@ export type PaymentType = {
   invoiceType: "1" | "2" | "3" | "4";
   customerTitle: string;
   customerCode: string;
+  customerCodeHeader?: string;
+  customerNameHeader?: string;
 };
 
 export type DebtType = {
@@ -76,6 +78,8 @@ export type Data = {
   invoiceType: "1" | "2" | "3" | "4";
   customerTitle: string;
   customerCode: string;
+  customerCodeHeader?: string;
+  customerNameHeader?: string;
 };
 export type CustomerType = {
   Id: number;
@@ -142,4 +146,43 @@ export type CustomerType = {
   OData__x062a__x063a__x06cc__x06cc__x06: number;
   ContentTypeId: string;
   FileSystemObjectType: number;
+};
+
+export type CommunicationCustomersListItem = {
+  "odata.type": string;
+  "odata.id": string;
+  "odata.etag": string;
+  "odata.editLink": string;
+
+  FileSystemObjectType: number;
+  Id: number;
+  ID: number;
+
+  ContentTypeId: string;
+
+  Title: string;
+
+  CodeM: string;
+  id_form_m: string;
+
+  CodeM2: string;
+  Id_form_2: string;
+
+  customer_M: string;
+  customer_M2: string;
+
+  Id_form: string;
+  Id_form0: string;
+
+  Modified: string; // ISO Date
+  Created: string; // ISO Date
+
+  AuthorId: number;
+  EditorId: number;
+
+  OData__UIVersionString: string;
+
+  Attachments: boolean;
+
+  GUID: string;
 };

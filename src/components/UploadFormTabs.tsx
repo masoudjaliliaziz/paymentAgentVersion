@@ -13,6 +13,8 @@ type Props = {
   setTypeActiveTab: (value: "1" | "2" | "3" | "4") => void;
   customerCode: string;
   customerTitle: string;
+  customerCodeHeader: string;
+  customerNameHeader: string;
   onCustomerDataChange?: (customerCode: string, customerTitle: string) => void;
 };
 
@@ -21,6 +23,8 @@ const UploadFormTabs: React.FC<Props> = ({
   typeactiveTab,
   setTypeActiveTab,
   onCustomerDataChange,
+  customerCodeHeader,
+  customerNameHeader,
 }) => {
   const {
     isLoading,
@@ -79,6 +83,8 @@ const UploadFormTabs: React.FC<Props> = ({
           typeactiveTab={typeactiveTab}
           setTypeActiveTab={setTypeActiveTab}
           customerData={customerData ?? []}
+          customerCodeHeader={customerCodeHeader}
+          customerNameHeader={customerNameHeader}
         />
       </div>
     </div>

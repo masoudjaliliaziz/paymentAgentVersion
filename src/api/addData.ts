@@ -52,6 +52,8 @@ export async function handleAddItem(
       invoiceType: data.invoiceType,
       customerCode: data.customerCode,
       customerTitle: data.customerTitle,
+      customerCodeHeader: data.customerCodeHeader,
+      customerNameHeader: data.customerNameHeader,
 
     };
 

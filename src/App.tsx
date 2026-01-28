@@ -16,6 +16,7 @@ import { BanknoteArrowUpIcon } from "lucide-react";
 // import DebtsPage from "./routes/DebtsPage";
 // import { updateSayadVerified } from "./api/updateItem";
 import UploadFormTabs from "./components/UploadFormTabs";
+import { useSubCustomers } from "./hooks/useSubCustomer";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -40,7 +41,6 @@ function App() {
     string[]
   >([]);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-
   const { data, isLoading: isLoadinCustomer } = useCustomers(parentGUID);
   const {
     data: paymentData,
@@ -48,25 +48,14 @@ function App() {
     error: paymentError,
   } = usePayment(guid);
 
-  // دیباگ: بررسی GUID و payment data
-  console.log("🔍 دیباگ App.tsx:", {
-    guid,
-    parentGUID,
-    paymentData: paymentData?.length || 0,
-    paymentLoading,
-    paymentError: paymentError?.message,
-  });
-
   const {
     data: userData,
     isLoading: userLoading,
     error: userError,
   } = useCurrentUser();
-
-  const { isAgent, isMaster } = useUserRoles(userData ?? null);
+  const { isAgent } = useUserRoles(userData ?? null);
   const error = userError || paymentError;
   const isLoading = paymentLoading || userLoading || isLoadinCustomer;
-
   useEffect(() => {
     if (userData && paymentData) {
       dispatch(setPayments(paymentData));
@@ -74,10 +63,8 @@ function App() {
       dispatch(setUserRole(isAgent ? "agent" : "master"));
     }
   }, [paymentData, dispatch, userData, isAgent]);
-
   const [selectedPayments, setSelectedPayments] = useState<PaymentType[]>([]);
   const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
-
   const [filters, setFilters] = useState({
     sayadiCode: "",
     dueDate: "",
@@ -88,10 +75,18 @@ function App() {
     iban: "",
     name: "",
   });
-
   const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("1");
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
+
+  const { data: subCustomers, isLoading: isLoadingSubCustomers } =
+    useSubCustomers(customerCode);
+
+  const subCustomerHeader = subCustomers?.find(
+    (sub) => sub.Title?.trim() === "زیرگروه",
+  );
+  const customerCodeHeader = subCustomerHeader?.CodeM ?? "";
+  const customerNameHeader = subCustomerHeader?.customer_M ?? "";
 
   const togglePaymentSelection = (payment: PaymentType) => {
     setSelectedPayments((prev) => {
@@ -127,7 +122,6 @@ function App() {
       setSelectedRasDate(null);
     }
   }, [selectedPayments]);
-
   useEffect(() => {
     if (
       verifyAllIds.length > 0 &&
@@ -136,16 +130,8 @@ function App() {
       setIsVerifyingAll(false);
       setVerifyAllIds([]);
       setCompletedVerifications([]);
-      console.log("دیباگ: همه استعلام‌ها تکمیل شدند", {
-        total: verifyAllIds.length,
-        errors: errorMessages,
-      });
-      if (errorMessages.length > 0) {
-        console.log("دیباگ: خطاها در استعلام گروهی:", errorMessages);
-      }
     }
   }, [completedVerifications, verifyAllIds, errorMessages]);
-
   // const verifyAllPayments = () => {
   //   const eligibleIds = filteredPayments.map((p) => String(p.ID));
   //   if (!eligibleIds.length) return;
@@ -158,13 +144,11 @@ function App() {
 
   //   processVerifyAll(eligibleIds);
   // };
-
   let barcodeBuffer = "";
   let lastInputTime = 0;
-
   const handleInputChange = (
     field: string,
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     let value = event.target.value;
     const now = Date.now();
@@ -187,13 +171,11 @@ function App() {
 
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
-
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
     }
   };
-
   const filteredPayments = paymentData
     ?.filter((item) => {
       // فیلتر بر اساس تب فعال
@@ -232,57 +214,15 @@ function App() {
       });
     });
 
-  // دیباگ: بررسی فیلترها
-  console.log("🔍 دیباگ فیلترها:", {
-    totalPayments: paymentData?.length || 0,
-    afterStatusFilter:
-      paymentData?.filter((item) => {
-        if (isAgent) return item.status === "0";
-        if (isMaster) {
-          return (
-            item.status === "1" ||
-            (item.cash === "1" && item.status !== "3" && item.status !== "4")
-          );
-        }
-        return false;
-      }).length || 0,
-    afterUserFilter:
-      paymentData
-        ?.filter((item) => {
-          if (isAgent) return item.status === "0";
-          if (isMaster) {
-            return (
-              item.status === "1" ||
-              (item.cash === "1" && item.status !== "3" && item.status !== "4")
-            );
-          }
-          return false;
-        })
-        .filter((item) => {
-          if (userData && specialUsers.includes(userData)) {
-            return true;
-          }
-          if (userData) {
-            return item.SalesExpertAcunt_text === userData;
-          }
-          return false;
-        }).length || 0,
-    finalFilteredCount: filteredPayments.length,
-    userData,
-    isAgent,
-    isMaster,
-    specialUsers,
-  });
-
   const totalSelectedPrice = selectedPayments.reduce(
     (sum, p) => sum + Number(p.price || 0),
-    0
+    0,
   );
 
   const areAllSelected =
     filteredPayments.length > 0 &&
     filteredPayments.every((p) =>
-      selectedPayments.some((sp) => sp.ID === p.ID)
+      selectedPayments.some((sp) => sp.ID === p.ID),
     );
 
   const selectAllPayments = () => {
@@ -292,6 +232,15 @@ function App() {
   const deselectAllPayments = () => {
     setSelectedPayments([]);
   };
+
+  useEffect(() => {
+    if (customerCode && subCustomers) {
+      console.log(subCustomers);
+    }
+  }, [customerCode, subCustomers]);
+
+  if (isLoadingSubCustomers)
+    return <div>در حال بارگذاری مشتری های مربوط به هم...</div>;
 
   return (
     <div className="flex gap-6 mt-6 px-4">
@@ -364,6 +313,8 @@ function App() {
                 setCustomerCode(code);
                 setCustomerTitle(title);
               }}
+            customerCodeHeader={customerCodeHeader}
+            customerNameHeader={customerNameHeader}
             />
           </div>
         )}{" "}

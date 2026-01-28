@@ -64,6 +64,8 @@ type Props = {
   customerData: CustomerType[];
   setTypeActiveTab: (value: "1" | "2" | "3" | "4") => void;
   // 👈 نوع فرم
+  customerCodeHeader: string;
+  customerNameHeader: string;
 };
 
 const UploadCheckoutForm: React.FC<Props> = ({
@@ -73,6 +75,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
   setFormKey,
   typeactiveTab,
   setTypeActiveTab,
+  customerCodeHeader,
+  customerNameHeader,
 }) => {
   const [activeTab, setActiveTab] = useState<"hoghoghi" | "haghighi">(
     "hoghoghi"
@@ -247,6 +251,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
         invoiceType: "1" | "2" | "3" | "4";
         customerCode: string;
         customerTitle: string;
+      customerCodeHeader: string;
+      customerNameHeader: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -267,6 +273,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
           invoiceType: typeactiveTab,
           customerCode: customer?.CustomerCode || "",
           customerTitle: customer?.Title || "",
+          customerCodeHeader,
+          customerNameHeader,
         };
       } else if (type === "check" && activeTab === "hoghoghi") {
         data = {
@@ -286,6 +294,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
           invoiceType: typeactiveTab,
           customerCode: customer?.CustomerCode || "",
           customerTitle: customer?.Title || "",
+          customerCodeHeader,
+          customerNameHeader,
         };
       } else {
         data = {
@@ -303,6 +313,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
           invoiceType: typeactiveTab,
           customerCode: customer?.CustomerCode || "",
           customerTitle: customer?.Title || "",
+          customerCodeHeader,
+          customerNameHeader,
         };
       }
 
