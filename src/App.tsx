@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
@@ -35,6 +35,16 @@ const specialUsers = [
   "i:0#.w|zarsim\\m.esmaeili",
   "i:0#.w|zarsim\\mmoradabadi",
   "i:0#.w|zarsim\\rparsaei",
+  "i:0#.w|zarsim\\khajiabadi",
+  "i:0#.w|zarsim\\zibaniati",
+  "i:0#.w|zarsim\\tsani",
+  "i:0#.w|zarsim\\habedini",
+  "i:0#.w|zarsim\\apazoki",
+  "i:0#.w|zarsim\\tyousefi",
+  "i:0#.w|zarsim\\sakbari",
+  "i:0#.w|zarsim\\mhosseinpour",
+  "i:0#.w|zarsim\\zniati",
+  
 ];
 
 function App() {
@@ -81,11 +91,11 @@ function App() {
   // const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
   // استیت جدید برای ذخیره Title‌ها
   const [customerTitles, setCustomerTitles] = useState<Map<string, string>>(
-    new Map()
+    new Map(),
   );
   // استیت جدید برای ذخیره CustomerCode‌ها
   const [customerCodes, setCustomerCodes] = useState<Map<string, string>>(
-    new Map()
+    new Map(),
   );
 
   // تابع callback برای به‌روزرسانی Title
@@ -174,7 +184,7 @@ function App() {
   let lastInputTime = 0;
   const handleInputChange = (
     field: string,
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     let value = event.target.value;
     const now = Date.now();
@@ -207,7 +217,7 @@ function App() {
   // تابع تبدیل تاریخ شمسی به فرمت YYYYMMDD برای مقایسه
   const normalizeDateForComparison = (
     dateString: string | undefined | null,
-    convertGregorianToShamsi: boolean = false
+    convertGregorianToShamsi: boolean = false,
   ): string | null => {
     if (!dateString || typeof dateString !== "string") {
       return null;
@@ -235,7 +245,7 @@ function App() {
 
     const normalized = persianToEnglishDigits(dateString).replace(
       /[^0-9]/g,
-      ""
+      "",
     );
 
     // اگر تاریخ به فرمت YYYYMMDD باشد
@@ -255,7 +265,7 @@ function App() {
   const isDateInRange = (
     targetDate: string | undefined | null,
     range: DateObject[],
-    convertGregorianToShamsi: boolean = false
+    convertGregorianToShamsi: boolean = false,
   ): boolean => {
     if (!range || !Array.isArray(range) || range.length === 0) {
       return true; // اگر بازه تاریخ انتخاب نشده باشد، همه را نشان بده
@@ -263,7 +273,7 @@ function App() {
 
     const normalizedTargetDate = normalizeDateForComparison(
       targetDate,
-      convertGregorianToShamsi
+      convertGregorianToShamsi,
     );
     if (!normalizedTargetDate) {
       return false;
@@ -423,7 +433,7 @@ function App() {
   const areAllSelected =
     filteredPayments.length > 0 &&
     filteredPayments.every((p) =>
-      selectedPayments.some((sp) => sp.ID === p.ID)
+      selectedPayments.some((sp) => sp.ID === p.ID),
     );
 
   const selectAllPayments = () => {
@@ -446,7 +456,7 @@ function App() {
       // فراخوانی تابع exportToExcel با چک‌های فیلتر شده
       exportToExcel(
         displayedPayments,
-        `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
       console.log(`تعداد ${displayedPayments.length} چک به Excel export شد`);
@@ -460,7 +470,7 @@ function App() {
   const handleExportToExcelByInvoiceType1 = () => {
     try {
       const type1Payments = displayedPayments.filter(
-        (payment) => String(payment.invoiceType) === "1"
+        (payment) => String(payment.invoiceType) === "1",
       );
 
       if (type1Payments.length === 0) {
@@ -470,7 +480,7 @@ function App() {
 
       exportToExcel(
         type1Payments,
-        `چک_های_نوع_1_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `چک_های_نوع_1_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
       console.log(`تعداد ${type1Payments.length} چک نوع 1 به Excel export شد`);
@@ -484,7 +494,7 @@ function App() {
   const handleExportToExcelByInvoiceType2 = () => {
     try {
       const type2Payments = displayedPayments.filter(
-        (payment) => String(payment.invoiceType) === "2"
+        (payment) => String(payment.invoiceType) === "2",
       );
 
       if (type2Payments.length === 0) {
@@ -495,7 +505,7 @@ function App() {
       exportToExcelType2(
         type2Payments,
         customerCodes,
-        `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
       console.log(`تعداد ${type2Payments.length} چک نوع 2 به Excel export شد`);
@@ -657,7 +667,7 @@ function App() {
               {
                 "bg-green-500 text-white": shownUnprocessedChecks,
                 "hover:bg-green-200 hover:text-green-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleUnprocessedChecks}
           >
@@ -670,7 +680,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownSayadConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleSayadConfirmTrChecks}
           >
@@ -685,7 +695,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownSayadUnConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleSayadUnConfirmTrChecks}
           >
@@ -700,7 +710,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleConfirmTrChecks}
           >
@@ -713,7 +723,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownUnConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleUnConfirmTrChecks}
           >
