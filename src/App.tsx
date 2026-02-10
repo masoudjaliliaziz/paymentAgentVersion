@@ -313,8 +313,8 @@ function App() {
                 setCustomerCode(code);
                 setCustomerTitle(title);
               }}
-            customerCodeHeader={customerCodeHeader}
-            customerNameHeader={customerNameHeader}
+              customerCodeHeader={customerCodeHeader}
+              customerNameHeader={customerNameHeader}
             />
           </div>
         )}{" "}
