@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
@@ -88,15 +88,13 @@ function App() {
     new Map()
   );
 
-  // تابع callback برای به‌روزرسانی Title
-  const updateCustomerTitle = (parentGUID: string, title: string) => {
+  const updateCustomerTitle = useCallback((parentGUID: string, title: string) => {
     setCustomerTitles((prev) => new Map(prev).set(parentGUID, title));
-  };
+  }, []);
 
-  // تابع callback برای به‌روزرسانی CustomerCode
-  const updateCustomerCode = (parentGUID: string, code: string) => {
+  const updateCustomerCode = useCallback((parentGUID: string, code: string) => {
     setCustomerCodes((prev) => new Map(prev).set(parentGUID, code));
-  };
+  }, []);
 
   useEffect(() => {
     if (userData && paymentData) {
@@ -141,25 +139,14 @@ function App() {
     }
   }, [completedVerifications, verifyAllIds, errorMessages]);
 
-  const verifyAllPayments = () => {
-    const eligibleIds = filteredPayments.map((p) => String(p.ID));
-    if (!eligibleIds.length) return;
-
-    setVerifyAllIds(eligibleIds);
-    setIsVerifyingAll(true);
-    setCompletedVerifications([]);
-    setErrorMessages([]);
-    processVerifyAll(eligibleIds);
-  };
-
-  const togglePaymentSelection = (payment: PaymentType) => {
+  const togglePaymentSelection = useCallback((payment: PaymentType) => {
     setSelectedPayments((prev) => {
       const exists = prev.find((p) => p.ID === payment.ID);
       return exists
         ? prev.filter((p) => p.ID !== payment.ID)
         : [...prev, payment];
     });
-  };
+  }, []);
 
   // useEffect(() => {
   //   if (selectedPayments.length > 0) {
@@ -204,11 +191,11 @@ function App() {
     }
   };
 
-  // تابع تبدیل تاریخ شمسی به فرمت YYYYMMDD برای مقایسه
-  const normalizeDateForComparison = (
-    dateString: string | undefined | null,
-    convertGregorianToShamsi: boolean = false
-  ): string | null => {
+  const normalizeDateForComparison = useCallback(
+    (
+      dateString: string | undefined | null,
+      convertGregorianToShamsi: boolean = false
+    ): string | null => {
     if (!dateString || typeof dateString !== "string") {
       return null;
     }
@@ -249,78 +236,73 @@ function App() {
     }
 
     return null;
-  };
+    },
+    []
+  );
 
-  // تابع بررسی اینکه آیا تاریخ در بازه مشخص شده است
-  const isDateInRange = (
-    targetDate: string | undefined | null,
-    range: DateObject[],
-    convertGregorianToShamsi: boolean = false
-  ): boolean => {
-    if (!range || !Array.isArray(range) || range.length === 0) {
-      return true; // اگر بازه تاریخ انتخاب نشده باشد، همه را نشان بده
-    }
-
-    const normalizedTargetDate = normalizeDateForComparison(
-      targetDate,
-      convertGregorianToShamsi
-    );
-    if (!normalizedTargetDate) {
-      return false;
-    }
-
-    // تبدیل تاریخ‌های انتخاب شده به فرمت YYYYMMDD
-    const dates = range
-      .map((date) => {
-        if (date instanceof DateObject) {
-          const year = String(date.year);
-          const month = String(date.month).padStart(2, "0");
-          const day = String(date.day).padStart(2, "0");
-          return `${year}${month}${day}`;
-        }
-        return null;
-      })
-      .filter((d): d is string => d !== null);
-
-    if (dates.length === 0) {
-      return true;
-    }
-
-    if (dates.length === 1) {
-      // اگر فقط یک تاریخ انتخاب شده، همان تاریخ را فیلتر کن
-      return normalizedTargetDate === dates[0];
-    }
-
-    // اگر دو تاریخ انتخاب شده، بازه را بررسی کن
-    const [startDate, endDate] = dates.sort();
-    return normalizedTargetDate >= startDate && normalizedTargetDate <= endDate;
-  };
-
-  const sortPayments = (payments: PaymentType[]) => {
-    return [...payments].sort((a, b) => {
-      const key = sortConfig.key as keyof PaymentType;
-      const valueA = a[key] ?? "";
-      const valueB = b[key] ?? "";
-
-      if (key === "price") {
-        const numA = Number(valueA) || 0;
-        const numB = Number(valueB) || 0;
-        return sortConfig.direction === "asc" ? numA - numB : numB - numA;
-      } else if (key === "dueDate") {
-        return sortConfig.direction === "asc"
-          ? valueA.toString().localeCompare(valueB.toString())
-          : valueB.toString().localeCompare(valueA.toString());
-      } else if (key === "Title") {
-        // Sort based on customer title from customerTitles map
-        const titleA = customerTitles.get(a.parentGUID) ?? "";
-        const titleB = customerTitles.get(b.parentGUID) ?? "";
-        return sortConfig.direction === "asc"
-          ? titleA.localeCompare(titleB, "fa")
-          : titleB.localeCompare(titleA, "fa");
+  const isDateInRange = useCallback(
+    (
+      targetDate: string | undefined | null,
+      range: DateObject[],
+      convertGregorianToShamsi: boolean = false
+    ): boolean => {
+      if (!range || !Array.isArray(range) || range.length === 0) {
+        return true;
       }
-      return 0;
-    });
-  };
+
+      const normalizedTargetDate = normalizeDateForComparison(
+        targetDate,
+        convertGregorianToShamsi
+      );
+      if (!normalizedTargetDate) return false;
+
+      const dates = range
+        .map((date) => {
+          if (date instanceof DateObject) {
+            const year = String(date.year);
+            const month = String(date.month).padStart(2, "0");
+            const day = String(date.day).padStart(2, "0");
+            return `${year}${month}${day}`;
+          }
+          return null;
+        })
+        .filter((d): d is string => d !== null);
+
+      if (dates.length === 0) return true;
+      if (dates.length === 1) return normalizedTargetDate === dates[0];
+      const [startDate, endDate] = dates.sort();
+      return normalizedTargetDate >= startDate && normalizedTargetDate <= endDate;
+    },
+    [normalizeDateForComparison]
+  );
+
+  const sortPayments = useCallback(
+    (payments: PaymentType[]) => {
+      return [...payments].sort((a, b) => {
+        const key = sortConfig.key as keyof PaymentType;
+        const valueA = a[key] ?? "";
+        const valueB = b[key] ?? "";
+
+        if (key === "price") {
+          const numA = Number(valueA) || 0;
+          const numB = Number(valueB) || 0;
+          return sortConfig.direction === "asc" ? numA - numB : numB - numA;
+        } else if (key === "dueDate") {
+          return sortConfig.direction === "asc"
+            ? valueA.toString().localeCompare(valueB.toString())
+            : valueB.toString().localeCompare(valueA.toString());
+        } else if (key === "Title") {
+          const titleA = customerTitles.get(a.parentGUID) ?? "";
+          const titleB = customerTitles.get(b.parentGUID) ?? "";
+          return sortConfig.direction === "asc"
+            ? titleA.localeCompare(titleB, "fa")
+            : titleB.localeCompare(titleA, "fa");
+        }
+        return 0;
+      });
+    },
+    [sortConfig.key, sortConfig.direction, customerTitles]
+  );
 
   const [filters, setFilters] = useState({
     sayadiCode: "",
@@ -339,14 +321,43 @@ function App() {
   const [selectedBanks, setSelectedBanks] = useState<string[]>([]); // فیلتر بانک‌ها
   const [paymentType, setPaymentType] = useState<string>(""); // فیلتر نوع پرداخت: "" = همه، "0" = چک، "1" = نقدی
 
-  const filteredPayments =
-    paymentData
-      ?.filter((item) => {
-        // Special users can see all payments regardless of status
-        if (userData && specialUsers.includes(userData)) {
-          return true;
-        }
+  // Pagination برای چک‌های فیلتر شده
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const PAGE_SIZE_OPTIONS = [15, 25, 50, 100];
 
+  // بازهٔ تاریخ ثبت به صورت YYYYMMDD شمسی (یک بار، نه برای هر چک)
+  const createdRangeBounds = useMemo((): { start: string; end: string } | null => {
+    if (!createdDateRange?.length || !Array.isArray(createdDateRange)) return null;
+    const dates = createdDateRange
+      .map((d) =>
+        d instanceof DateObject
+          ? `${String(d.year)}${String(d.month).padStart(2, "0")}${String(d.day).padStart(2, "0")}`
+          : null
+      )
+      .filter((d): d is string => d !== null);
+    if (dates.length === 0) return null;
+    if (dates.length === 1) return { start: dates[0], end: dates[0] };
+    const [start, end] = dates.sort();
+    return { start, end };
+  }, [createdDateRange]);
+
+  // تاریخ ثبت هر پرداخت به شمسی YYYYMMDD — فقط یک بار وقتی paymentData عوض شد
+  const createdDateShamsiByPaymentId = useMemo(() => {
+    const map = new Map<number, string>();
+    if (!paymentData || !normalizeDateForComparison) return map;
+    paymentData.forEach((p) => {
+      const n = normalizeDateForComparison(p.Created, true);
+      if (n) map.set(p.ID, n);
+    });
+    return map;
+  }, [paymentData, normalizeDateForComparison]);
+
+  const filteredPayments = useMemo(() => {
+    if (!paymentData) return [];
+    return paymentData
+      .filter((item) => {
+        if (userData && specialUsers.includes(userData)) return true;
         if (isAgent) return item.status === "0";
         if (isMaster) {
           return (
@@ -357,45 +368,51 @@ function App() {
         return false;
       })
       .filter((item) => {
-        // Special users can see all payments regardless of SalesExpertAcunt_text
-        if (userData && specialUsers.includes(userData)) {
-          return true;
-        }
-        if (userData) {
-          return item.SalesExpertAcunt_text === userData;
-        }
+        if (userData && specialUsers.includes(userData)) return true;
+        if (userData) return item.SalesExpertAcunt_text === userData;
         return false;
       })
       .filter((item) => {
-        // فیلتر بازه تاریخ
-        if (!isDateInRange(item.dueDate, dateRange)) {
-          return false;
+        if (!isDateInRange(item.dueDate, dateRange)) return false;
+        if (createdRangeBounds) {
+          const norm = createdDateShamsiByPaymentId.get(item.ID);
+          if (norm == null) return false;
+          if (createdRangeBounds.start === createdRangeBounds.end) {
+            if (norm !== createdRangeBounds.start) return false;
+          } else if (norm < createdRangeBounds.start || norm > createdRangeBounds.end) {
+            return false;
+          }
         }
-
-        // فیلتر بازه تاریخ ثبت
-        if (!isDateInRange(item.Created, createdDateRange, true)) {
-          return false;
-        }
-
-        // فیلترهای دیگر
         return Object.entries(filters).every(([key, value]) => {
           if (!value) return true;
           if (key === "Title") {
             const title = customerTitles.get(item.parentGUID) ?? "";
             return title.toLowerCase().includes(value.toLowerCase());
           }
-          if (key === "invoiceType") {
-            // فیلتر بر اساس نوع فاکتور
-            return String(item.invoiceType) === value;
-          }
+          if (key === "invoiceType") return String(item.invoiceType) === value;
           return (item[key as keyof PaymentType] ?? "")
             .toString()
             .toLowerCase()
             .includes(value.toLowerCase());
         });
-      }) ?? [];
+      });
+  }, [
+    paymentData,
+    userData,
+    isAgent,
+    isMaster,
+    dateRange,
+    createdRangeBounds,
+    createdDateShamsiByPaymentId,
+    filters,
+    customerTitles,
+    isDateInRange,
+  ]);
 
-  const sortedPayments = sortPayments(filteredPayments);
+  const sortedPayments = useMemo(
+    () => sortPayments(filteredPayments),
+    [filteredPayments, sortPayments]
+  );
 
   // استخراج لیست منحصر به فرد نام بانک‌ها از پرداخت‌ها
   const uniqueBanks = useMemo(() => {
@@ -420,19 +437,16 @@ function App() {
   //   0
   // );
 
-  const areAllSelected =
-    filteredPayments.length > 0 &&
-    filteredPayments.every((p) =>
-      selectedPayments.some((sp) => sp.ID === p.ID)
-    );
-
-  const selectAllPayments = () => {
-    setSelectedPayments(filteredPayments);
-  };
-
   const deselectAllPayments = () => {
     setSelectedPayments([]);
   };
+
+  const handleVerificationComplete = useCallback((id: string, error?: string) => {
+    setCompletedVerifications((prev) => [...prev, id]);
+    if (error) {
+      setErrorMessages((prev) => [...prev, `خطا برای ID ${id}: ${error}`]);
+    }
+  }, []);
 
   // تابع handleExportToExcel - این تابع چک‌های فیلتر شده را به Excel export می‌کند
   const handleExportToExcel = () => {
@@ -564,88 +578,127 @@ function App() {
     }
   };
 
-  const getDisplayedPayments = () => {
-    if (!Array.isArray(paymentData) || !Array.isArray(sortedPayments)) {
-      return [];
-    }
-
+  const displayedPayments = useMemo(() => {
+    if (!Array.isArray(paymentData) || !Array.isArray(sortedPayments)) return [];
     let basePayments: PaymentType[] = [];
-
     if (shownSayadConfirmTrChecks) {
-      basePayments =
-        paymentData.filter((data) => data?.VerifiedConfirmSayadTr === "1") ??
-        [];
+      basePayments = paymentData.filter((d) => d?.VerifiedConfirmSayadTr === "1") ?? [];
     } else if (shownSayadUnConfirmTrChecks) {
-      basePayments =
-        paymentData.filter((data) => data?.VerifiedRejectSayadTr === "1") ?? [];
+      basePayments = paymentData.filter((d) => d?.VerifiedRejectSayadTr === "1") ?? [];
     } else if (shownConfirmTrChecks) {
-      basePayments = paymentData.filter((data) => data?.status === "4") ?? [];
+      basePayments = paymentData.filter((d) => d?.status === "4") ?? [];
     } else if (shownUnConfirmTrChecks) {
-      basePayments = paymentData.filter((data) => data?.status === "3") ?? [];
+      basePayments = paymentData.filter((d) => d?.status === "3") ?? [];
     } else if (shownUnprocessedChecks) {
-      basePayments =
-        sortedPayments.filter((data) => data?.status === "1") ?? [];
+      basePayments = sortedPayments.filter((d) => d?.status === "1") ?? [];
     } else if (isMaster) {
       basePayments = sortedPayments ?? [];
     } else {
       return [];
     }
-
-    // Apply search filters to all payment states
     return basePayments.filter((item) => {
-      // فیلتر بازه تاریخ
-      if (!isDateInRange(item.dueDate, dateRange)) {
-        return false;
-      }
-
-      // فیلتر بازه تاریخ ثبت
-      if (!isDateInRange(item.Created, createdDateRange, true)) {
-        return false;
-      }
-
-      // فیلتر نوع پرداخت
-      if (paymentType !== "") {
-        if (item.cash !== paymentType) {
+      if (!isDateInRange(item.dueDate, dateRange)) return false;
+      if (createdRangeBounds) {
+        const norm = createdDateShamsiByPaymentId.get(item.ID);
+        if (norm == null) return false;
+        if (createdRangeBounds.start === createdRangeBounds.end) {
+          if (norm !== createdRangeBounds.start) return false;
+        } else if (norm < createdRangeBounds.start || norm > createdRangeBounds.end) {
           return false;
         }
       }
-
-      // فیلتر بانک
+      if (paymentType !== "" && item.cash !== paymentType) return false;
       if (selectedBanks.length > 0) {
-        let itemBankName = "";
-        if (item.cash === "0" && item.iban) {
-          itemBankName = getBankNameFromIBAN(item.iban);
-        } else if (item.cash === "1" && item.bankName) {
-          itemBankName = item.bankName;
-        }
-        if (!itemBankName || !selectedBanks.includes(itemBankName)) {
-          return false;
-        }
+        const itemBankName =
+          item.cash === "0" && item.iban
+            ? getBankNameFromIBAN(item.iban)
+            : item.cash === "1"
+              ? item.bankName ?? ""
+              : "";
+        if (!itemBankName || !selectedBanks.includes(itemBankName)) return false;
       }
-
-      // فیلترهای دیگر
       return Object.entries(filters).every(([key, value]) => {
         if (!value) return true;
         if (key === "Title") {
           const title = customerTitles.get(item.parentGUID) ?? "";
           return title.toLowerCase().includes(value.toLowerCase());
         }
-        if (key === "invoiceType") {
-          // فیلتر بر اساس نوع فاکتور
-          return String(item.invoiceType) === value;
-        }
+        if (key === "invoiceType") return String(item.invoiceType) === value;
         return (item[key as keyof PaymentType] ?? "")
           .toString()
           .toLowerCase()
           .includes(value.toLowerCase());
       });
     });
-  };
-  const displayedPayments = getDisplayedPayments();
+  }, [
+    paymentData,
+    sortedPayments,
+    shownSayadConfirmTrChecks,
+    shownSayadUnConfirmTrChecks,
+    shownConfirmTrChecks,
+    shownUnConfirmTrChecks,
+    shownUnprocessedChecks,
+    isMaster,
+    dateRange,
+    createdRangeBounds,
+    createdDateShamsiByPaymentId,
+    paymentType,
+    selectedBanks,
+    filters,
+    customerTitles,
+    isDateInRange,
+  ]);
 
-  const totalSelectedPrice = selectedPayments
-    .filter((p) => displayedPayments.some((dp) => dp.ID === p.ID))
-    .reduce((sum, p) => sum + Number(p.price.replaceAll(",", "") || 0), 0);
+  // Pagination: فقط یک صفحه از چک‌ها را نشان بده
+  const totalFilteredCount = displayedPayments.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredCount / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalFilteredCount);
+  const paginatedPayments = displayedPayments.slice(startIndex, endIndex);
+
+  // فقط وقتی تعداد نتایج یا تب عوض شد صفحه را ۱ کن (نه هر بار تایپ فیلتر → رندر اضافه)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    totalFilteredCount,
+    pageSize,
+    shownSayadConfirmTrChecks,
+    shownSayadUnConfirmTrChecks,
+    shownConfirmTrChecks,
+    shownUnConfirmTrChecks,
+    shownUnprocessedChecks,
+  ]);
+
+  const selectedPaymentIds = useMemo(
+    () => new Set(selectedPayments.map((p) => p.ID)),
+    [selectedPayments]
+  );
+
+  const areAllSelected =
+    displayedPayments.length > 0 &&
+    displayedPayments.every((p) => selectedPaymentIds.has(p.ID));
+
+  const selectAllPayments = () => {
+    setSelectedPayments(displayedPayments);
+  };
+
+  const verifyAllPayments = () => {
+    const eligibleIds = displayedPayments.map((p) => String(p.ID));
+    if (!eligibleIds.length) return;
+    setVerifyAllIds(eligibleIds);
+    setIsVerifyingAll(true);
+    setCompletedVerifications([]);
+    setErrorMessages([]);
+    processVerifyAll(eligibleIds);
+  };
+
+  const totalSelectedPrice = useMemo(
+    () =>
+      selectedPayments
+        .filter((p) => displayedPayments.some((dp) => dp.ID === p.ID))
+        .reduce((sum, p) => sum + Number(p.price.replaceAll(",", "") || 0), 0),
+    [selectedPayments, displayedPayments]
+  );
 
   return (
     <div className="flex gap-6 mt-6 px-4">
@@ -783,11 +836,8 @@ function App() {
             <DatePicker
               value={createdDateRange}
               onChange={(dates) => {
-                if (Array.isArray(dates)) {
-                  setCreatedDateRange(dates);
-                } else {
-                  setCreatedDateRange([]);
-                }
+                if (Array.isArray(dates)) setCreatedDateRange(dates);
+                else setCreatedDateRange([]);
               }}
               calendar={persian}
               locale={persian_fa}
@@ -1034,9 +1084,9 @@ function App() {
             </div>
             <button
               onClick={verifyAllPayments}
-              disabled={isVerifyingAll || filteredPayments.length === 0}
+              disabled={isVerifyingAll || displayedPayments.length === 0}
               className={`px-4 py-2 rounded-md text-white font-semibold ${
-                isVerifyingAll || filteredPayments.length === 0
+                isVerifyingAll || displayedPayments.length === 0
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-sky-500 hover:bg-sky-600"
               }`}
@@ -1048,24 +1098,66 @@ function App() {
           </div>
         </div>
 
-        {displayedPayments.map((item, i) => (
+        {/* Pagination: نوار صفحه‌بندی */}
+        {totalFilteredCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 py-3 px-2 bg-slate-50 rounded-md border mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">
+                نمایش {startIndex + 1} تا {endIndex} از{" "}
+                <span className="font-bold">{totalFilteredCount.toLocaleString("fa-IR")}</span> چک
+              </span>
+              <label className="flex items-center gap-1 text-sm text-slate-600">
+                در هر صفحه:
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="border rounded px-2 py-1 text-sm"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className="px-3 py-1 rounded border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 text-sm font-medium"
+              >
+                قبلی
+              </button>
+              <span className="px-2 text-sm text-slate-600">
+                صفحه {currentPage.toLocaleString("fa-IR")} از {totalPages.toLocaleString("fa-IR")}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className="px-3 py-1 rounded border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 text-sm font-medium"
+              >
+                بعدی
+              </button>
+            </div>
+          </div>
+        )}
+
+        {paginatedPayments.map((item, i) => (
           <PaymentRowTr
             key={item.ID}
-            index={i}
+            index={startIndex + i}
             item={item}
-            onToggleSelect={() => togglePaymentSelection(item)}
-            isSelected={!!selectedPayments.find((p) => p.ID === item.ID)}
+            onToggleSelect={togglePaymentSelection}
+            isSelected={selectedPaymentIds.has(item.ID)}
             isVerifyingAll={isVerifyingAll}
             verifyAllIds={verifyAllIds}
-            onVerificationComplete={(id: string, error?: string) => {
-              setCompletedVerifications((prev) => [...prev, id]);
-              if (error) {
-                setErrorMessages((prev) => [
-                  ...prev,
-                  `خطا برای ID ${id}: ${error}`,
-                ]);
-              }
-            }}
+            onVerificationComplete={handleVerificationComplete}
             onUpdateTitle={updateCustomerTitle}
             onUpdateCustomerCode={updateCustomerCode}
           />

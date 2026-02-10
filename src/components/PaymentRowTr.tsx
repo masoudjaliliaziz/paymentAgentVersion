@@ -4,7 +4,7 @@ import ActionByRole from "./ActionByRole";
 import type { PaymentType } from "../types/apiTypes";
 import { useSayadConfirm } from "../hooks/useSayadConfirm";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
@@ -198,7 +198,7 @@ const getCheckColor = (colorCode: string | undefined) => {
 
 interface PaymentRowProps {
   item: PaymentType;
-  onToggleSelect: () => void;
+  onToggleSelect: (payment: PaymentType) => void;
   isSelected: boolean;
   isVerifyingAll: boolean;
   verifyAllIds: string[];
@@ -208,7 +208,7 @@ interface PaymentRowProps {
   onUpdateCustomerCode?: (parentGUID: string, code: string) => void; // پراپ جدید برای CustomerCode
 }
 
-export function PaymentRowTr({
+function PaymentRowTrComponent({
   item,
   index,
   onToggleSelect,
@@ -216,8 +216,8 @@ export function PaymentRowTr({
   isVerifyingAll,
   verifyAllIds,
   onVerificationComplete,
-  onUpdateTitle, // اضافه کردن پراپ جدید
-  onUpdateCustomerCode, // اضافه کردن پراپ جدید
+  onUpdateTitle,
+  onUpdateCustomerCode,
 }: PaymentRowProps) {
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
@@ -544,7 +544,7 @@ export function PaymentRowTr({
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={onToggleSelect}
+                          onChange={() => onToggleSelect(item)}
                           className="w-5 h-5 cursor-pointer"
                         />
                       </div>
@@ -950,7 +950,7 @@ export function PaymentRowTr({
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={onToggleSelect}
+                          onChange={() => onToggleSelect(item)}
                           className="w-5 h-5 cursor-pointer"
                         />
                       </div>
@@ -1004,3 +1004,5 @@ export function PaymentRowTr({
     </div>
   );
 }
+
+export const PaymentRowTr = memo(PaymentRowTrComponent);
