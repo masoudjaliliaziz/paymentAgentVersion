@@ -143,3 +143,26 @@ export async function resetVerifiedHoghoghi(ID: number) {
 
   if (!res.ok) throw new Error("تنظیم Verified به 0 با خطا مواجه شد");
 }
+
+export async function updateSayadiCode(ID: number, sayadiCode: string) {
+  const digest = await getDigest();
+  const res = await fetch(
+    `${address}/_api/web/lists/getbytitle('CustomerPayment')/items(${ID})`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "X-HTTP-Method": "MERGE",
+        "IF-MATCH": "*",
+      },
+      body: JSON.stringify({
+        __metadata: { type: "SP.Data.CustomerPaymentListItem" },
+        sayadiCode: String(sayadiCode || ""),
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error("خطا در به‌روزرسانی کد صیادی");
+}

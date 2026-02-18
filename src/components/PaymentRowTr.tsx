@@ -16,8 +16,9 @@ import { useRejectSayadConfirmTr } from "../hooks/useSayadRejectTr";
 import { useCustomers } from "../hooks/useCustomer";
 import { useClearPaymentError } from "./../hooks/useClearPaymentError";
 import { useResetVerified } from "./../hooks/useResetVerified";
-import { Trash2 } from "lucide-react";
+import { Pencil, Check, X, Trash2 } from "lucide-react";
 import { useResetVerifiedHoghoghi } from "../hooks/useResetVerifiedHoghoghi";
+import { useUpdateSayadiCode } from "../hooks/useUpdateSayadiCode";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -235,6 +236,10 @@ function PaymentRowTrComponent({
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
+  const { mutate: updateSayadiCodeMutation, isPending: isUpdatingSayadiCode } =
+    useUpdateSayadiCode();
+  const [isEditingSayadiCode, setIsEditingSayadiCode] = useState(false);
+  const [editSayadiCodeValue, setEditSayadiCodeValue] = useState("");
   const createdDateLabel = formatCreatedDate(item.Created);
 
   const normalizedPrice = item.price
@@ -592,9 +597,68 @@ function PaymentRowTrComponent({
                 <div className="grid grid-cols-4 gap-4 text-sm">
                   <div>
                     <p className="font-semibold text-gray-500">شناسه صیادی</p>
-                    <span className="font-bold text-sky-700 text-sm">
-                      {sayadiCode ?? "نامشخص"}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {isEditingSayadiCode ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editSayadiCodeValue}
+                            onChange={(e) =>
+                              setEditSayadiCodeValue(e.target.value)
+                            }
+                            className="border rounded px-2 py-1 text-sm w-32 font-bold text-sky-700"
+                            placeholder="کد صیادی"
+                            dir="ltr"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateSayadiCodeMutation(
+                                { ID: Number(ID), sayadiCode: editSayadiCodeValue },
+                                {
+                                  onSuccess: () => {
+                                    setIsEditingSayadiCode(false);
+                                  },
+                                }
+                              );
+                            }}
+                            disabled={isUpdatingSayadiCode}
+                            className="p-1 rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
+                            title="ذخیره"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsEditingSayadiCode(false);
+                              setEditSayadiCodeValue(sayadiCode ?? "");
+                            }}
+                            className="p-1 rounded bg-slate-300 text-slate-700 hover:bg-slate-400"
+                            title="لغو"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-bold text-sky-700 text-sm">
+                            {sayadiCode ?? "نامشخص"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsEditingSayadiCode(true);
+                              setEditSayadiCodeValue(sayadiCode ?? "");
+                            }}
+                            className="p-1 rounded hover:bg-slate-200 text-slate-600"
+                            title="ویرایش"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div>
