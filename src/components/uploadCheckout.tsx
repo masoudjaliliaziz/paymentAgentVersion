@@ -48,10 +48,21 @@ const bankOptions = [
   { value: "تجارت 1019399873 نوبنياد - جاري", label: "تجارت - نوبنياد" },
   { value: "تجارت 177001820893 درياي نور - جاري", label: "تجارت - درياي نور" },
   { value: "سامان 1-42548-40-805 - جاري", label: "سامان" },
-  { value: "صندوق کارآفريني اميد- ساوه", label: "کارآفريني اميد - ساوه" },
   {
     value: "اقتصاد نوين 1-5008500-2-125 بهارستان",
     label: "اقتصاد نوين - بهارستان",
+  },
+  {
+    value: "شهر 1001005695224 فرمانيه",
+    label: "شهر - فرمانیه",
+  },
+  {
+    value: "کارآفرين 1102730780608 تابان- جاري",
+    label: "کارآفرین - تابان",
+  },
+  {
+    value: "سرمايه 1-2532693-26-1031 کوي نصر-قرض الحسنه جاري",
+    label: "سرمایه - کوی‌نصر",
   },
 ];
 
@@ -79,7 +90,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
   customerNameHeader,
 }) => {
   const [activeTab, setActiveTab] = useState<"hoghoghi" | "haghighi">(
-    "hoghoghi"
+    "hoghoghi",
   );
 
   const [itemGUID, setItemGUID] = useState("");
@@ -105,7 +116,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
     queryFn: async () => {
       const data = await loadPayment(parent_GUID);
       return (data as (PaymentType | undefined)[]).filter(
-        (item): item is PaymentType => item !== undefined
+        (item): item is PaymentType => item !== undefined,
       );
     },
     enabled: !!parent_GUID,
@@ -171,7 +182,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         (p) =>
           p.sayadiCode === sayadiCode.trim() &&
           p.status !== "3" &&
-          p.status !== "2"
+          p.status !== "2",
       )
     ) {
       setSayadiError("این شناسه صیادی قبلاً ثبت شده است.");
@@ -251,8 +262,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
         invoiceType: "1" | "2" | "3" | "4";
         customerCode: string;
         customerTitle: string;
-      customerCodeHeader: string;
-      customerNameHeader: string;
+        customerCodeHeader: string;
+        customerNameHeader: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -386,7 +397,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
 
   const handleQRCodeInput = (
     e: React.FormEvent<HTMLInputElement>,
-    value: string
+    value: string,
   ) => {
     e.preventDefault();
     setSayadiCode(getLast16Chars(value));
