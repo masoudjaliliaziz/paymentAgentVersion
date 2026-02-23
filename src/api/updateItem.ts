@@ -166,3 +166,50 @@ export async function updateSayadiCode(ID: number, sayadiCode: string) {
 
   if (!res.ok) throw new Error("خطا در به‌روزرسانی کد صیادی");
 }
+
+export async function updateDueDate(ID: number, dueDate: string) {
+  const digest = await getDigest();
+  const res = await fetch(
+    `${address}/_api/web/lists/getbytitle('CustomerPayment')/items(${ID})`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "X-HTTP-Method": "MERGE",
+        "IF-MATCH": "*",
+      },
+      body: JSON.stringify({
+        __metadata: { type: "SP.Data.CustomerPaymentListItem" },
+        dueDate: String(dueDate || ""),
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error("خطا در به‌روزرسانی تاریخ سررسید");
+}
+
+export async function updatePrice(ID: number, price: string) {
+  const digest = await getDigest();
+  const normalizedPrice = String(price || "").replace(/,/g, "");
+  const res = await fetch(
+    `${address}/_api/web/lists/getbytitle('CustomerPayment')/items(${ID})`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "X-HTTP-Method": "MERGE",
+        "IF-MATCH": "*",
+      },
+      body: JSON.stringify({
+        __metadata: { type: "SP.Data.CustomerPaymentListItem" },
+        price: normalizedPrice,
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error("خطا در به‌روزرسانی مبلغ");
+}

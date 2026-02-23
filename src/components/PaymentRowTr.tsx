@@ -19,6 +19,8 @@ import { useResetVerified } from "./../hooks/useResetVerified";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
 import { useResetVerifiedHoghoghi } from "../hooks/useResetVerifiedHoghoghi";
 import { useUpdateSayadiCode } from "../hooks/useUpdateSayadiCode";
+import { useUpdateDueDate } from "../hooks/useUpdateDueDate";
+import { useUpdatePrice } from "../hooks/useUpdatePrice";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -231,15 +233,25 @@ function PaymentRowTrComponent({
   const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(item.parentGUID);
   const { mutate: resetVerifiedMutation, isPending: isResettingVerified } =
     useResetVerified(item.parentGUID);
-      const { mutate: resetVerifiedHoghoghiMutation, isPending: isResettingVerifiedHoghoghi } =
-    useResetVerifiedHoghoghi(item.parentGUID);
+  const {
+    mutate: resetVerifiedHoghoghiMutation,
+    isPending: isResettingVerifiedHoghoghi,
+  } = useResetVerifiedHoghoghi(item.parentGUID);
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
   const { mutate: updateSayadiCodeMutation, isPending: isUpdatingSayadiCode } =
     useUpdateSayadiCode();
+  const { mutate: updateDueDateMutation, isPending: isUpdatingDueDate } =
+    useUpdateDueDate();
+  const { mutate: updatePriceMutation, isPending: isUpdatingPrice } =
+    useUpdatePrice();
   const [isEditingSayadiCode, setIsEditingSayadiCode] = useState(false);
   const [editSayadiCodeValue, setEditSayadiCodeValue] = useState("");
+  const [isEditingDueDate, setIsEditingDueDate] = useState(false);
+  const [editDueDateValue, setEditDueDateValue] = useState("");
+  const [isEditingPrice, setIsEditingPrice] = useState(false);
+  const [editPriceValue, setEditPriceValue] = useState("");
   const createdDateLabel = formatCreatedDate(item.Created);
 
   const normalizedPrice = item.price
@@ -297,7 +309,7 @@ function PaymentRowTrComponent({
               const errorMsg = error.message || "خطا در استعلام گروهی";
               console.error(
                 `دیباگ: خطا در استعلام گروهی برای ID ${ID}:`,
-                error
+                error,
               );
               setErrorMessage(errorMsg);
               setIsVerifying(false);
@@ -306,7 +318,7 @@ function PaymentRowTrComponent({
             onSettled: () => {
               setIsVerifying(false);
             },
-          }
+          },
         );
       }, index * 200);
 
@@ -357,7 +369,7 @@ function PaymentRowTrComponent({
         onSettled: () => {
           setIsVerifying(false);
         },
-      }
+      },
     );
 
     setTimeout(() => {
@@ -440,10 +452,10 @@ function PaymentRowTrComponent({
                               <span
                                 key={i}
                                 className={`rounded-sm w-4 h-4 ${getCheckColor(
-                                  item.checksColor
+                                  item.checksColor,
                                 )}`}
                               ></span>
-                            )
+                            ),
                           )}
                         </div>
                       </div>
@@ -483,39 +495,44 @@ function PaymentRowTrComponent({
                             ? "در حال استعلام..."
                             : "استعلام ثبت چک"}
                         </button>
-              {item.nationalId&&          <button
-                          type="button"
-                          onClick={() => resetVerifiedMutation(Number(ID))}
-                          disabled={isResettingVerified}
-                          className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
+                        {item.nationalId && (
+                          <button
+                            type="button"
+                            onClick={() => resetVerifiedMutation(Number(ID))}
+                            disabled={isResettingVerified}
+                            className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
                             w-32 h-10 text-center items-center justify-center flex 
                             ${
                               isResettingVerified
                                 ? "bg-gray-400 cursor-not-allowed"
                                 : "bg-orange-500 hover:bg-orange-600"
                             }`}
-                        >
-                          {isResettingVerified
-                            ? "در حال انجام..."
-                            : "استعلام اطلاعات چک"}
-                        </button>}
-                        {item.nationalIdHoghoghi&&       <button
-                          type="button"
-                          onClick={() => resetVerifiedHoghoghiMutation(Number(ID))}
-                          disabled={isResettingVerifiedHoghoghi}
-                          className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
+                          >
+                            {isResettingVerified
+                              ? "در حال انجام..."
+                              : "استعلام اطلاعات چک"}
+                          </button>
+                        )}
+                        {item.nationalIdHoghoghi && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              resetVerifiedHoghoghiMutation(Number(ID))
+                            }
+                            disabled={isResettingVerifiedHoghoghi}
+                            className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
                             w-32 h-10 text-center items-center justify-center flex 
                             ${
                               isResettingVerifiedHoghoghi
                                 ? "bg-gray-400 cursor-not-allowed"
                                 : "bg-orange-500 hover:bg-orange-600"
                             }`}
-                        >
-                          {isResettingVerifiedHoghoghi
-                            ? "در حال انجام..."
-                            : "تنظیم VerifiedHoghoghi به 0"}
-                        </button>}
-                 
+                          >
+                            {isResettingVerifiedHoghoghi
+                              ? "در حال انجام..."
+                              : "تنظیم VerifiedHoghoghi به 0"}
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="p-3 text-center border-r border-slate-200">
@@ -534,10 +551,10 @@ function PaymentRowTrComponent({
                               String(item.invoiceType) === "1"
                                 ? "bg-blue-500 text-white"
                                 : String(item.invoiceType) === "2"
-                                ? "bg-purple-500 text-white"
-                                : String(item.invoiceType) === "3"
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-500 text-white"
+                                  ? "bg-purple-500 text-white"
+                                  : String(item.invoiceType) === "3"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-500 text-white"
                             }`}
                           >
                             {item.invoiceType === "1" && "نوع ۱"}
@@ -606,56 +623,70 @@ function PaymentRowTrComponent({
                             onChange={(e) =>
                               setEditSayadiCodeValue(e.target.value)
                             }
-                            className="border rounded px-2 py-1 text-sm w-32 font-bold text-sky-700"
+                            className="border rounded px-2 py-1 text-sm w-40 font-bold text-sky-700"
                             placeholder="کد صیادی"
                             dir="ltr"
                           />
-                          <button
-                            type="button"
+                          <div
+                            className={`p-1 rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 flex items-center justify-center ${isUpdatingSayadiCode ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                             onClick={() => {
                               updateSayadiCodeMutation(
-                                { ID: Number(ID), sayadiCode: editSayadiCodeValue },
+                                {
+                                  ID: Number(ID),
+                                  sayadiCode: editSayadiCodeValue,
+                                },
                                 {
                                   onSuccess: () => {
                                     setIsEditingSayadiCode(false);
                                   },
-                                }
+                                },
                               );
                             }}
-                            disabled={isUpdatingSayadiCode}
-                            className="p-1 rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
-                            title="ذخیره"
                           >
-                            <Check size={16} />
-                          </button>
-                          <button
-                            type="button"
+                            {isUpdatingSayadiCode ? (
+                              <span className="spin-in-6 "> </span>
+                            ) : (
+                              <>
+                                <Check size={16} />
+                              </>
+                            )}
+                          </div>
+                          <div
                             onClick={() => {
                               setIsEditingSayadiCode(false);
                               setEditSayadiCodeValue(sayadiCode ?? "");
                             }}
-                            className="p-1 rounded bg-slate-300 text-slate-700 hover:bg-slate-400"
-                            title="لغو"
+                            className={`p-1 rounded  bg-red-500 text-white hover:bg-red-600 flex items-center justify-center   cursor-pointer ${isUpdatingSayadiCode ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                           >
-                            <X size={16} />
-                          </button>
+                            {isUpdatingSayadiCode ? (
+                              <span className="spin-in-6 "> </span>
+                            ) : (
+                              <>
+                                <X size={16} />
+                              </>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <>
                           <span className="font-bold text-sky-700 text-sm">
                             {sayadiCode ?? "نامشخص"}
                           </span>
-                          <button
-                            type="button"
+                          <div
                             onClick={() => {
                               setIsEditingSayadiCode(true);
                               setEditSayadiCodeValue(sayadiCode ?? "");
                             }}
-                            className="p-1 rounded hover:bg-slate-200 text-slate-600"
-                            title="ویرایش"
+                            className={`p-1 rounded hover:bg-slate-200 text-slate-600 ${isUpdatingSayadiCode ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                           >
-                            <Pencil size={14} />
-                          </button>
+                            {isUpdatingSayadiCode ? (
+                              <span className="spin-in-6 "> </span>
+                            ) : (
+                              <>
+                                <Pencil size={14} />
+                              </>
+                            )}
+                          </div>
                         </>
                       )}
                     </div>
@@ -663,20 +694,128 @@ function PaymentRowTrComponent({
 
                   <div>
                     <p className="font-semibold text-gray-500">تاریخ سررسید</p>
-                    <span className="font-bold text-sky-700 text-sm">
-                      {dueDate ?? "نامشخص"}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {isEditingDueDate ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editDueDateValue}
+                            onChange={(e) =>
+                              setEditDueDateValue(e.target.value)
+                            }
+                            className="border rounded px-2 py-1 text-sm w-28 font-bold text-sky-700"
+                            placeholder="مثلاً 1403/05/15"
+                          />
+                          <div
+                            className={`p-1 rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 flex items-center justify-center ${isUpdatingDueDate ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                            onClick={() => {
+                              updateDueDateMutation(
+                                { ID: Number(ID), dueDate: editDueDateValue },
+                                {
+                                  onSuccess: () => setIsEditingDueDate(false),
+                                }
+                              );
+                            }}
+                          >
+                            {isUpdatingDueDate ? (
+                              <span className="spin-in-6 "> </span>
+                            ) : (
+                              <Check size={16} />
+                            )}
+                          </div>
+                          <div
+                            onClick={() => {
+                              setIsEditingDueDate(false);
+                              setEditDueDateValue(dueDate ?? "");
+                            }}
+                            className="p-1 rounded bg-red-500 text-white hover:bg-red-600 flex items-center justify-center cursor-pointer"
+                          >
+                            <X size={16} />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-bold text-sky-700 text-sm">
+                            {dueDate ?? "نامشخص"}
+                          </span>
+                          <div
+                            onClick={() => {
+                              setIsEditingDueDate(true);
+                              setEditDueDateValue(dueDate ?? "");
+                            }}
+                            className={`p-1 rounded hover:bg-slate-200 text-slate-600 ${isUpdatingDueDate ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                          >
+                            <Pencil size={14} />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div>
                     <p className="font-semibold text-gray-500">مبلغ</p>
                     <div className="flex items-center gap-1">
-                      {Number(price?.replaceAll(",", "") ?? 0).toLocaleString(
-                        "fa-IR"
+                      {isEditingPrice ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editPriceValue}
+                            onChange={(e) =>
+                              setEditPriceValue(e.target.value)
+                            }
+                            className="border rounded px-2 py-1 text-sm w-32 font-bold text-sky-700"
+                            placeholder="مبلغ"
+                            dir="ltr"
+                          />
+                          <span className="font-semibold text-sky-700 text-sm">
+                            ریال
+                          </span>
+                          <div
+                            className={`p-1 rounded bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 flex items-center justify-center ${isUpdatingPrice ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                            onClick={() => {
+                              updatePriceMutation(
+                                { ID: Number(ID), price: editPriceValue },
+                                {
+                                  onSuccess: () => setIsEditingPrice(false),
+                                }
+                              );
+                            }}
+                          >
+                            {isUpdatingPrice ? (
+                              <span className="spin-in-6 "> </span>
+                            ) : (
+                              <Check size={16} />
+                            )}
+                          </div>
+                          <div
+                            onClick={() => {
+                              setIsEditingPrice(false);
+                              setEditPriceValue(price ?? "");
+                            }}
+                            className="p-1 rounded bg-red-500 text-white hover:bg-red-600 flex items-center justify-center cursor-pointer"
+                          >
+                            <X size={16} />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {Number(
+                            price?.replaceAll(",", "") ?? 0
+                          ).toLocaleString("fa-IR")}
+                          <span className="font-semibold text-sky-700 text-sm">
+                            ریال
+                          </span>
+                          <div
+                            onClick={() => {
+                              setIsEditingPrice(true);
+                              setEditPriceValue(price ?? "");
+                            }}
+                            className={`p-1 rounded hover:bg-slate-200 text-slate-600 ${isUpdatingPrice ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                          >
+                            <Pencil size={14} />
+                          </div>
+                        </>
                       )}
-                      <span className="font-semibold text-sky-700 text-sm">
-                        ریال
-                      </span>
                     </div>
                   </div>
 
@@ -773,7 +912,7 @@ function PaymentRowTrComponent({
                         <span className="font-bold text-sky-700">
                           {item.sayadConfirmReason
                             ? convertSayadConfirmReasonToMessage(
-                                item.sayadConfirmReason
+                                item.sayadConfirmReason,
                               )
                             : "درج نشده"}
                         </span>
@@ -785,7 +924,7 @@ function PaymentRowTrComponent({
                         <span className="font-bold text-sky-700">
                           {item.sayadConfirmBlockStatus
                             ? convertBlockStatusToMessage(
-                                item.sayadConfirmBlockStatus
+                                item.sayadConfirmBlockStatus,
                               )
                             : "نامشخص"}
                         </span>
@@ -795,7 +934,7 @@ function PaymentRowTrComponent({
                         <span className="font-bold text-sky-700">
                           {item.sayadConfirmChequeStatus
                             ? convertChequeStatusToMessage(
-                                item.sayadConfirmChequeStatus
+                                item.sayadConfirmChequeStatus,
                               )
                             : "نامشخص"}
                         </span>
@@ -805,7 +944,7 @@ function PaymentRowTrComponent({
                         <span className="font-bold text-sky-700">
                           {item.sayadConfirmChequeType
                             ? ChequeTypeStatusToMessage(
-                                item.sayadConfirmChequeType
+                                item.sayadConfirmChequeType,
                               )
                             : "نامشخص"}
                         </span>
@@ -817,7 +956,7 @@ function PaymentRowTrComponent({
                         <span className="font-bold text-sky-700">
                           {item.sayadConfirmGuaranteeStatus
                             ? guaranteeStatusToMessage(
-                                item.sayadConfirmGuaranteeStatus
+                                item.sayadConfirmGuaranteeStatus,
                               )
                             : "نامشخص"}
                         </span>
@@ -835,7 +974,7 @@ function PaymentRowTrComponent({
                             }`}
                           >
                             {Number(
-                              item.sayadConfirmAmount ?? 0
+                              item.sayadConfirmAmount ?? 0,
                             ).toLocaleString("fa-IR")}
                           </span>
                           <span className="font-bold text-xs text-gray-600">
@@ -866,20 +1005,20 @@ function PaymentRowTrComponent({
                               item.sayadConfirmAcceptStatusCode === "FAILED"
                                 ? "border-4 border-red-800 text-red-800"
                                 : item.sayadConfirmAcceptStatusCode ===
-                                    "DONE" &&
-                                  item.sayadConfirmAcceptStatusMessage ===
-                                    "تایید چک با موفقیت انجام شد"
-                                ? "border-4 border-green-800 text-green-800"
-                                : item.sayadConfirmAcceptStatusCode === "DONE"
-                                ? "border-4 border-orange-400 text-orange-400"
-                                : ""
+                                      "DONE" &&
+                                    item.sayadConfirmAcceptStatusMessage ===
+                                      "تایید چک با موفقیت انجام شد"
+                                  ? "border-4 border-green-800 text-green-800"
+                                  : item.sayadConfirmAcceptStatusCode === "DONE"
+                                    ? "border-4 border-orange-400 text-orange-400"
+                                    : ""
                             } `}
                           >
                             {item.sayadConfirmAcceptStatusCode === "FAILED"
                               ? item.sayadConfirmAcceptStatusMessage
                               : item.sayadConfirmAcceptStatusCode === "DONE"
-                              ? item.sayadConfirmAcceptStatusMessage
-                              : ""}
+                                ? item.sayadConfirmAcceptStatusMessage
+                                : ""}
                           </div>
                         )}
                     </div>
@@ -970,15 +1109,15 @@ function PaymentRowTrComponent({
                               status === "1"
                                 ? "text-green-700 bg-green-100"
                                 : status === "2"
-                                ? "text-red-700 bg-red-100"
-                                : ""
+                                  ? "text-red-700 bg-red-100"
+                                  : ""
                             }`}
                           >
                             {status === "1"
                               ? "تایید توسط کارشناس"
                               : status === "2"
-                              ? "رد شده توسط کارشناس"
-                              : ""}
+                                ? "رد شده توسط کارشناس"
+                                : ""}
                           </span>
                         )}
                       </div>
@@ -999,10 +1138,10 @@ function PaymentRowTrComponent({
                               String(item.invoiceType) === "1"
                                 ? "bg-blue-500 text-white"
                                 : String(item.invoiceType) === "2"
-                                ? "bg-purple-500 text-white"
-                                : String(item.invoiceType) === "3"
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-500 text-white"
+                                  ? "bg-purple-500 text-white"
+                                  : String(item.invoiceType) === "3"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-500 text-white"
                             }`}
                           >
                             {item.invoiceType === "1" && "نوع ۱"}
@@ -1038,7 +1177,7 @@ function PaymentRowTrComponent({
                   <div className="flex items-center gap-1">
                     <span>
                       {Number(price?.replaceAll(",", "") ?? 0).toLocaleString(
-                        "fa-IR"
+                        "fa-IR",
                       )}
                     </span>
                     <span className="font-semibold text-sky-700 text-sm">
