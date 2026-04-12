@@ -16,6 +16,7 @@ export const Masters = [
   "i:0#.w|zarsim\\mesmaeili",
   "i:0#.w|zarsim\\m.esmaeili",
   "i:0#.w|zarsim\\rparsaei",
+  "i:0#.w|zarsim\\msoleimani",
 ];
 
 export const address = "https://crm.zarsim.com";

@@ -11,14 +11,13 @@ interface SharePointResponse {
 }
 
 const fetchAllPayments = async (
-  isSpecialUser: boolean = false
+  isSpecialUser: boolean = false,
 ): Promise<PaymentType[]> => {
   const allPayments: PaymentType[] = [];
 
   // All users use the same API endpoint
-  let url:
-    | string
-    | undefined = `https://crm.zarsim.com/_api/web/lists/getbytitle('CustomerPayment')/items?$top=5000`;
+  let url: string | undefined =
+    `https://crm.zarsim.com/_api/web/lists/getbytitle('CustomerPayment')/items?$top=5000`;
 
   try {
     while (url) {
@@ -56,6 +55,7 @@ export const useAllPayment = () => {
     "i:0#.w|zarsim\\m.esmaeili",
     "i:0#.w|zarsim\\mmoradabadi",
     "i:0#.w|zarsim\\rparsaei",
+    "i:0#.w|zarsim\\msoleimani",
   ];
   const isSpecialUser = userData ? specialUsers.includes(userData) : false;
 
