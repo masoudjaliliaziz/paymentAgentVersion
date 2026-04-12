@@ -12,12 +12,15 @@ import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
 import { useCustomers } from "./hooks/useCustomer";
 // import DebtsArchivePage from "./routes/DebtsArchivePage";
-import { BanknoteArrowUpIcon } from "lucide-react";
+import { BanknoteArrowUpIcon, FileTerminal } from "lucide-react";
 // import DebtsPage from "./routes/DebtsPage";
 // import { updateSayadVerified } from "./api/updateItem";
 import UploadFormTabs from "./components/UploadFormTabs";
 import { useSubCustomers } from "./hooks/useSubCustomer";
+import { exportToExcel } from "./utils/exportToExel";
 
+
+ 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
   "i:0#.w|zarsim\\mesmaeili",
@@ -239,6 +242,28 @@ function App() {
     }
   }, [customerCode, subCustomers]);
 
+
+ const handleExportToExcel = () => {
+   try {
+     // استفاده از displayedPayments که چک‌های فیلتر شده فعلی را شامل می‌شود
+     if (filteredPayments.length === 0) {
+       alert("هیچ چکی برای export وجود ندارد!");
+       return;
+     }
+
+     // فراخوانی تابع exportToExcel با چک‌های فیلتر شده
+     exportToExcel(
+       filteredPayments,
+       `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`,
+     );
+
+     console.log(`تعداد ${filteredPayments.length} چک به Excel export شد`);
+   } catch (error) {
+     console.error("خطا در export به Excel:", error);
+     alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+   }
+ };
+
   if (isLoadingSubCustomers)
     return <div>در حال بارگذاری مشتری های مربوط به هم...</div>;
 
@@ -346,6 +371,19 @@ function App() {
             </div>
 
             <div className="flex flex-col w-full gap-2 text-sm">
+              <button
+                type="button"
+                onClick={handleExportToExcel}
+                disabled={filteredPayments.length === 0}
+                className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
+                  filteredPayments.length === 0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600"
+                }`}
+              >
+                <FileTerminal size={16} />
+                <span className="text-sm font-bold">اکسل</span>
+              </button>
               {/* فیلتر نوع فاکتور */}
               <div className="flex flex-col">
                 <label className="mb-1 text-gray-600">نوع فاکتور</label>
