@@ -21,6 +21,8 @@ import { useResetVerifiedHoghoghi } from "../hooks/useResetVerifiedHoghoghi";
 import { useUpdateSayadiCode } from "../hooks/useUpdateSayadiCode";
 import { useUpdateDueDate } from "../hooks/useUpdateDueDate";
 import { useUpdatePrice } from "../hooks/useUpdatePrice";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -222,6 +224,8 @@ function PaymentRowTrComponent({
   onUpdateTitle,
   onUpdateCustomerCode,
 }: PaymentRowProps) {
+  const { userRole } = useSelector((state: RootState) => state.agentFeature);
+
   const [sayadConfirmHoldersArray, setSayadConfirmHoldersArray] = useState<
     SayadHolders[]
   >([]);
@@ -713,7 +717,7 @@ function PaymentRowTrComponent({
                                 { ID: Number(ID), dueDate: editDueDateValue },
                                 {
                                   onSuccess: () => setIsEditingDueDate(false),
-                                }
+                                },
                               );
                             }}
                           >
@@ -760,9 +764,7 @@ function PaymentRowTrComponent({
                           <input
                             type="text"
                             value={editPriceValue}
-                            onChange={(e) =>
-                              setEditPriceValue(e.target.value)
-                            }
+                            onChange={(e) => setEditPriceValue(e.target.value)}
                             className="border rounded px-2 py-1 text-sm w-32 font-bold text-sky-700"
                             placeholder="مبلغ"
                             dir="ltr"
@@ -777,7 +779,7 @@ function PaymentRowTrComponent({
                                 { ID: Number(ID), price: editPriceValue },
                                 {
                                   onSuccess: () => setIsEditingPrice(false),
-                                }
+                                },
                               );
                             }}
                           >
@@ -800,7 +802,7 @@ function PaymentRowTrComponent({
                       ) : (
                         <>
                           {Number(
-                            price?.replaceAll(",", "") ?? 0
+                            price?.replaceAll(",", "") ?? 0,
                           ).toLocaleString("fa-IR")}
                           <span className="font-semibold text-sky-700 text-sm">
                             ریال
@@ -864,24 +866,25 @@ function PaymentRowTrComponent({
                     <span className="text-lg font-semibold text-gray-700 mb-4 flex w-full justify-center items-center">
                       اطلاعات استعلام صیاد
                     </span>
-                    {!item.sayadConfirmAcceptStatusCode && (
-                      <div className="flex justify-start items-center gap-3">
-                        <div
-                          onClick={() => mutateConfirmTr(ID)}
-                          className="font-semibold bg-green-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-green-700 cursor-pointer h-6 px-1.5 py-1 "
-                        >
-                          تایید چک صیاد
-                        </div>
+                    {!item.sayadConfirmAcceptStatusCode &&
+                      userRole === "master" && (
+                        <div className="flex justify-start items-center gap-3">
+                          <div
+                            onClick={() => mutateConfirmTr(ID)}
+                            className="font-semibold bg-green-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-green-700 cursor-pointer h-6 px-1.5 py-1 "
+                          >
+                            تایید چک صیاد
+                          </div>
 
-                        <div
-                          onClick={() => mutateRejectTr(ID)}
-                          className="font-semibold bg-red-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-red-700 cursor-pointer h-6 px-1.5 py-1 "
-                        >
-                          {" "}
-                          عدم تایید چک صیاد
+                          <div
+                            onClick={() => mutateRejectTr(ID)}
+                            className="font-semibold bg-red-700 text-white rounded-md flex justify-center items-center hover:bg-white hover:text-red-700 cursor-pointer h-6 px-1.5 py-1 "
+                          >
+                            {" "}
+                            عدم تایید چک صیاد
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     <div className="grid grid-cols-4 gap-4 text-sm">
                       {sayadConfirmHoldersArray.map((holder, index) => (
                         <>
