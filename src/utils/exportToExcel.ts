@@ -64,7 +64,7 @@ export const exportToExcel = (
         : payment.bankName || "", // نام بانک از IBAN یا bankName
       شهر: "", // فعلاً خالی طبق درخواست
       شعبه: payment.branchCode || "", // branchCode
-      تاریخ: convertToEnglishDate(payment.dueDate || ""),
+      تاریخ: formatShamsiDateToEnglishNumbers(payment.Created || ""),
       سری: payment.seriesNo,
       سریال: payment.serialNo,
       شبا: payment.iban,
@@ -152,7 +152,7 @@ export const exportToExcelType2 = (
         : payment.bankName || "",
       شهر: "",
       شعبه: payment.branchCode || "",
-      تاریخ: convertToEnglishDate(payment.dueDate || ""),
+      تاریخ: formatShamsiDateToEnglishNumbers(payment.Created || ""),
       "تفصیلی 3": customerCodes.get(payment.parentGUID) || "",
       سری: payment.seriesNo,
       سریال: payment.serialNo,
@@ -309,6 +309,53 @@ const convertToEnglishDate = (dateString: string): string => {
   } catch (error) {
     console.warn("خطا در تبدیل تاریخ:", error);
     return dateString.replace(/\//g, "-");
+  }
+};
+
+const formatShamsiDateToEnglishNumbers = (isoDateString: string): string => {
+  if (!isoDateString) return "";
+
+  try {
+    const date = new Date(isoDateString);
+    if (isNaN(date.getTime())) return "";
+
+    const baseOptions: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    };
+    const formatter = (() => {
+      try {
+        return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+          ...baseOptions,
+          timeZone: "Asia/Tehran",
+        });
+      } catch {
+        return new Intl.DateTimeFormat("fa-IR-u-ca-persian", baseOptions);
+      }
+    })();
+
+    const parts = formatter.formatToParts(date);
+    const year = parts.find((p) => p.type === "year")?.value ?? "";
+    const month = parts.find((p) => p.type === "month")?.value ?? "";
+    const day = parts.find((p) => p.type === "day")?.value ?? "";
+
+    const y = convertPersianToEnglishNumbers(year);
+    const m = convertPersianToEnglishNumbers(month).padStart(2, "0");
+    const d = convertPersianToEnglishNumbers(day).padStart(2, "0");
+
+    if (!y || !m || !d) {
+      const fallback = formatter.format(date);
+      const normalized = convertPersianToEnglishNumbers(fallback).replace(
+        /[^\d]/g,
+        "",
+      );
+      return normalized;
+    }
+
+    return `${y}${m}${d}`;
+  } catch {
+    return "";
   }
 };
 
