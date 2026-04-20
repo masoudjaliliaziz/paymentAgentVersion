@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
@@ -50,6 +50,8 @@ function App() {
     useState<boolean>(false);
   const [shownUnConfirmTrChecks, setShownUnConfirmTrChecks] =
     useState<boolean>(false);
+  const [shownUnregisteredChecks, setShownUnregisteredChecks] =
+    useState<boolean>(false);
   const [shownUnprocessedChecks, setShownUnprocessedChecks] =
     useState<boolean>(true); // Default to true for unprocessed checks
   const [completedVerifications, setCompletedVerifications] = useState<
@@ -82,16 +84,19 @@ function App() {
   // const [selectedRasDate, setSelectedRasDate] = useState<number | null>(null);
   // استیت جدید برای ذخیره Title‌ها
   const [customerTitles, setCustomerTitles] = useState<Map<string, string>>(
-    new Map()
+    new Map(),
   );
   // استیت جدید برای ذخیره CustomerCode‌ها
   const [customerCodes, setCustomerCodes] = useState<Map<string, string>>(
-    new Map()
+    new Map(),
   );
 
-  const updateCustomerTitle = useCallback((parentGUID: string, title: string) => {
-    setCustomerTitles((prev) => new Map(prev).set(parentGUID, title));
-  }, []);
+  const updateCustomerTitle = useCallback(
+    (parentGUID: string, title: string) => {
+      setCustomerTitles((prev) => new Map(prev).set(parentGUID, title));
+    },
+    [],
+  );
 
   const updateCustomerCode = useCallback((parentGUID: string, code: string) => {
     setCustomerCodes((prev) => new Map(prev).set(parentGUID, code));
@@ -162,7 +167,7 @@ function App() {
   let lastInputTime = 0;
   const handleInputChange = (
     field: string,
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     let value = event.target.value;
     const now = Date.now();
@@ -195,57 +200,59 @@ function App() {
   const normalizeDateForComparison = useCallback(
     (
       dateString: string | undefined | null,
-      convertGregorianToShamsi: boolean = false
+      convertGregorianToShamsi: boolean = false,
     ): string | null => {
-    if (!dateString || typeof dateString !== "string") {
-      return null;
-    }
+      if (!dateString || typeof dateString !== "string") {
+        return null;
+      }
 
-    // اگر ورودی میلادی بود و باید به شمسی تبدیل شود
-    if (convertGregorianToShamsi) {
-      const parsed = new Date(dateString);
-      if (!isNaN(parsed.getTime())) {
-        try {
-          const persianDate = new DateObject(parsed).convert(persian);
-          const year = String(persianDate.year);
-          const month = String(persianDate.month).padStart(2, "0");
-          const day = String(persianDate.day).padStart(2, "0");
-          return `${year}${month}${day}`;
-        } catch (error) {
-          console.warn("خطا در تبدیل تاریخ میلادی به شمسی:", error);
+      // اگر ورودی میلادی بود و باید به شمسی تبدیل شود
+      if (convertGregorianToShamsi) {
+        const parsed = new Date(dateString);
+        if (!isNaN(parsed.getTime())) {
+          try {
+            const persianDate = new DateObject(parsed).convert(persian);
+            const year = String(persianDate.year);
+            const month = String(persianDate.month).padStart(2, "0");
+            const day = String(persianDate.day).padStart(2, "0");
+            return `${year}${month}${day}`;
+          } catch (error) {
+            console.warn("خطا در تبدیل تاریخ میلادی به شمسی:", error);
+          }
         }
       }
-    }
 
-    // تبدیل اعداد فارسی به انگلیسی
-    const persianToEnglishDigits = (str: string) =>
-      str.replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728));
+      // تبدیل اعداد فارسی به انگلیسی
+      const persianToEnglishDigits = (str: string) =>
+        str.replace(/[۰-۹]/g, (d) =>
+          String.fromCharCode(d.charCodeAt(0) - 1728),
+        );
 
-    const normalized = persianToEnglishDigits(dateString).replace(
-      /[^0-9]/g,
-      ""
-    );
+      const normalized = persianToEnglishDigits(dateString).replace(
+        /[^0-9]/g,
+        "",
+      );
 
-    // اگر تاریخ به فرمت YYYYMMDD باشد
-    if (/^\d{8}$/.test(normalized)) {
-      return normalized;
-    }
+      // اگر تاریخ به فرمت YYYYMMDD باشد
+      if (/^\d{8}$/.test(normalized)) {
+        return normalized;
+      }
 
-    // اگر تاریخ به فرمت YYYY/MM/DD یا YYYY-MM-DD باشد
-    if (normalized.length >= 8) {
-      return normalized.slice(0, 8);
-    }
+      // اگر تاریخ به فرمت YYYY/MM/DD یا YYYY-MM-DD باشد
+      if (normalized.length >= 8) {
+        return normalized.slice(0, 8);
+      }
 
-    return null;
+      return null;
     },
-    []
+    [],
   );
 
   const isDateInRange = useCallback(
     (
       targetDate: string | undefined | null,
       range: DateObject[],
-      convertGregorianToShamsi: boolean = false
+      convertGregorianToShamsi: boolean = false,
     ): boolean => {
       if (!range || !Array.isArray(range) || range.length === 0) {
         return true;
@@ -253,7 +260,7 @@ function App() {
 
       const normalizedTargetDate = normalizeDateForComparison(
         targetDate,
-        convertGregorianToShamsi
+        convertGregorianToShamsi,
       );
       if (!normalizedTargetDate) return false;
 
@@ -272,9 +279,11 @@ function App() {
       if (dates.length === 0) return true;
       if (dates.length === 1) return normalizedTargetDate === dates[0];
       const [startDate, endDate] = dates.sort();
-      return normalizedTargetDate >= startDate && normalizedTargetDate <= endDate;
+      return (
+        normalizedTargetDate >= startDate && normalizedTargetDate <= endDate
+      );
     },
-    [normalizeDateForComparison]
+    [normalizeDateForComparison],
   );
 
   const sortPayments = useCallback(
@@ -302,7 +311,7 @@ function App() {
         return 0;
       });
     },
-    [sortConfig.key, sortConfig.direction, customerTitles]
+    [sortConfig.key, sortConfig.direction, customerTitles],
   );
 
   const [filters, setFilters] = useState({
@@ -328,13 +337,17 @@ function App() {
   const PAGE_SIZE_OPTIONS = [15, 25, 50, 100];
 
   // بازهٔ تاریخ ثبت به صورت YYYYMMDD شمسی (یک بار، نه برای هر چک)
-  const createdRangeBounds = useMemo((): { start: string; end: string } | null => {
-    if (!createdDateRange?.length || !Array.isArray(createdDateRange)) return null;
+  const createdRangeBounds = useMemo((): {
+    start: string;
+    end: string;
+  } | null => {
+    if (!createdDateRange?.length || !Array.isArray(createdDateRange))
+      return null;
     const dates = createdDateRange
       .map((d) =>
         d instanceof DateObject
           ? `${String(d.year)}${String(d.month).padStart(2, "0")}${String(d.day).padStart(2, "0")}`
-          : null
+          : null,
       )
       .filter((d): d is string => d !== null);
     if (dates.length === 0) return null;
@@ -380,7 +393,10 @@ function App() {
           if (norm == null) return false;
           if (createdRangeBounds.start === createdRangeBounds.end) {
             if (norm !== createdRangeBounds.start) return false;
-          } else if (norm < createdRangeBounds.start || norm > createdRangeBounds.end) {
+          } else if (
+            norm < createdRangeBounds.start ||
+            norm > createdRangeBounds.end
+          ) {
             return false;
           }
         }
@@ -412,7 +428,7 @@ function App() {
 
   const sortedPayments = useMemo(
     () => sortPayments(filteredPayments),
-    [filteredPayments, sortPayments]
+    [filteredPayments, sortPayments],
   );
 
   // استخراج لیست منحصر به فرد نام بانک‌ها از پرداخت‌ها
@@ -442,12 +458,15 @@ function App() {
     setSelectedPayments([]);
   };
 
-  const handleVerificationComplete = useCallback((id: string, error?: string) => {
-    setCompletedVerifications((prev) => [...prev, id]);
-    if (error) {
-      setErrorMessages((prev) => [...prev, `خطا برای ID ${id}: ${error}`]);
-    }
-  }, []);
+  const handleVerificationComplete = useCallback(
+    (id: string, error?: string) => {
+      setCompletedVerifications((prev) => [...prev, id]);
+      if (error) {
+        setErrorMessages((prev) => [...prev, `خطا برای ID ${id}: ${error}`]);
+      }
+    },
+    [],
+  );
 
   // تابع handleExportToExcel - این تابع چک‌های فیلتر شده را به Excel export می‌کند
   const handleExportToExcel = () => {
@@ -461,10 +480,35 @@ function App() {
       // فراخوانی تابع exportToExcel با چک‌های فیلتر شده
       exportToExcel(
         displayedPayments,
-        `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
       console.log(`تعداد ${displayedPayments.length} چک به Excel export شد`);
+    } catch (error) {
+      console.error("خطا در export به Excel:", error);
+      alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+    }
+  };
+
+  const handleExportToExcelWithoutRejected = () => {
+    try {
+      const paymentsWithoutRejected = displayedPayments.filter(
+        (payment) => String(payment.status) !== "3",
+      );
+
+      if (paymentsWithoutRejected.length === 0) {
+        alert("هیچ چکی برای export وجود ندارد!");
+        return;
+      }
+
+      exportToExcel(
+        paymentsWithoutRejected,
+        `چک_های_فیلتر_شده_بدون_رد_${new Date().toISOString().slice(0, 10)}.xlsx`,
+      );
+
+      console.log(
+        `تعداد ${paymentsWithoutRejected.length} چک به Excel export شد`,
+      );
     } catch (error) {
       console.error("خطا در export به Excel:", error);
       alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
@@ -475,7 +519,7 @@ function App() {
   const handleExportToExcelByInvoiceType1 = () => {
     try {
       const type1Payments = displayedPayments.filter(
-        (payment) => String(payment.invoiceType) === "1"
+        (payment) => String(payment.invoiceType) === "1",
       );
 
       if (type1Payments.length === 0) {
@@ -485,7 +529,7 @@ function App() {
 
       exportToExcel(
         type1Payments,
-        `چک_های_نوع_1_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `چک_های_نوع_1_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
       console.log(`تعداد ${type1Payments.length} چک نوع 1 به Excel export شد`);
@@ -499,7 +543,7 @@ function App() {
   const handleExportToExcelByInvoiceType2 = () => {
     try {
       const type2Payments = displayedPayments.filter(
-        (payment) => String(payment.invoiceType) === "2"
+        (payment) => String(payment.invoiceType) === "2",
       );
 
       if (type2Payments.length === 0) {
@@ -510,7 +554,7 @@ function App() {
       exportToExcelType2(
         type2Payments,
         customerCodes,
-        `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`
+        `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
       console.log(`تعداد ${type2Payments.length} چک نوع 2 به Excel export شد`);
@@ -534,6 +578,7 @@ function App() {
       setShownSayadUnConfirmTrChecks(false);
       setShownConfirmTrChecks(false);
       setShownUnConfirmTrChecks(false);
+      setShownUnregisteredChecks(false);
     }
   };
 
@@ -544,6 +589,7 @@ function App() {
       setShownSayadConfirmTrChecks(false);
       setShownConfirmTrChecks(false);
       setShownUnConfirmTrChecks(false);
+      setShownUnregisteredChecks(false);
     }
   };
 
@@ -554,6 +600,7 @@ function App() {
       setShownSayadConfirmTrChecks(false);
       setShownSayadUnConfirmTrChecks(false);
       setShownUnConfirmTrChecks(false);
+      setShownUnregisteredChecks(false);
     }
   };
 
@@ -564,6 +611,19 @@ function App() {
       setShownSayadConfirmTrChecks(false);
       setShownSayadUnConfirmTrChecks(false);
       setShownConfirmTrChecks(false);
+      setShownUnprocessedChecks(false);
+      setShownUnregisteredChecks(false);
+    }
+  };
+
+  const toggleUnregisteredChecks = () => {
+    const newState = !shownUnregisteredChecks;
+    setShownUnregisteredChecks(newState);
+    if (newState) {
+      setShownSayadConfirmTrChecks(false);
+      setShownSayadUnConfirmTrChecks(false);
+      setShownConfirmTrChecks(false);
+      setShownUnConfirmTrChecks(false);
       setShownUnprocessedChecks(false);
     }
   };
@@ -576,20 +636,26 @@ function App() {
       setShownSayadUnConfirmTrChecks(false);
       setShownConfirmTrChecks(false);
       setShownUnConfirmTrChecks(false);
+      setShownUnregisteredChecks(false);
     }
   };
 
   const displayedPayments = useMemo(() => {
-    if (!Array.isArray(paymentData) || !Array.isArray(sortedPayments)) return [];
+    if (!Array.isArray(paymentData) || !Array.isArray(sortedPayments))
+      return [];
     let basePayments: PaymentType[] = [];
     if (shownSayadConfirmTrChecks) {
-      basePayments = paymentData.filter((d) => d?.VerifiedConfirmSayadTr === "1") ?? [];
+      basePayments =
+        paymentData.filter((d) => d?.VerifiedConfirmSayadTr === "1") ?? [];
     } else if (shownSayadUnConfirmTrChecks) {
-      basePayments = paymentData.filter((d) => d?.VerifiedRejectSayadTr === "1") ?? [];
+      basePayments =
+        paymentData.filter((d) => d?.VerifiedRejectSayadTr === "1") ?? [];
     } else if (shownConfirmTrChecks) {
       basePayments = paymentData.filter((d) => d?.status === "4") ?? [];
     } else if (shownUnConfirmTrChecks) {
       basePayments = paymentData.filter((d) => d?.status === "3") ?? [];
+    } else if (shownUnregisteredChecks) {
+      basePayments = paymentData.filter((d) => d?.status === "5") ?? [];
     } else if (shownUnprocessedChecks) {
       basePayments = sortedPayments.filter((d) => d?.status === "1") ?? [];
     } else if (isMaster) {
@@ -604,7 +670,10 @@ function App() {
         if (norm == null) return false;
         if (createdRangeBounds.start === createdRangeBounds.end) {
           if (norm !== createdRangeBounds.start) return false;
-        } else if (norm < createdRangeBounds.start || norm > createdRangeBounds.end) {
+        } else if (
+          norm < createdRangeBounds.start ||
+          norm > createdRangeBounds.end
+        ) {
           return false;
         }
       }
@@ -614,9 +683,10 @@ function App() {
           item.cash === "0" && item.iban
             ? getBankNameFromIBAN(item.iban)
             : item.cash === "1"
-              ? item.bankName ?? ""
+              ? (item.bankName ?? "")
               : "";
-        if (!itemBankName || !selectedBanks.includes(itemBankName)) return false;
+        if (!itemBankName || !selectedBanks.includes(itemBankName))
+          return false;
       }
       return Object.entries(filters).every(([key, value]) => {
         if (!value) return true;
@@ -638,6 +708,7 @@ function App() {
     shownSayadUnConfirmTrChecks,
     shownConfirmTrChecks,
     shownUnConfirmTrChecks,
+    shownUnregisteredChecks,
     shownUnprocessedChecks,
     isMaster,
     dateRange,
@@ -667,12 +738,13 @@ function App() {
     shownSayadUnConfirmTrChecks,
     shownConfirmTrChecks,
     shownUnConfirmTrChecks,
+    shownUnregisteredChecks,
     shownUnprocessedChecks,
   ]);
 
   const selectedPaymentIds = useMemo(
     () => new Set(selectedPayments.map((p) => p.ID)),
-    [selectedPayments]
+    [selectedPayments],
   );
 
   const areAllSelected =
@@ -698,7 +770,7 @@ function App() {
       selectedPayments
         .filter((p) => displayedPayments.some((dp) => dp.ID === p.ID))
         .reduce((sum, p) => sum + Number(p.price.replaceAll(",", "") || 0), 0),
-    [selectedPayments, displayedPayments]
+    [selectedPayments, displayedPayments],
   );
 
   return (
@@ -711,7 +783,7 @@ function App() {
               {
                 "bg-green-500 text-white": shownUnprocessedChecks,
                 "hover:bg-green-200 hover:text-green-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleUnprocessedChecks}
           >
@@ -724,7 +796,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownSayadConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleSayadConfirmTrChecks}
           >
@@ -739,7 +811,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownSayadUnConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleSayadUnConfirmTrChecks}
           >
@@ -754,7 +826,7 @@ function App() {
               {
                 "bg-sky-500 text-white": shownConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleConfirmTrChecks}
           >
@@ -763,11 +835,24 @@ function App() {
           </div>
           <div
             className={clsx(
-              "p-1 rounded-md flex items-center justify-between gap- w-full",
+              "p-1 rounded-md flex items-center justify-between gap-2 w-full",
               {
-                "bg-sky-500 text-white": shownUnConfirmTrChecks,
+                "bg-orange-500 text-white": shownUnregisteredChecks,
+                "hover:bg-orange-200 hover:text-orange-800 cursor-pointer": true,
+              },
+            )}
+            onClick={toggleUnregisteredChecks}
+          >
+            <Check />
+            <span className="text-xs font-bold">چک‌های ثبت نشده</span>
+          </div>
+          <div
+            className={clsx(
+              "p-1 rounded-md flex items-center justify-between gap-2 w-full",
+              {
+                "bg-red-500 text-white": shownUnConfirmTrChecks,
                 "hover:bg-sky-200 hover:text-sky-800 cursor-pointer": true,
-              }
+              },
             )}
             onClick={toggleUnConfirmTrChecks}
           >
@@ -1024,6 +1109,25 @@ function App() {
             </button>
             <button
               type="button"
+              onClick={handleExportToExcelWithoutRejected}
+              disabled={
+                displayedPayments.length === 0 ||
+                displayedPayments.filter((p) => String(p.status) !== "3")
+                  .length === 0
+              }
+              className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
+                displayedPayments.length === 0 ||
+                displayedPayments.filter((p) => String(p.status) !== "3")
+                  .length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
+            >
+              <FileTerminal size={16} />
+              <span className="text-sm font-bold">اکسل بدون رد</span>
+            </button>
+            <button
+              type="button"
               onClick={handleExportToExcelByInvoiceType1}
               disabled={
                 displayedPayments.length === 0 ||
@@ -1105,7 +1209,10 @@ function App() {
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-600">
                 نمایش {startIndex + 1} تا {endIndex} از{" "}
-                <span className="font-bold">{totalFilteredCount.toLocaleString("fa-IR")}</span> چک
+                <span className="font-bold">
+                  {totalFilteredCount.toLocaleString("fa-IR")}
+                </span>{" "}
+                چک
               </span>
               <label className="flex items-center gap-1 text-sm text-slate-600">
                 در هر صفحه:
@@ -1135,11 +1242,14 @@ function App() {
                 قبلی
               </button>
               <span className="px-2 text-sm text-slate-600">
-                صفحه {currentPage.toLocaleString("fa-IR")} از {totalPages.toLocaleString("fa-IR")}
+                صفحه {currentPage.toLocaleString("fa-IR")} از{" "}
+                {totalPages.toLocaleString("fa-IR")}
               </span>
               <button
                 type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 disabled={currentPage >= totalPages}
                 className="px-3 py-1 rounded border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 text-sm font-medium"
               >

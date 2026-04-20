@@ -23,7 +23,14 @@ function ActionByRole({ ID }: Props) {
   const handleSubmitTru = () => {
     if (!status) return;
 
-    const numericStatus = status === "accepted" ? 4 : 3;
+    let numericStatus;
+    if (status === "accepted") {
+      numericStatus = 4;
+    } else if (status === "rejected") {
+      numericStatus = 3;
+    } else if (status === "unregistered") {
+      numericStatus = 5;
+    }
 
     mutate(
       {
@@ -42,7 +49,7 @@ function ActionByRole({ ID }: Props) {
         onError: (err) => {
           console.error(err);
         },
-      }
+      },
     );
   };
 
@@ -68,7 +75,7 @@ function ActionByRole({ ID }: Props) {
         onError: (err) => {
           console.error(err);
         },
-      }
+      },
     );
   };
 
@@ -123,6 +130,18 @@ function ActionByRole({ ID }: Props) {
                   }`}
                 >
                   رد
+                </button>
+                <button
+                  onClick={() => setStatus("unregistered")}
+                  type="button"
+                  className={`flex-1 py-3 px-4 rounded-md font-semibold text-sm cursor-pointer transition-colors duration-200
+                  ${
+                    status === "unregistered"
+                      ? "bg-orange-500 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ثبت نشده
                 </button>
                 <button
                   onClick={() => setStatus("accepted")}
