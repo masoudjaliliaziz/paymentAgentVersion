@@ -49,7 +49,7 @@ function ActionByRole({ ID }: Props) {
         onError: (err) => {
           console.error(err);
         },
-      },
+      }
     );
   };
 
@@ -75,7 +75,7 @@ function ActionByRole({ ID }: Props) {
         onError: (err) => {
           console.error(err);
         },
-      },
+      }
     );
   };
 
