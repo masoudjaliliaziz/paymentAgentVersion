@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مستندات سامانه مدیریت پرداخت و تسویه زرسیم (v2)</title>
+    <style>
+      @font-face {
+        font-family: "Vazir";
+        src: url("src/assets/fonts/Vazirmatn-Light.ttf") format("truetype");
+      }
+      :root {
+        --primary-color: #273f4f;
+        --secondary-color: #efeeea;
+        --accent-color: #3b82f6;
+        --text-color: #333;
+        --border-radius: 12px;
+        --shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+      body {
+        font-family: "Vazir", Tahoma, Arial, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-color);
+        line-height: 1.7;
+        margin: 0;
+        padding: 80px 20px 20px; /* Space for navbar */
+      }
+      /* Navbar Styles */
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: var(--primary-color);
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+      .navbar a {
+        color: white;
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 5px 10px;
+        border-radius: 4px;
+        transition: background 0.3s;
+      }
+      .navbar a:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      /* Search Box Styles */
+      .search-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 5px 15px;
+        border-radius: 20px;
+        margin-right: auto;
+      }
+      .search-input {
+        background: transparent;
+        border: none;
+        color: white;
+        outline: none;
+        font-family: "Vazir", sans-serif;
+        font-size: 0.85rem;
+        width: 150px;
+      }
+      .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .search-btn {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
+      }
+      .search-btn:hover {
+        opacity: 0.7;
+      }
+      .search-stats {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.8);
+        min-width: 40px;
+        text-align: center;
+      }
+      .highlight-match {
+        background-color: #fce38a;
+        color: black;
+        border-radius: 2px;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+      }
+      .highlight-active {
+        background-color: #f38181 !important;
+        color: white !important;
+        outline: 2px solid #ff0000;
+      }
+      /* Flowchart Styles */
+      .flowchart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        margin: 30px 0;
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 15px;
+        border: 1px dashed #ccc;
+      }
+      .flow-node {
+        background: white;
+        border: 2px solid var(--primary-color);
+        padding: 12px 20px;
+        border-radius: 8px;
+        width: 250px;
+        text-align: center;
+        position: relative;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .flow-node::after {
+        content: "↓";
+        position: absolute;
+        bottom: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 20px;
+        color: var(--primary-color);
+      }
+      .flow-node:last-child::after {
+        content: "";
+      }
+      .flow-decision {
+        background: #fff3cd;
+        border: 2px solid #856404;
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        width: 180px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        font-size: 0.85rem;
+      }
+      .flow-api {
+        background: #d4edda;
+        border: 2px solid #155724;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+      }
+      header {
+        text-align: center;
+        border-bottom: 3px solid var(--secondary-color);
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+      }
+      h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        margin: 0;
+      }
+      .subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        margin-top: 10px;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .section-title {
+        display: flex;
+        align-items: center;
+        color: var(--primary-color);
+        border-right: 5px solid var(--accent-color);
+        padding-right: 15px;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        background: #f1f5f9;
+        padding: 10px 15px;
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      }
+      .code-block {
+        background: #2d3436;
+        color: #dfe6e9;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: "Consolas", monospace;
+        direction: ltr;
+        overflow-x: auto;
+        margin: 15px 0;
+        line-height: 1.4;
+        font-size: 0.9rem;
+      }
+      .logic-step {
+        background: #fff;
+        border-left: 4px solid var(--accent-color);
+        padding: 15px;
+        margin: 10px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .feature-card {
+        background: var(--secondary-color);
+        padding: 20px;
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s;
+      }
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+      }
+      .feature-card h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+      }
+      .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .tech-item {
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+      }
+      code {
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        direction: ltr;
+        display: inline-block;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px solid var(--secondary-color);
+        color: #888;
+        font-size: 0.9rem;
+      }
+      ul {
+        padding-right: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      .highlight {
+        color: var(--accent-color);
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="#header-info">اطلاعات پایه</a>
+      <a href="#debt-logic">منطق بدهی</a>
+      <a href="#payment-system">سیستم پرداخت</a>
+      <a href="#sayad-logic">منطق صیاد</a>
+      <a href="#ras-calculations">محاسبات راس</a>
+      <a href="#api-flow">جریان داده</a>
+      <a href="#technical-overview">فنی</a>
+
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="جستجو در صفحه..."
+        />
+        <span id="searchStats" class="search-stats">۰/۰</span>
+        <button onclick="prevMatch()" class="search-btn" title="قبلی">▲</button>
+        <button onclick="nextMatch()" class="search-btn" title="بعدی">▼</button>
+      </div>
+    </nav>
+    <div class="container">
+      <header>
+        <h1>مستندات سامانه مدیریت پرداخت و تسویه زرسیم (v2)</h1>
+        <p class="subtitle">
+          تحلیل منطق کسب‌وکار، سیستم استعلام صیاد و مدیریت هوشمند بدهی‌ها
+        </p>
+      </header>
+
+      <div class="section" id="header-info">
+        <h2 class="section-title">۱. مدیریت اطلاعات پایه و پروفایل مشتری</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>هویت‌سنجی و دسترسی</h3>
+            <ul>
+              <li>
+                <span class="highlight">Parent GUID:</span> شناسایی مشتری و بارگذاری تمامی داده‌ها بر اساس شناسه یکتا در URL.
+              </li>
+              <li>
+                <span class="highlight">مدیریت نقش‌ها (RBAC):</span> تفکیک دسترسی بین <code>Agent</code> (کارشناس فروش) و <code>Master</code> (واحد خزانه).
+              </li>
+              <li>
+                <span class="highlight">پروفایل مشتری:</span> استخراج اطلاعات اقتصادی، نام تجاری و کارشناس مربوطه از لیست <code>customer_info</code>.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <h3>تراز مالی زنده</h3>
+            <ul>
+              <li>
+                <span class="highlight">محاسبه تراز:</span> مقایسه لحظه‌ای مجموع پرداخت‌ها با مجموع بدهی‌ها جهت تعیین وضعیت "بدهکار" یا "بستانکار".
+              </li>
+              <li>
+                <span class="highlight">اختلاف با امروز:</span> نمایش تعداد روزهای مانده یا گذشته از راس بدهی به صورت هوشمند.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="debt-logic">
+        <h2 class="section-title">۲. منطق هوشمند مدیریت بدهی (Debt Engine)</h2>
+        <div class="logic-step">
+          <h3>الف) الگوریتم تسویه فیفو (FIFO Settlement)</h3>
+          <p>سیستم به صورت خودکار پرداخت‌های کاربر را بر روی بدهی‌ها اعمال می‌کند:</p>
+          <ul>
+            <li>مرتب‌سازی بدهی‌ها بر اساس تاریخ سررسید (از قدیمی به جدید).</li>
+            <li>کسر مبلغ پرداختی از اولین بدهی موجود.</li>
+            <li>در صورتی که مبلغ پرداختی بیشتر از بدهی اول باشد، باقی‌مانده به بدهی بعدی منتقل می‌شود.</li>
+            <li>نمایش دقیق مبلغ "باقی‌مانده" برای هر فاکتور پس از اعمال پرداخت‌ها.</li>
+          </ul>
+        </div>
+        <div class="logic-step">
+          <h3>ب) مدیریت آرشیو</h3>
+          <p>بدهی‌هایی که مبلغ آن‌ها به صفر رسیده است، به صورت خودکار از لیست فعال خارج شده و در بخش آرشیو قابل رویت هستند.</p>
+        </div>
+      </div>
+
+      <div class="section" id="payment-system">
+        <h2 class="section-title">۳. سیستم جامع ثبت پرداخت و تصاویر</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>انواع پرداخت</h3>
+            <ul>
+              <li>
+                <span class="highlight">چک صیادی:</span> ثبت کد ۱۶ رقمی، تاریخ سررسید و تصویر چک.
+              </li>
+              <li>
+                <span class="highlight">واریز نقدی/حواله:</span> ثبت تصویر رسید بانکی و انتخاب بانک مقصد.
+              </li>
+              <li>
+                <span class="highlight">تایید دو مرحله‌ای:</span> ثبت اولیه در وضعیت "پیش‌نویس" و سپس ارسال برای تایید خزانه.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <h3>مدیریت تصاویر (Uploader)</h3>
+            <ul>
+              <li>
+                <span class="highlight">Multi-Mode:</span> امکان انتخاب فایل از سیستم یا استفاده مستقیم از دوربین گوشی/لپ‌تاپ.
+              </li>
+              <li>
+                <span class="highlight">پوشه‌بندی هوشمند:</span> ذخیره‌سازی تصاویر در SharePoint با ساختار <code>Library/OrderNum/Date/Type</code>.
+              </li>
+              <li>
+                <span class="highlight">پاکسازی خودکار:</span> حذف فضاهای خالی و کاراکترهای غیرمجاز از نام فایل‌ها جهت جلوگیری از خطای سرور.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="sayad-logic">
+        <h2 class="section-title">۴. منطق استعلام و اعتبارسنجی صیاد</h2>
+        <div class="logic-step">
+          <h3>الف) پردازش کد QR و شناسه</h3>
+          <p>توسط تابع <code>getLast16Chars</code> و منطق اسکنر:</p>
+          <div class="code-block">
+            Input: QR_String (Full Data) -> Output: Last 16 Digits (Sayadi Code)
+          </div>
+          <ul>
+            <li>استخراج خودکار کد صیادی ۱۶ رقمی از انتهای رشته اسکن شده.</li>
+            <li>استخراج کد ملی صاحب چک (۱۰ یا ۱۱ رقم) بر اساس الگوی <code>IR</code> در رشته QR.</li>
+          </ul>
+        </div>
+        <div class="logic-step">
+          <h3>ب) استعلام وضعیت صیاد (Sayad API)</h3>
+          <ul>
+            <li>ارسال درخواست به سرویس مرکزی جهت تایید ثبت چک به نام "زرسیم".</li>
+            <li>بررسی مطابقت مبلغ و تاریخ سررسید ثبت شده با داده‌های بانک مرکزی.</li>
+            <li>نمایش وضعیت‌های مختلف (صادر شده، نقد شده، برگشتی، مسدودی) با کدهای رنگی.</li>
+            <li>نمایش لیست ذینفعان (Holders) و علت ثبت چک.</li>
+          </ul>
+        </div>
+        <div class="logic-step">
+          <h3>ج) تایید گروهی (Bulk Action)</h3>
+          <p>امکان انتخاب چندین چک و ارسال همزمان درخواست استعلام صیاد برای تمامی آن‌ها جهت افزایش سرعت عملیاتی واحد خزانه.</p>
+        </div>
+      </div>
+
+      <div class="section" id="ras-calculations">
+        <h2 class="section-title">۵. منطق محاسبات ریاضی راس (Ras Calculation)</h2>
+        <div class="logic-step">
+          <h3>فرمول محاسبه راس تاریخ</h3>
+          <p>این سیستم از میانگین وزنی برای محاسبه راس استفاده می‌کند:</p>
+          <div class="code-block">
+            Ras_Day = Σ (Amount_i * DayOfYear_i) / Σ Amount_i
+          </div>
+          <ul>
+            <li><strong>Amount:</strong> مبلغ هر ردیف (بدهی یا پرداخت).</li>
+            <li><strong>DayOfYear:</strong> شماره روز در سال شمسی (۱ تا ۳۶۶).</li>
+            <li>نتیجه نهایی مجدداً به تاریخ شمسی تبدیل شده و به عنوان "راس کلی" نمایش داده می‌شود.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section" id="api-flow">
+        <h2 class="section-title">۶. اطلس دیتابیس و جریان داده (API Atlas)</h2>
+        <div class="flowchart">
+          <div class="flow-node">دریافت Parent GUID از URL</div>
+          <div class="flow-node flow-api">فراخوانی بدهی‌ها از لیست Debt</div>
+          <div class="flow-node flow-api">فراخوانی پرداخت‌ها از CustomerPayment</div>
+          <div class="flow-decision">عملیات کاربر؟</div>
+          <div class="flow-node">ثبت پرداخت جدید + آپلود تصویر</div>
+          <div class="flow-node">استعلام صیاد (Update Item)</div>
+          <div class="flow-node flow-api">بروزرسانی وضعیت در SharePoint</div>
+        </div>
+
+        <div class="logic-step">
+          <h3>لیست‌های مورد استفاده در SharePoint</h3>
+          <ul>
+            <li><code>CustomerPayment</code>: مخزن اصلی تمامی چک‌ها و واریزی‌ها.</li>
+            <li><code>Debt</code>: لیست مطالبات ثبت شده از سیستم مالی.</li>
+            <li><code>customer_info</code>: اطلاعات پایه مشتریان.</li>
+            <li><code>customer_checks</code>: کتابخانه مستندات (Document Library) برای ذخیره تصاویر.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section" id="technical-overview">
+        <h2 class="section-title">۷. معماری فنی و مهندسی (Technical Stack)</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>تکنولوژی‌های اصلی</h3>
+            <ul>
+              <li><strong>Framework:</strong> React 19 (Vite)</li>
+              <li><strong>State Management:</strong> Redux Toolkit & TanStack Query v5</li>
+              <li><strong>UI Engine:</strong> Tailwind CSS & DaisyUI</li>
+              <li><strong>Icons:</strong> Lucide React</li>
+              <li><strong>Date Engine:</strong> React Multi Date Picker (Persian)</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <h3>ساختار پوشه‌بندی</h3>
+            <ul style="font-size: 0.8rem; direction: ltr; text-align: left">
+              <li>📂 <strong>src/api:</strong> مدیریت تراکنش‌های CRUD با SharePoint.</li>
+              <li>📂 <strong>src/components:</strong> اجزای UI تفکیک شده (Debt, PaymentRow, Uploader).</li>
+              <li>📂 <strong>src/hooks:</strong> منطق‌های بیزینسی (useSayad, useRas, useBulk).</li>
+              <li>📂 <strong>src/utils:</strong> توابع کمکی محاسباتی و فرمت‌دهی.</li>
+              <li>📂 <strong>src/store:</strong> مدیریت وضعیت جهانی (User Role, Features).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        &copy; ۲۰۲۶ - تمامی حقوق برای شرکت زر سیم محفوظ است. | مستندات فنی سامانه مدیریت تسویه (v2.0)
+      </div>
+    </div>
+    <script>
+      let matches = [];
+      let currentIndex = -1;
+      const searchInput = document.getElementById("searchInput");
+      const searchStats = document.getElementById("searchStats");
+      const container = document.querySelector(".container");
+
+      searchInput.addEventListener("input", () => {
+        performSearch(searchInput.value);
+      });
+
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          if (e.shiftKey) prevMatch();
+          else nextMatch();
+        }
+      });
+
+      function performSearch(query) {
+        const prevHighlights = document.querySelectorAll(".highlight-match");
+        prevHighlights.forEach((el) => {
+          const parent = el.parentNode;
+          parent.replaceChild(document.createTextNode(el.textContent), el);
+          parent.normalize();
+        });
+
+        matches = [];
+        currentIndex = -1;
+
+        if (!query || query.length < 2) {
+          updateStats();
+          return;
+        }
+
+        const walk = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false,
+        );
+        let node;
+        const nodesToProcess = [];
+
+        while ((node = walk.nextNode())) {
+          if (
+            node.parentElement.tagName !== "SCRIPT" &&
+            node.parentElement.tagName !== "STYLE"
+          ) {
+            nodesToProcess.push(node);
+          }
+        }
+
+        nodesToProcess.forEach((textNode) => {
+          const text = textNode.nodeValue;
+          const regex = new RegExp(query, "gi");
+          let match;
+          const fragments = [];
+          let lastIndex = 0;
+
+          while ((match = regex.exec(text)) !== null) {
+            fragments.push(text.substring(lastIndex, match.index));
+            const span = document.createElement("span");
+            span.className = "highlight-match";
+            span.textContent = match[0];
+            fragments.push(span);
+            matches.push(span);
+            lastIndex = regex.lastIndex;
+          }
+
+          if (fragments.length > 0) {
+            fragments.push(text.substring(lastIndex));
+            const wrapper = document.createDocumentFragment();
+            fragments.forEach((frag) => {
+              if (typeof frag === "string") {
+                wrapper.appendChild(document.createTextNode(frag));
+              } else {
+                wrapper.appendChild(frag);
+              }
+            });
+            textNode.parentNode.replaceChild(wrapper, textNode);
+          }
+        });
+
+        if (matches.length > 0) {
+          currentIndex = 0;
+          highlightActive();
+        }
+        updateStats();
+      }
+
+      function nextMatch() {
+        if (matches.length === 0) return;
+        currentIndex = (currentIndex + 1) % matches.length;
+        highlightActive();
+        updateStats();
+      }
+
+      function prevMatch() {
+        if (matches.length === 0) return;
+        currentIndex = (currentIndex - 1 + matches.length) % matches.length;
+        highlightActive();
+        updateStats();
+      }
+
+      function highlightActive() {
+        matches.forEach((el) => el.classList.remove("highlight-active"));
+        const active = matches[currentIndex];
+        active.classList.add("highlight-active");
+        active.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      function updateStats() {
+        const current = matches.length > 0 ? currentIndex + 1 : 0;
+        searchStats.textContent = `${current}/${matches.length}`.replace(
+          /[0-9]/g,
+          (d) => "۰۱۲۳۴۵۶۷۸۹"[d],
+        );
+      }
+    </script>
+  </body>
+</html>
