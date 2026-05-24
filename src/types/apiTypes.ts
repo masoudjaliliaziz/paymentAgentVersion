@@ -45,6 +45,7 @@ export type PaymentType = {
   customerCode: string;
   customerCodeHeader?: string;
   customerNameHeader?: string;
+  cashResean: string | null;
 };
 
 export type DebtType = {
@@ -80,6 +81,7 @@ export type Data = {
   customerCode: string;
   customerCodeHeader?: string;
   customerNameHeader?: string;
+  cashResean?: string;
 };
 export type CustomerType = {
   Id: number;

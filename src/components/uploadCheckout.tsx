@@ -24,6 +24,8 @@ import { Error as ErrorComponent } from "./Error";
 import { extractAccountFromBankValue } from "../utils/extractAccountFromBankValue";
 import NationalIdTypeDropdown from "./NationalIdTypeDropdown";
 
+import CashReseanComponent from "./CashReseanComponent";
+
 const bankOptions = [
   {
     value: "پاسارگاد 1-10706567-110-284 پاسداران - جاري",
@@ -105,6 +107,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const [dayOfYearCash, setDayOfYearCash] = useState<string>("0");
   const [dueDateCash, setDueDateCash] = useState<DateObject | null>(null);
   const [bankName, setBankName] = useState<string>("");
+  const [cashResean, setCashResean] = useState<string>("buyGoods");
   const cashPic = useRef<FileUploaderHandle | null>(null);
   const checkPic = useRef<FileUploaderHandle | null>(null);
   const checkConfirmPic = useRef<FileUploaderHandle | null>(null);
@@ -123,7 +126,9 @@ const UploadCheckoutForm: React.FC<Props> = ({
   });
 
   const [customer, setCustomer] = useState<CustomerType>();
-
+  useEffect(() => {
+    console.log("cashResean 🧨🧨🧨🧨", cashResean);
+  }, [cashResean]);
   // محاسبه باقی‌مانده بدهی
   // const [remainingDebt, setRemainingDebt] = useState<number>(0);
 
@@ -264,6 +269,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         customerTitle: string;
         customerCodeHeader: string;
         customerNameHeader: string;
+        cashResean?: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -326,9 +332,10 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerTitle: customer?.Title || "",
           customerCodeHeader,
           customerNameHeader,
+          cashResean: cashResean,
         };
       }
-
+      console.log("🍕🍕🍕🍕🍕", data);
       await handleAddItem(data);
       console.log("typeactiveTab:rrrrrrrrrrrrrrrrrrrrrr", typeactiveTab);
       setTypeActiveTab("1");
@@ -576,6 +583,10 @@ const UploadCheckoutForm: React.FC<Props> = ({
         {type === "cash" && (
           <>
             <div className="flex flex-col gap-2 items-end">
+              <CashReseanComponent
+                value={cashResean}
+                onChange={setCashResean}
+              />
               <label className="text-sm font-semibold">نام بانک مقصد</label>
               <div className="relative w-full">
                 <select

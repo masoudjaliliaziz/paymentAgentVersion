@@ -7,7 +7,7 @@ export async function handleAddItem(
     Verified?: string;
     VerifiedHoghoghi?: string;
     itemGUID: string;
-  }
+  },
 ) {
   const listName = "CustomerPayment";
   const itemType = "SP.Data.CustomerPaymentListItem";
@@ -54,7 +54,7 @@ export async function handleAddItem(
       customerTitle: data.customerTitle,
       customerCodeHeader: data.customerCodeHeader,
       customerNameHeader: data.customerNameHeader,
-
+      cashResean: data.cashResean,
     };
 
     // فقط یکی از این دو را اضافه کن اگر مقدار داشته باشند

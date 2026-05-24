@@ -36,6 +36,7 @@ export const exportToExcel = (
           : "105",
 
       مبلغ: payment.price || "", // مبلغ از استعلام صیاد
+      بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
     }));
 
     // ایجاد workbook جدید
@@ -124,7 +125,9 @@ export const exportToExcelType2 = (
       شهر: "",
       شعبه: payment.branchCode || "",
       تاریخ: convertToEnglishDate(payment.dueDate || ""),
-      "تفصیلی 3": customerCodes.get(payment.parentGUID) || "", // اضافه کردن customerCode
+      "تفصیلی 3": customerCodes.get(payment.parentGUID) || "",
+
+      // اضافه کردن customerCode
     }));
 
     // ایجاد workbook جدید

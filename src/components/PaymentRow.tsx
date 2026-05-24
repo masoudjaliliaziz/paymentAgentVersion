@@ -233,7 +233,7 @@ export const PaymentRow = ({
               const errorMsg = error.message || "خطا در استعلام گروهی";
               console.error(
                 `دیباگ: خطا در استعلام گروهی برای ID ${ID}:`,
-                error
+                error,
               );
               setErrorMessage(errorMsg);
               setIsVerifying(false);
@@ -243,7 +243,7 @@ export const PaymentRow = ({
             onSettled: () => {
               setIsVerifying(false); // همیشه در پایان false کن
             },
-          }
+          },
         );
       }, index * 200);
 
@@ -294,7 +294,7 @@ export const PaymentRow = ({
         onSettled: () => {
           setIsVerifying(false);
         },
-      }
+      },
     );
 
     // جدید: fallback timeout برای تکی
@@ -342,13 +342,13 @@ export const PaymentRow = ({
               const errorMsg = error.message || "خطا در استعلام گروهی";
               console.error(
                 `دیباگ: خطا در استعلام گروهی برای ID ${ID}:`,
-                error
+                error,
               );
               setErrorMessage(errorMsg);
               setIsVerifying(false);
               onVerificationComplete(String(ID), errorMsg);
             },
-          }
+          },
         );
       }, index * 200);
 
@@ -376,7 +376,7 @@ export const PaymentRow = ({
         onSuccess: () => {
           setManualInvoiceType("");
         },
-      }
+      },
     );
   }
 
@@ -403,10 +403,10 @@ export const PaymentRow = ({
                       <span
                         key={i}
                         className={`rounded-sm w-4 h-4 ${getCheckColor(
-                          item.checksColor
+                          item.checksColor,
                         )}`}
                       ></span>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -442,7 +442,7 @@ export const PaymentRow = ({
               ) : (
                 <div
                   className={`px-4 py-2 rounded-md font-semibold text-center ${getPaymentStageColor(
-                    item.status
+                    item.status,
                   )}`}
                 >
                   {getPaymentStage(item.status)}
@@ -476,10 +476,10 @@ export const PaymentRow = ({
                     String(item.invoiceType) === "1"
                       ? "bg-blue-500 text-white"
                       : String(item.invoiceType) === "2"
-                      ? "bg-purple-500 text-white"
-                      : String(item.invoiceType) === "3"
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-500 text-white"
+                        ? "bg-purple-500 text-white"
+                        : String(item.invoiceType) === "3"
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
                   }`}
                 >
                   {item.invoiceType === "1" && "نوع ۱"}
@@ -636,7 +636,7 @@ export const PaymentRow = ({
                       <span className="font-bold text-sky-700">
                         {item.sayadConfirmReason
                           ? convertSayadConfirmReasonToMessage(
-                              item.sayadConfirmReason
+                              item.sayadConfirmReason,
                             )
                           : "درج نشده"}
                       </span>
@@ -648,7 +648,7 @@ export const PaymentRow = ({
                       <span className="font-bold text-sky-700">
                         {item.sayadConfirmBlockStatus
                           ? convertBlockStatusToMessage(
-                              item.sayadConfirmBlockStatus
+                              item.sayadConfirmBlockStatus,
                             )
                           : "نامشخص"}
                       </span>
@@ -658,7 +658,7 @@ export const PaymentRow = ({
                       <span className="font-bold text-sky-700">
                         {item.sayadConfirmChequeStatus
                           ? convertChequeStatusToMessage(
-                              item.sayadConfirmChequeStatus
+                              item.sayadConfirmChequeStatus,
                             )
                           : "نامشخص"}
                       </span>
@@ -668,7 +668,7 @@ export const PaymentRow = ({
                       <span className="font-bold text-sky-700">
                         {item.sayadConfirmChequeType
                           ? ChequeTypeStatusToMessage(
-                              item.sayadConfirmChequeType
+                              item.sayadConfirmChequeType,
                             )
                           : "نامشخص"}
                       </span>
@@ -680,7 +680,7 @@ export const PaymentRow = ({
                       <span className="font-bold text-sky-700">
                         {item.sayadConfirmGuaranteeStatus
                           ? guaranteeStatusToMessage(
-                              item.sayadConfirmGuaranteeStatus
+                              item.sayadConfirmGuaranteeStatus,
                             )
                           : "نامشخص"}
                       </span>
@@ -698,7 +698,7 @@ export const PaymentRow = ({
                           }`}
                         >
                           {Number(item.sayadConfirmAmount ?? 0).toLocaleString(
-                            "fa-IR"
+                            "fa-IR",
                           )}
                         </span>
                         <span className="font-bold text-xs text-gray-600">
@@ -770,15 +770,15 @@ export const PaymentRow = ({
                     status === "1"
                       ? "text-green-700"
                       : status === "2"
-                      ? "text-red-700"
-                      : ""
+                        ? "text-red-700"
+                        : ""
                   }`}
                 >
                   {status === "1"
                     ? "تایید توسط کارشناس"
                     : status === "2"
-                    ? "رد شده توسط کارشناس"
-                    : ""}
+                      ? "رد شده توسط کارشناس"
+                      : ""}
                 </span>
               )}
               {item.status === "0" && <ActionByRole ID={ID} />}
@@ -796,10 +796,10 @@ export const PaymentRow = ({
                     String(item.invoiceType) === "1"
                       ? "bg-blue-500 text-white"
                       : String(item.invoiceType) === "2"
-                      ? "bg-purple-500 text-white"
-                      : String(item.invoiceType) === "3"
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-500 text-white"
+                        ? "bg-purple-500 text-white"
+                        : String(item.invoiceType) === "3"
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
                   }`}
                 >
                   {item.invoiceType === "1" && "نوع ۱"}
@@ -808,6 +808,19 @@ export const PaymentRow = ({
                   {item.invoiceType === "4" && "نامشخص"}
                 </span>
               )}
+              {item.cashResean && (
+                <span
+                  className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                    String(item.cashResean) === "buyGoods"
+                      ? "bg-blue-500 text-white"
+                      : "bg-orange-500 text-white"
+                  }`}
+                >
+                  {item.cashResean === "buyGoods" && "بابت خرید کالا"}
+                  {item.cashResean === "checkFori" && "بابت چک برگشتی"}
+                </span>
+              )}
+
               {String(item.invoiceType) === "4" && (
                 <div className="flex items-center gap-2">
                   <select
