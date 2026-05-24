@@ -29,14 +29,14 @@ export async function loadCurrentUser(
 }
 
 export async function loadSubCustomers(
-  CodeM2: string,
+  CodeM: string,
 ): Promise<CommunicationCustomersListItem[]> {
-  if (!CodeM2) return [];
+  if (!CodeM) return [];
   const webUrl = "https://crm.zarsim.com";
   const listName = "Communication_customers";
   try {
     const response = await fetch(
-      `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=CodeM2 eq '${CodeM2}'`,
+      `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=CodeM eq '${CodeM}'`,
       {
         headers: { Accept: "application/json;odata=verbose" },
       },

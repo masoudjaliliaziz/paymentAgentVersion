@@ -19,8 +19,6 @@ import UploadFormTabs from "./components/UploadFormTabs";
 import { useSubCustomers } from "./hooks/useSubCustomer";
 import { exportToExcel } from "./utils/exportToExel";
 
-
- 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
   "i:0#.w|zarsim\\mesmaeili",
@@ -86,10 +84,10 @@ function App() {
     useSubCustomers(customerCode);
 
   const subCustomerHeader = subCustomers?.find(
-    (sub) => sub.Title?.trim() === "زیرگروه",
+    (sub) => sub.Title?.trim() === "سرگروه",
   );
-  const customerCodeHeader = subCustomerHeader?.CodeM ?? "";
-  const customerNameHeader = subCustomerHeader?.customer_M ?? "";
+  const customerCodeHeader = subCustomerHeader?.CodeM2 ?? "";
+  const customerNameHeader = subCustomerHeader?.customer_M2 ?? "";
 
   const togglePaymentSelection = (payment: PaymentType) => {
     setSelectedPayments((prev) => {
@@ -242,27 +240,26 @@ function App() {
     }
   }, [customerCode, subCustomers]);
 
+  const handleExportToExcel = () => {
+    try {
+      // استفاده از displayedPayments که چک‌های فیلتر شده فعلی را شامل می‌شود
+      if (filteredPayments.length === 0) {
+        alert("هیچ چکی برای export وجود ندارد!");
+        return;
+      }
 
- const handleExportToExcel = () => {
-   try {
-     // استفاده از displayedPayments که چک‌های فیلتر شده فعلی را شامل می‌شود
-     if (filteredPayments.length === 0) {
-       alert("هیچ چکی برای export وجود ندارد!");
-       return;
-     }
+      // فراخوانی تابع exportToExcel با چک‌های فیلتر شده
+      exportToExcel(
+        filteredPayments,
+        `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`,
+      );
 
-     // فراخوانی تابع exportToExcel با چک‌های فیلتر شده
-     exportToExcel(
-       filteredPayments,
-       `چک_های_فیلتر_شده_${new Date().toISOString().slice(0, 10)}.xlsx`,
-     );
-
-     console.log(`تعداد ${filteredPayments.length} چک به Excel export شد`);
-   } catch (error) {
-     console.error("خطا در export به Excel:", error);
-     alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
-   }
- };
+      console.log(`تعداد ${filteredPayments.length} چک به Excel export شد`);
+    } catch (error) {
+      console.error("خطا در export به Excel:", error);
+      alert("خطا در ایجاد فایل Excel. لطفاً دوباره تلاش کنید.");
+    }
+  };
 
   if (isLoadingSubCustomers)
     return <div>در حال بارگذاری مشتری های مربوط به هم...</div>;
