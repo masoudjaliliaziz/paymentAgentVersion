@@ -35,6 +35,7 @@ const specialUsers = [
   "i:0#.w|zarsim\\m.esmaeili",
   "i:0#.w|zarsim\\mmoradabadi",
   "i:0#.w|zarsim\\rparsaei",
+  "i:0#.w|zarsim\\knozari",
   "i:0#.w|zarsim\\msoleimani",
 ];
 
@@ -86,10 +87,6 @@ function App() {
   const [customerTitles, setCustomerTitles] = useState<Map<string, string>>(
     new Map(),
   );
-  // استیت جدید برای ذخیره CustomerCode‌ها
-  const [customerCodes, setCustomerCodes] = useState<Map<string, string>>(
-    new Map(),
-  );
 
   const updateCustomerTitle = useCallback(
     (parentGUID: string, title: string) => {
@@ -97,10 +94,6 @@ function App() {
     },
     [],
   );
-
-  const updateCustomerCode = useCallback((parentGUID: string, code: string) => {
-    setCustomerCodes((prev) => new Map(prev).set(parentGUID, code));
-  }, []);
 
   useEffect(() => {
     if (userData && paymentData) {
@@ -553,7 +546,7 @@ function App() {
 
       exportToExcelType2(
         type2Payments,
-        customerCodes,
+
         `چک_های_نوع_2_${new Date().toISOString().slice(0, 10)}.xlsx`,
       );
 
@@ -1270,7 +1263,6 @@ function App() {
             verifyAllIds={verifyAllIds}
             onVerificationComplete={handleVerificationComplete}
             onUpdateTitle={updateCustomerTitle}
-            onUpdateCustomerCode={updateCustomerCode}
           />
         ))}
       </div>

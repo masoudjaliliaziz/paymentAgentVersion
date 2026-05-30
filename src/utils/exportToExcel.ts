@@ -27,6 +27,7 @@ interface ExcelRowData {
 
 // تعریف interface برای داده‌های Excel نوع 2 - شامل customerCode
 interface ExcelRowDataType2 extends ExcelRowData {
+  "تفصیلی 1": string;
   "تفصیلی 3": string; // CustomerCode
 }
 
@@ -125,7 +126,7 @@ export const exportToExcel = (
  */
 export const exportToExcelType2 = (
   payments: PaymentType[],
-  customerCodes: Map<string, string>,
+
   filename?: string,
 ): void => {
   try {
@@ -153,7 +154,11 @@ export const exportToExcelType2 = (
       شهر: "",
       شعبه: payment.branchCode || "",
       تاریخ: formatShamsiDateToEnglishNumbers(payment.Created || ""),
-      "تفصیلی 3": customerCodes.get(payment.parentGUID) || "",
+      "تفصیلی 3": payment.customerCodeHeader
+        ? String(payment.customerCodeHeader)
+        : String(payment.customerCode) || "",
+      "تفصیلی 1":
+        (payment.customerCodeHeader ? String(payment.customerCode) : "") || "",
       سری: payment.seriesNo,
       سریال: payment.serialNo,
       شبا: payment.iban,

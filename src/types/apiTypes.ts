@@ -41,7 +41,9 @@ export type PaymentType = {
   VerifiedConfirmSayadTr: string;
   VerifiedRejectSayadTr: string;
   Created?: string;
-  invoiceType?: string | number; // نوع فاکتور: 1 یا 2
+  invoiceType?: string | number;
+  customerCode?: string | number;
+  customerCodeHeader?: string | number; // نوع فاکتور: 1 یا 2
 };
 
 export type DebtType = {
