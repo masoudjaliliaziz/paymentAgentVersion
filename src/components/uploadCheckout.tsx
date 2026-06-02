@@ -107,6 +107,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const [dayOfYearCash, setDayOfYearCash] = useState<string>("0");
   const [dueDateCash, setDueDateCash] = useState<DateObject | null>(null);
   const [bankName, setBankName] = useState<string>("");
+  const [agentDescription, setAgentDescription] = useState<string>("");
   const [cashResean, setCashResean] = useState<string>("buyGoods");
   const cashPic = useRef<FileUploaderHandle | null>(null);
   const checkPic = useRef<FileUploaderHandle | null>(null);
@@ -644,6 +645,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 placeholder="مثال: 1,500,000"
               />
             </div>
+            <textarea/>
             <FileUploader
               ref={cashPic}
               orderNumber={parent_GUID}

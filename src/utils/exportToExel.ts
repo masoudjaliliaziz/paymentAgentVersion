@@ -6,6 +6,13 @@ import { DateObject } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { formatShamsiDate } from "./formatShamsiDate";
+const normalizeDate = (
+  date: string | undefined | null,
+): string | null | undefined => {
+  if (!date || typeof date !== "string") {
+    return null;
+  }
+};
 // تعریف interface برای داده‌های Excel - این interface ساختار فایل Excel خروجی را تعریف می‌کند
 interface ExcelRowData {
   ردیف: number; // شماره ردیف از 1 شروع می‌شود
@@ -64,6 +71,7 @@ export const exportToExcel = (
 
       مبلغ: payment.price || "", // مبلغ از استعلام صیاد
       بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
+      توضیحات: payment.agentDescription,
       وضعیت:
         payment.status === "0"
           ? "در انتظار تایید کارشناس"
@@ -74,7 +82,10 @@ export const exportToExcel = (
               : payment.status === "4"
                 ? "تایید نهایی"
                 : "رد توسط کارشناس",
-               "تاریخ وضعیت ":
+      "تاریخ وضعیت ": formatCreatedDate(payment.Modified),
+      "بانک مقصد ": payment.bankName,
+      مشتری: payment.customerTitle,
+      "نوع پرداخت": payment.cash === "0" ? "چک" : "نقدی",
     }));
 
     // ایجاد workbook جدید
