@@ -46,6 +46,7 @@ export type PaymentType = {
   customerCodeHeader?: string;
   customerNameHeader?: string;
   cashResean: string | null;
+  Modified?: string;
 };
 
 export type DebtType = {

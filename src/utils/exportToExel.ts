@@ -2,7 +2,10 @@
 import * as XLSX from "xlsx";
 import type { PaymentType } from "../types/apiTypes";
 import { getBankNameFromIBAN } from "./getBankNameFromIban";
-
+import { DateObject } from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
+import { formatShamsiDate } from "./formatShamsiDate";
 // تعریف interface برای داده‌های Excel - این interface ساختار فایل Excel خروجی را تعریف می‌کند
 interface ExcelRowData {
   ردیف: number; // شماره ردیف از 1 شروع می‌شود
@@ -11,6 +14,30 @@ interface ExcelRowData {
   سال: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
   مبلغ: string; // مبلغ از استعلام صیاد
 }
+const formatCreatedDate = (created?: string | null): string => {
+  if (!created) return "ثبت نامشخص";
+
+  // ابتدا تلاش برای تبدیل به شمسی با تاریخ و ساعت
+  const parsed = new Date(created);
+  if (!isNaN(parsed.getTime())) {
+    try {
+      const dateObj = new DateObject({
+        date: parsed,
+        calendar: persian,
+        locale: persian_fa,
+      });
+      return dateObj.format("YYYY/MM/DD HH:mm");
+    } catch (error) {
+      console.warn("خطا در فرمت تاریخ ثبت:", error);
+    }
+  }
+
+  // fallback به نرمالایز و فرمت قبلی
+  const normalized = normalizeDate(created);
+  if (normalized) return formatShamsiDate(normalized);
+
+  return "ثبت نامشخص";
+};
 
 export const exportToExcel = (
   payments: PaymentType[],
@@ -38,16 +65,16 @@ export const exportToExcel = (
       مبلغ: payment.price || "", // مبلغ از استعلام صیاد
       بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
       وضعیت:
-        payment.status === "1"
+        payment.status === "0"
           ? "در انتظار تایید کارشناس"
-          : payment.status === "2"
+          : payment.status === "1"
             ? "در انتظار تایید خزانه"
             : payment.status === "3"
               ? "رد شده توسط خزانه "
               : payment.status === "4"
                 ? "تایید نهایی"
                 : "رد توسط کارشناس",
-               
+               "تاریخ وضعیت ":
     }));
 
     // ایجاد workbook جدید
