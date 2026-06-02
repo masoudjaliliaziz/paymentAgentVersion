@@ -34,7 +34,7 @@ function App() {
   // const [isShownDebt, setIsShownDebt] = useState(false);
   const [isShownNewPayment, setIsShownNewPayment] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "normal" | "pending" | "treasury" | "trDenied"
+    "normal" | "pending" | "treasury" | "trDenied" | "all"
   >("normal");
   const [isVerifyingAll, setIsVerifyingAll] = useState(false);
   const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
@@ -186,6 +186,8 @@ function App() {
         return item.status === "1"; // چک‌های در انتظار تایید خزانه
       } else if (activeTab === "trDenied") {
         return item.status === "3"; // چک‌های رد شده توسط خزانه
+      } else if (activeTab === "all") {
+        return item; // چک‌های رد شده توسط خزانه
       } else {
         // حالت عادی - چک‌های در انتظار تایید کارشناس
         return item.status === "0";
@@ -320,6 +322,16 @@ function App() {
               }`}
             >
               تایید شده توسط خزانه
+            </div>
+            <div
+              onClick={() => setActiveTab("all")}
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
+                activeTab === "all"
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              همه پرداخت ها
             </div>
           </div>
         </div>

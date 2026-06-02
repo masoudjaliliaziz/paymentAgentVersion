@@ -37,6 +37,17 @@ export const exportToExcel = (
 
       مبلغ: payment.price || "", // مبلغ از استعلام صیاد
       بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
+      وضعیت:
+        payment.status === "1"
+          ? "در انتظار تایید کارشناس"
+          : payment.status === "2"
+            ? "در انتظار تایید خزانه"
+            : payment.status === "3"
+              ? "رد شده توسط خزانه "
+              : payment.status === "4"
+                ? "تایید نهایی"
+                : "رد توسط کارشناس",
+               
     }));
 
     // ایجاد workbook جدید
