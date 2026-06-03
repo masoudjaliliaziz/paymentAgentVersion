@@ -83,6 +83,7 @@ export type Data = {
   customerCodeHeader?: string;
   customerNameHeader?: string;
   cashResean?: string;
+  agentDescription?: string;
 };
 export type CustomerType = {
   Id: number;

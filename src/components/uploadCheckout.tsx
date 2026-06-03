@@ -271,6 +271,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         customerCodeHeader: string;
         customerNameHeader: string;
         cashResean?: string;
+        agentDescription?: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -293,6 +294,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerTitle: customer?.Title || "",
           customerCodeHeader,
           customerNameHeader,
+          agentDescription,
         };
       } else if (type === "check" && activeTab === "hoghoghi") {
         data = {
@@ -314,6 +316,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerTitle: customer?.Title || "",
           customerCodeHeader,
           customerNameHeader,
+          agentDescription,
         };
       } else {
         data = {
@@ -334,11 +337,12 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerCodeHeader,
           customerNameHeader,
           cashResean: cashResean,
+          agentDescription,
         };
       }
-      console.log("🍕🍕🍕🍕🍕", data);
+
       await handleAddItem(data);
-      console.log("typeactiveTab:rrrrrrrrrrrrrrrrrrrrrr", typeactiveTab);
+
       setTypeActiveTab("1");
 
       if (type === "cash") {
@@ -520,6 +524,16 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 format="YYYY/MM/DD"
               />
             </div>
+            <div className="flex flex-col items-end w-full gap-1">
+              <label className=" text-sm font-bold ">توضیحات</label>
+              <textarea
+                value={agentDescription}
+                onChange={(e) => setAgentDescription(e.target.value)}
+                rows={4}
+                placeholder="توضیحات اختیاری"
+                className="w-full border rounded-md p-4 font-semibold text-sm resize-none text-end"
+              />
+            </div>
             <FileUploader
               ref={checkPic}
               orderNumber={parent_GUID}
@@ -645,7 +659,16 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 placeholder="مثال: 1,500,000"
               />
             </div>
-            <textarea/>
+            <div className="flex flex-col items-end w-full gap-1">
+              <label className=" text-sm font-bold ">توضیحات</label>
+              <textarea
+                value={agentDescription}
+                onChange={(e) => setAgentDescription(e.target.value)}
+                rows={4}
+                placeholder="توضیحات اختیاری"
+                className="w-full border rounded-md p-4 font-semibold text-sm resize-none text-end"
+              />
+            </div>
             <FileUploader
               ref={cashPic}
               orderNumber={parent_GUID}

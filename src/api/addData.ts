@@ -55,6 +55,7 @@ export async function handleAddItem(
       customerCodeHeader: data.customerCodeHeader,
       customerNameHeader: data.customerNameHeader,
       cashResean: data.cashResean,
+      agentDescription: data.agentDescription,
     };
 
     // فقط یکی از این دو را اضافه کن اگر مقدار داشته باشند

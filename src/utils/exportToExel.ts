@@ -72,6 +72,16 @@ export const exportToExcel = (
       مبلغ: payment.price || "", // مبلغ از استعلام صیاد
       بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
       توضیحات: payment.agentDescription,
+
+      مشتری: payment.customerTitle,
+      "نوع پرداخت":
+        payment.invoiceType === "1"
+          ? "نوع 1"
+          : payment.invoiceType === "2"
+            ? "نوع 2"
+            : payment.invoiceType === "3"
+              ? "دانش بنیان"
+              : "نامشخص",
       وضعیت:
         payment.status === "0"
           ? "در انتظار تایید کارشناس"
@@ -83,9 +93,6 @@ export const exportToExcel = (
                 ? "تایید نهایی"
                 : "رد توسط کارشناس",
       "تاریخ وضعیت ": formatCreatedDate(payment.Modified),
-      "بانک مقصد ": payment.bankName,
-      مشتری: payment.customerTitle,
-      "نوع پرداخت": payment.cash === "0" ? "چک" : "نقدی",
     }));
 
     // ایجاد workbook جدید
