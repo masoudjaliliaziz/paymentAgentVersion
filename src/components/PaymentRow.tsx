@@ -820,7 +820,16 @@ export const PaymentRow = ({
                   {item.cashResean === "checkFori" && "بابت چک برگشتی"}
                 </span>
               )}
-
+              {item.cashResean === "checkFori" && (
+                <span
+                  className={
+                    "text-xs font-bold px-2 py-1 rounded-md  text-center  bg-orange-500 text-white"
+                  }
+                >
+                  {item.cashResean === "checkFori" &&
+                    item.selectedCheckSayadiForCheckFori}
+                </span>
+              )}
               {String(item.invoiceType) === "4" && (
                 <div className="flex items-center gap-2">
                   <select

@@ -56,6 +56,7 @@ export async function handleAddItem(
       customerNameHeader: data.customerNameHeader,
       cashResean: data.cashResean,
       agentDescription: data.agentDescription,
+      selectedCheckSayadiForCheckFori:data.selectedCheckSayadiForCheckFori
     };
 
     // فقط یکی از این دو را اضافه کن اگر مقدار داشته باشند

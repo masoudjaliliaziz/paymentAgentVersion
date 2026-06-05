@@ -109,6 +109,9 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const [bankName, setBankName] = useState<string>("");
   const [agentDescription, setAgentDescription] = useState<string>("");
   const [cashResean, setCashResean] = useState<string>("buyGoods");
+  const [selectedCheckSayadiForCheckFori, setSelectedCheckSayadiForCheckFori] =
+    useState("");
+
   const cashPic = useRef<FileUploaderHandle | null>(null);
   const checkPic = useRef<FileUploaderHandle | null>(null);
   const checkConfirmPic = useRef<FileUploaderHandle | null>(null);
@@ -125,6 +128,20 @@ const UploadCheckoutForm: React.FC<Props> = ({
     },
     enabled: !!parent_GUID,
   });
+  const availableChecks = paymentList.filter(
+    (p) => p.status === "4" && p.sayadiCode,
+  );
+  const originalCheck = paymentList.find(
+    (p) => p.sayadiCode === selectedCheckSayadiForCheckFori,
+  );
+  const usedAmountForCheck = paymentList
+    .filter(
+      (p) =>
+        p.selectedCheckSayadiForCheckFori === selectedCheckSayadiForCheckFori,
+    )
+    .reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const originalCheckAmount = Number(originalCheck?.price || 0);
+  const remainingAmount = originalCheckAmount - usedAmountForCheck;
 
   const [customer, setCustomer] = useState<CustomerType>();
   useEffect(() => {
@@ -207,6 +224,14 @@ const UploadCheckoutForm: React.FC<Props> = ({
 
       if (!checkPic.current?.hasFile?.()) return "تصویر چک الزامی است.";
     }
+    if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
+      const enteredAmount = Number(priceCash || 0);
+
+      if (enteredAmount > remainingAmount) {
+        return `مبلغ وارد شده بیشتر از باقیمانده چک است.
+باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
+      }
+    }
 
     if (type === "cash") {
       if (!bankName.trim()) return "نام بانک وارد نشده است.";
@@ -272,6 +297,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         customerNameHeader: string;
         cashResean?: string;
         agentDescription?: string;
+        selectedCheckSayadiForCheckFori?: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -295,6 +321,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerCodeHeader,
           customerNameHeader,
           agentDescription,
+          selectedCheckSayadiForCheckFori,
         };
       } else if (type === "check" && activeTab === "hoghoghi") {
         data = {
@@ -317,6 +344,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerCodeHeader,
           customerNameHeader,
           agentDescription,
+          selectedCheckSayadiForCheckFori,
         };
       } else {
         data = {
@@ -338,6 +366,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           cashResean: cashResean,
           agentDescription,
+          selectedCheckSayadiForCheckFori,
         };
       }
 
@@ -443,6 +472,10 @@ const UploadCheckoutForm: React.FC<Props> = ({
         {type === "check" && (
           <>
             <div className="flex flex-col gap-2 items-end ">
+              <CashReseanComponent
+                value={cashResean}
+                onChange={setCashResean}
+              />
               <label className="text-sm font-semibold"> کد صیادی </label>
               <input
                 ref={qrInputRef}
@@ -506,6 +539,19 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 className="input input-bordered w-full font-semibold"
                 placeholder="مثال: 1,500,000"
               />
+              {cashResean === "checkFori" &&
+                selectedCheckSayadiForCheckFori && (
+                  <div className="text-xs text-gray-600">
+                    مبلغ چک: {originalCheckAmount.toLocaleString("fa-IR")} ریال
+                    <br />
+                    استفاده شده: {usedAmountForCheck.toLocaleString(
+                      "fa-IR",
+                    )}{" "}
+                    ریال
+                    <br />
+                    باقیمانده: {remainingAmount.toLocaleString("fa-IR")} ریال
+                  </div>
+                )}
             </div>
             <div className="flex flex-col gap-2 items-end ">
               <label className="text-sm font-semibold">تاریخ سررسید</label>
@@ -602,6 +648,34 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 value={cashResean}
                 onChange={setCashResean}
               />
+
+              {cashResean === "checkFori" && (
+                <div className="flex flex-col gap-2 items-end">
+                  <label className="text-sm font-semibold">
+                    انتخاب چک (کد صیادی)
+                  </label>
+
+                  <input
+                    type="text"
+                    list="check-sayadi-list"
+                    value={selectedCheckSayadiForCheckFori}
+                    onChange={(e) =>
+                      setSelectedCheckSayadiForCheckFori(e.target.value)
+                    }
+                    placeholder="جستجو یا انتخاب کد صیادی"
+                    className="input input-bordered w-full font-mono text-sm ltr"
+                  />
+
+                  <datalist id="check-sayadi-list">
+                    {availableChecks.map((item) => (
+                      <option key={item.itemGUID} value={item.sayadiCode}>
+                        {item.sayadiCode}
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+              )}
+
               <label className="text-sm font-semibold">نام بانک مقصد</label>
               <div className="relative w-full">
                 <select
@@ -658,6 +732,19 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 className="input input-bordered w-full font-semibold"
                 placeholder="مثال: 1,500,000"
               />
+              {cashResean === "checkFori" &&
+                selectedCheckSayadiForCheckFori && (
+                  <div className="text-xs text-gray-600">
+                    مبلغ چک: {originalCheckAmount.toLocaleString("fa-IR")} ریال
+                    <br />
+                    استفاده شده: {usedAmountForCheck.toLocaleString(
+                      "fa-IR",
+                    )}{" "}
+                    ریال
+                    <br />
+                    باقیمانده: {remainingAmount.toLocaleString("fa-IR")} ریال
+                  </div>
+                )}
             </div>
             <div className="flex flex-col items-end w-full gap-1">
               <label className=" text-sm font-bold ">توضیحات</label>

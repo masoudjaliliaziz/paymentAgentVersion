@@ -47,6 +47,7 @@ export type PaymentType = {
   customerNameHeader?: string;
   cashResean: string | null;
   Modified?: string;
+  selectedCheckSayadiForCheckFori?: string;
 };
 
 export type DebtType = {
@@ -84,6 +85,7 @@ export type Data = {
   customerNameHeader?: string;
   cashResean?: string;
   agentDescription?: string;
+  selectedCheckSayadiForCheckFori?: string;
 };
 export type CustomerType = {
   Id: number;
