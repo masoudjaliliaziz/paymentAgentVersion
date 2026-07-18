@@ -47,7 +47,9 @@ export type PaymentType = {
   customerNameHeader?: string;
   cashResean: string | null;
   Modified?: string;
+  Created?: string;
   selectedCheckSayadiForCheckFori?: string;
+  paymentType?: string;
 };
 
 export type DebtType = {

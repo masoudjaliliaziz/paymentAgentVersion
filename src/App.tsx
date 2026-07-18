@@ -18,6 +18,10 @@ import { BanknoteArrowUpIcon, FileTerminal } from "lucide-react";
 import UploadFormTabs from "./components/UploadFormTabs";
 import { useSubCustomers } from "./hooks/useSubCustomer";
 import { exportToExcel } from "./utils/exportToExel";
+import { DateObject } from "react-multi-date-picker";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 const specialUsers = [
   "i:0#.w|zarsim\\rashaadmin",
@@ -26,6 +30,47 @@ const specialUsers = [
 ];
 export type InvoiceType = "1" | "2" | "3" | "4";
 export type InvoiceTypeFilter = InvoiceType | "all";
+
+const toComparableTime = (value?: string | null): number | null => {
+  if (!value) return null;
+
+  // اگر dueDate به صورت شمسی مثل 1404/05/10 ذخیره شده
+  const persianDate = new DateObject({
+    date: value,
+    format: "YYYY/MM/DD",
+    calendar: persian,
+    locale: persian_fa,
+  });
+
+  const jsDate = persianDate.toDate();
+
+  if (Number.isNaN(jsDate.getTime())) {
+    return null;
+  }
+
+  return jsDate.getTime();
+};
+
+const isInRange = (value?: string | null, range?: DateObject[]): boolean => {
+  if (!range || range.length === 0) return true;
+
+  const itemTime = toComparableTime(value);
+  if (itemTime === null) return false;
+
+  const start = range[0]?.toDate?.();
+  const end = range[1]?.toDate?.() ?? range[0]?.toDate?.();
+
+  if (!start || !end) return true;
+
+  const startTime = new Date(start);
+  startTime.setHours(0, 0, 0, 0);
+
+  const endTime = new Date(end);
+  endTime.setHours(23, 59, 59, 999);
+
+  return itemTime >= startTime.getTime() && itemTime <= endTime.getTime();
+};
+
 function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
@@ -33,6 +78,10 @@ function App() {
   // const [isShownDebtArchive, setIsShownDebtArchive] = useState(false);
   // const [isShownDebt, setIsShownDebt] = useState(false);
   const [isShownNewPayment, setIsShownNewPayment] = useState(false);
+  const [dateRange, setDateRange] = useState<DateObject[]>([]);
+  const [createdDateRange, setCreatedDateRange] = useState<DateObject[]>([]);
+  const [paymentType, setPaymentType] = useState("");
+
   const [activeTab, setActiveTab] = useState<
     "normal" | "pending" | "treasury" | "trDenied" | "all"
   >("normal");
@@ -75,7 +124,9 @@ function App() {
     SalesExpert: "",
     iban: "",
     name: "",
+    Title: "",
   });
+
   const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("1");
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
@@ -177,21 +228,21 @@ function App() {
       event.preventDefault();
     }
   };
-  const filteredPayments = paymentData
-    ?.filter((item) => {
-      // فیلتر بر اساس تب فعال
+  const filteredPayments = (paymentData ?? [])
+    .filter((item) => {
       if (activeTab === "treasury") {
-        return item.status === "4"; // چک‌های تایید شده توسط خزانه
-      } else if (activeTab === "pending") {
-        return item.status === "1"; // چک‌های در انتظار تایید خزانه
-      } else if (activeTab === "trDenied") {
-        return item.status === "3"; // چک‌های رد شده توسط خزانه
-      } else if (activeTab === "all") {
-        return item; // چک‌های رد شده توسط خزانه
-      } else {
-        // حالت عادی - چک‌های در انتظار تایید کارشناس
-        return item.status === "0";
+        return item.status === "4";
       }
+      if (activeTab === "pending") {
+        return item.status === "1";
+      }
+      if (activeTab === "trDenied") {
+        return item.status === "3";
+      }
+      if (activeTab === "all") {
+        return true;
+      }
+      return item.status === "0";
     })
     .filter((item) => {
       if (userData && specialUsers.includes(userData)) {
@@ -202,10 +253,22 @@ function App() {
       }
       return false;
     })
-
     .filter((item) => {
-      // اگر "همه" انتخاب شده، اصلاً فیلتر invoiceType نزن
       if (typeactiveTab !== "all" && item.invoiceType !== typeactiveTab) {
+        return false;
+      }
+
+      if (paymentType && item.paymentType !== paymentType) {
+        return false;
+      }
+
+      // تاريخ سررسيد: اگر اسم فيلدت فرق دارد، dueDate را عوض کن
+      if (!isInRange(item.dueDate, dateRange)) {
+        return false;
+      }
+
+      // تاريخ ثبت: اگر اسم فيلدت فرق دارد، Created را عوض کن
+      if (!isInRange(item.Created, createdDateRange)) {
         return false;
       }
 
@@ -393,7 +456,71 @@ function App() {
                 <FileTerminal size={16} />
                 <span className="text-sm font-bold">اکسل</span>
               </button>
-              {/* فیلتر نوع فاکتور */}
+
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">بازه تاریخ سررسید</label>
+                <DatePicker
+                  value={dateRange}
+                  onChange={(dates) => {
+                    if (Array.isArray(dates)) {
+                      setDateRange(dates);
+                    } else {
+                      setDateRange([]);
+                    }
+                  }}
+                  calendar={persian}
+                  locale={persian_fa}
+                  range
+                  rangeHover
+                  numberOfMonths={2}
+                  className="w-full"
+                  containerClassName="w-full"
+                  inputClass="border p-1 rounded-md w-full text-right"
+                  placeholder="از تاریخ - تا تاریخ"
+                />
+                {dateRange.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setDateRange([])}
+                    className="mt-1 text-xs text-red-600 hover:text-red-800"
+                  >
+                    پاک کردن فیلتر تاریخ
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">بازه تاریخ ثبت چک</label>
+                <DatePicker
+                  value={createdDateRange}
+                  onChange={(dates) => {
+                    if (Array.isArray(dates)) {
+                      setCreatedDateRange(dates);
+                    } else {
+                      setCreatedDateRange([]);
+                    }
+                  }}
+                  calendar={persian}
+                  locale={persian_fa}
+                  range
+                  rangeHover
+                  numberOfMonths={2}
+                  className="w-full"
+                  containerClassName="w-full"
+                  inputClass="border p-1 rounded-md w-full text-right"
+                  placeholder="از تاریخ ثبت - تا تاریخ ثبت"
+                />
+                {createdDateRange.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setCreatedDateRange([])}
+                    className="mt-1 text-xs text-red-600 hover:text-red-800"
+                  >
+                    پاک کردن فیلتر تاریخ ثبت
+                  </button>
+                )}
+              </div>
+
               <div className="flex flex-col">
                 <label className="mb-1 text-gray-600">نوع فاکتور</label>
                 <select
@@ -408,6 +535,19 @@ function App() {
                   <option value="2">نوع 2</option>
                   <option value="3">دانش بنیان</option>
                   <option value="4">نامشخص</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 text-gray-600">نوع پرداخت</label>
+                <select
+                  className="border p-1 rounded-md text-right"
+                  value={paymentType}
+                  onChange={(e) => setPaymentType(e.target.value)}
+                >
+                  <option value="">همه</option>
+                  <option value="0">چک</option>
+                  <option value="1">نقدی</option>
                 </select>
               </div>
 

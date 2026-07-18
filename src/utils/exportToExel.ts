@@ -57,22 +57,21 @@ export const exportToExcel = (
       return;
     }
 
-    // تبدیل داده‌های پرداخت به فرمت Excel
     const excelData: ExcelRowData[] = payments.map((payment, index) => ({
-      ردیف: index + 1, // شماره ردیف از 1 شروع می‌شود
+      ردیف: index + 1,
       نوع: payment.cash === "1" ? "نقدي" : "چك",
-      // "نقدي" برای واریز نقدی، "چک" برای چک
+      "شماره چک": payment.serialNo || "",
+      "کد صیادی": payment.sayadiCode || "",
+      "نام صادرکننده": payment.name || "",
       روز: convertToEnglishDate(payment.dueDate).slice(6, 8),
       ماه: convertToEnglishDate(payment.dueDate).slice(4, 6),
       سال:
         convertToEnglishDate(payment.dueDate).slice(0, 4) === "1404"
           ? "104"
           : "105",
-
-      مبلغ: payment.price || "", // مبلغ از استعلام صیاد
+      مبلغ: payment.price || "",
       بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
       توضیحات: payment.agentDescription,
-
       مشتری: payment.customerTitle,
       "نوع پرداخت":
         payment.invoiceType === "1"
@@ -105,17 +104,21 @@ export const exportToExcel = (
     const columnWidths = [
       { wch: 8 }, // ردیف
       { wch: 10 }, // نوع
-      { wch: 8 }, // کد
-      { wch: 12 }, // ماهیت
-      { wch: 15 }, // شماره
-      { wch: 18 }, // کد صیادی
-      { wch: 18 }, // تاریخ سر رسید
+      { wch: 18 }, // شماره چک
+      { wch: 22 }, // کد صیادی
+      { wch: 22 }, // نام صادرکننده
+      { wch: 8 }, // روز
+      { wch: 8 }, // ماه
+      { wch: 8 }, // سال
       { wch: 15 }, // مبلغ
-      { wch: 20 }, // عهده بانک
-      { wch: 10 }, // شهر
-      { wch: 12 }, // شعبه
-      { wch: 18 }, // تاریخ
+      { wch: 16 }, // بابت
+      { wch: 24 }, // توضیحات
+      { wch: 22 }, // مشتری
+      { wch: 14 }, // نوع پرداخت
+      { wch: 20 }, // وضعیت
+      { wch: 18 }, // تاریخ وضعیت
     ];
+
     worksheet["!cols"] = columnWidths;
 
     // اضافه کردن worksheet به workbook
