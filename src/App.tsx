@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+﻿import { useEffect, useState, useMemo, useCallback } from "react";
 import { setPayments, setUser, setUserRole } from "./store/agentSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "./store/store";
@@ -36,6 +36,8 @@ const specialUsers = [
   "i:0#.w|zarsim\\mmoradabadi",
   "i:0#.w|zarsim\\rparsaei",
   "i:0#.w|zarsim\\knozari",
+  "i:0#.w|zarsim\\k.nozari",
+
   "i:0#.w|zarsim\\msoleimani",
 ];
 

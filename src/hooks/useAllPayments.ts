@@ -56,6 +56,8 @@ export const useAllPayment = () => {
     "i:0#.w|zarsim\\mmoradabadi",
     "i:0#.w|zarsim\\rparsaei",
     "i:0#.w|zarsim\\knozari",
+    "i:0#.w|zarsim\\k.nozari",
+
     "i:0#.w|zarsim\\msoleimani",
   ];
   const isSpecialUser = userData ? specialUsers.includes(userData) : false;
