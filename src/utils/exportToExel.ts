@@ -69,7 +69,11 @@ export const exportToExcel = (
         convertToEnglishDate(payment.dueDate).slice(0, 4) === "1404"
           ? "104"
           : "105",
-      مبلغ: payment.price || "",
+      مبلغ:
+        Number(payment.price).toLocaleString("en-US", {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3,
+        }) || "",
       بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
       توضیحات: payment.agentDescription,
       مشتری: payment.customerTitle,

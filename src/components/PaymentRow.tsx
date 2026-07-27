@@ -129,6 +129,7 @@ function guaranteeStatusToMessage(code: string): string {
 }
 
 import { formatShamsiDate } from "../utils/formatShamsiDate";
+import Modal from "./Modal";
 
 const normalizeDate = (date: string | undefined | null): string | null => {
   if (!date || typeof date !== "string") {
@@ -514,7 +515,13 @@ export const PaymentRow = ({
                 </div>
               )}
             </div>
-
+            <Modal
+              id={`treasury-confirm-description-modal-${item.ID}`}
+              title={{
+                slag: "توضیحات خزانه‌داری",
+                data: item?.treasuryConfirmDescription || "توضیحاتی درج نشده",
+              }}
+            />
             {errorMessage && (
               <div className="flex justify-end">
                 <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold">
@@ -755,6 +762,13 @@ export const PaymentRow = ({
             transition={{ duration: 0.3 }}
             className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
           >
+            <Modal
+              id={`treasury-confirm-description-modal-${item.ID}`}
+              title={{
+                slag: "توضیحات خزانه‌داری",
+                data: item?.treasuryConfirmDescription || "توضیحاتی درج نشده",
+              }}
+            />
             <div className="flex justify-end items-center gap-4 rounded-md bg-slate-100 p-1.5 px-3">
               {itemGUID && parentGuid && (
                 <CheckPicConfirm
@@ -788,7 +802,7 @@ export const PaymentRow = ({
                 type="checkbox"
                 checked={isSelected}
                 onChange={onToggleSelect}
-                className="w-4 h-4 cursor-pointer"
+                className="w-4 h-4 cursor-pointer "
               />
               {item.invoiceType && (
                 <span

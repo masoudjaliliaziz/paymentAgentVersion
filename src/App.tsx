@@ -12,7 +12,7 @@ import { getShamsiDateFromDayOfYear } from "./utils/getShamsiDateFromDayOfYear";
 import type { PaymentType } from "./types/apiTypes";
 import { useCustomers } from "./hooks/useCustomer";
 // import DebtsArchivePage from "./routes/DebtsArchivePage";
-import { BanknoteArrowUpIcon, FileTerminal } from "lucide-react";
+import { BanknoteArrowUpIcon, FileTerminal, QrCode } from "lucide-react";
 // import DebtsPage from "./routes/DebtsPage";
 // import { updateSayadVerified } from "./api/updateItem";
 import UploadFormTabs from "./components/UploadFormTabs";
@@ -332,6 +332,15 @@ function App() {
   return (
     <div className="flex gap-6 mt-6 px-4">
       <div className="w-[40%] sticky top-0 self-start bg-white shadow-sm p-4 flex flex-col gap-4 border rounded-md h-fit max-h-screen overflow-y-auto ">
+        <a
+          className="flex justify-center items-center  h-8 rounded-md bg-slate-700 text-white  top-1 right-1 hover:bg-white hover:text-slate-700 cursor-pointer  mx-auto p-3 gap-2"
+          href="https://portal.zarsim.com/Pages/checkfori.aspx"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="text-white">سیستم چک برگشتی</span>
+          <QrCode width={20} height={20} />
+        </a>
         {/* تب‌های اصلی */}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center gap-3">
@@ -565,7 +574,7 @@ function App() {
                     {placeholder.split(" (")[0]}
                   </label>
                   <input
-                    className="border p-1 rounded-md"
+                    className="border p-1 rounded-md "
                     placeholder={placeholder}
                     value={filters[key as keyof typeof filters]}
                     onChange={(e) => handleInputChange(key, e)}
@@ -621,7 +630,7 @@ function App() {
                   }
                 }}
                 id="selectAllCheckbox"
-                className="cursor-pointer"
+                className="cursor-pointer "
               />
               <label
                 htmlFor="selectAllCheckbox"
