@@ -580,7 +580,7 @@ function PaymentRowTrComponent({
                             }
                           >
                             {item.cashResean === "checkFori" &&
-                              item.selectedCheckSayadiForCheckFori}
+                              item.selectedCheckSerialNoForCheckFori}
                           </span>
                         )}
                         <input
@@ -1189,7 +1189,7 @@ function PaymentRowTrComponent({
                             }
                           >
                             {item.cashResean === "checkFori" &&
-                              item.selectedCheckSayadiForCheckFori}
+                              item.selectedCheckSerialNoForCheckFori}
                           </span>
                         )}
                         <input
