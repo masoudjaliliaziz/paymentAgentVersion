@@ -1165,8 +1165,31 @@ function PaymentRowTrComponent({
                           >
                             {item.invoiceType === "1" && "نوع ۱"}
                             {item.invoiceType === "2" && "نوع ۲"}
-                            {item.invoiceType === "3" && "دانش بنیان"}
+                            {item.invoiceType === "3" && " دانش بنیان"}
                             {item.invoiceType === "4" && "نامشخص"}
+                          </span>
+                        )}
+                        {item.cashResean && (
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                              String(item.cashResean) === "buyGoods"
+                                ? "bg-blue-500 text-white"
+                                : "bg-orange-500 text-white"
+                            }`}
+                          >
+                            {item.cashResean === "buyGoods" && "بابت خرید کالا"}
+                            {item.cashResean === "checkFori" &&
+                              "بابت چک برگشتی"}
+                          </span>
+                        )}
+                        {item.cashResean === "checkFori" && (
+                          <span
+                            className={
+                              "text-xs font-bold px-2 py-1 rounded-md  text-center  bg-orange-500 text-white"
+                            }
+                          >
+                            {item.cashResean === "checkFori" &&
+                              item.selectedCheckSayadiForCheckFori}
                           </span>
                         )}
                         <input
