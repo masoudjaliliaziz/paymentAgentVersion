@@ -44,6 +44,8 @@ export type PaymentType = {
   invoiceType?: string | number;
   customerCode?: string | number;
   customerCodeHeader?: string | number; // نوع فاکتور: 1 یا 2
+  cashResean?: string;
+  selectedCheckSayadiForCheckFori?: string;
 };
 
 export type DebtType = {

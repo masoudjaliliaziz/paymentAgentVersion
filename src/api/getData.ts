@@ -2,7 +2,7 @@ import type { CustomerType } from "../types/apiTypes";
 
 //load currentUser ---------------------------
 export async function loadCurrentUser(
-  parentGUID: string
+  parentGUID: string,
 ): Promise<CustomerType[]> {
   if (!parentGUID) return [];
 
@@ -14,7 +14,7 @@ export async function loadCurrentUser(
       `${webUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=guid_form eq guid'${parentGUID}'`,
       {
         headers: { Accept: "application/json;odata=verbose" },
-      }
+      },
     );
 
     const data = await response.json();
@@ -51,11 +51,13 @@ export type PaymentType = {
   bankName: string;
   VerifiedHoghoghi: string;
   nationalIdHoghoghi: string;
+  cashResean?: string;
+  selectedCheckSayadiForCheckFori?: string;
 };
 
 //load paymentrs byu guyid for each customer -=------------------------------
 export async function loadPayment(
-  parentGUID: string
+  parentGUID: string,
 ): Promise<Partial<PaymentType[]>> {
   const webUrl = "https://crm.zarsim.com";
   const listName = "CustomerPayment";
@@ -88,7 +90,7 @@ export async function loadPayment(
 
 //temp for develop ( this have been load from farvardin)----------------------
 export async function loadDebt(
-  parentGUID: string
+  parentGUID: string,
 ): Promise<Partial<PaymentType[]>> {
   const webUrl = "https://crm.zarsim.com";
   const listName = "Debt";
