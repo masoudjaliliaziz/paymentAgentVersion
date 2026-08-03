@@ -116,6 +116,10 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const [selectedCheckSayadiForCheckFori, setSelectedCheckSayadiForCheckFori] =
     useState("");
 
+  const [
+    selectedCheckSerialNoForCheckFori,
+    setSelectedCheckSerialNoForCheckFori,
+  ] = useState("");
   const cashPic = useRef<FileUploaderHandle | null>(null);
   const checkPic = useRef<FileUploaderHandle | null>(null);
   const checkConfirmPic = useRef<FileUploaderHandle | null>(null);
@@ -227,13 +231,20 @@ const UploadCheckoutForm: React.FC<Props> = ({
       if (!price || price === 0) return "مبلغ وارد نشده است.";
 
       if (!checkPic.current?.hasFile?.()) return "تصویر چک الزامی است.";
-    }
-    if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
-      const enteredAmount = Number(priceCash || 0);
+      if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
+        const enteredAmount = Number(priceCash || 0);
 
-      if (enteredAmount > remainingAmount) {
-        return `مبلغ وارد شده بیشتر از باقیمانده چک است.
+        if (enteredAmount > remainingAmount) {
+          return `مبلغ وارد شده بیشتر از باقیمانده چک است.
 باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
+        }
+      }
+      if (!selectedCheckSerialNoForCheckFori.trim()) {
+        return "انتخاب شماره چک برگشتی الزامی است.";
+      }
+
+      if (!selectedCheckSayadiForCheckFori.trim()) {
+        return "شماره چک واردشده در لیست چک‌های برگشتی معتبر نیست.";
       }
     }
 
@@ -243,6 +254,21 @@ const UploadCheckoutForm: React.FC<Props> = ({
       if (!priceCash || priceCash === 0) return "مبلغ وارد نشده است.";
 
       if (!cashPic.current?.hasFile?.()) return "تصویر رسید نقدی الزامی است.";
+      if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
+        const enteredAmount = Number(priceCash || 0);
+
+        if (enteredAmount > remainingAmount) {
+          return `مبلغ وارد شده بیشتر از باقیمانده چک است.
+باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
+        }
+      }
+      if (!selectedCheckSerialNoForCheckFori.trim()) {
+        return "انتخاب شماره چک برگشتی الزامی است.";
+      }
+
+      if (!selectedCheckSayadiForCheckFori.trim()) {
+        return "شماره چک واردشده در لیست چک‌های برگشتی معتبر نیست.";
+      }
     }
 
     return null;
@@ -302,6 +328,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         cashResean?: string;
         agentDescription?: string;
         selectedCheckSayadiForCheckFori?: string;
+        selectedCheckSerialNoForCheckFori?: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -326,6 +353,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           agentDescription,
           selectedCheckSayadiForCheckFori,
+          selectedCheckSerialNoForCheckFori,
         };
       } else if (type === "check" && activeTab === "hoghoghi") {
         data = {
@@ -349,6 +377,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           agentDescription,
           selectedCheckSayadiForCheckFori,
+          selectedCheckSerialNoForCheckFori,
         };
       } else {
         data = {
@@ -371,6 +400,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           cashResean: cashResean,
           agentDescription,
           selectedCheckSayadiForCheckFori,
+          selectedCheckSerialNoForCheckFori,
         };
       }
 
@@ -497,7 +527,53 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 placeholder="اسکن یا وارد کردن کد صیادی"
               />
             </div>
+  {cashResean === "checkFori" && (
+                <div className="flex flex-col gap-2 items-end">
+                  <label className="text-sm font-semibold">
+                    انتخاب چک (شماره چک)
+                  </label>
 
+                  <input
+                    type="text"
+                    list="check-serial-list"
+                    value={selectedCheckSerialNoForCheckFori}
+                    onChange={(e) => {
+                      const serialNo = e.target.value.trim();
+
+                      // شماره چک وارد/انتخاب‌شده
+                      setSelectedCheckSerialNoForCheckFori(serialNo);
+
+                      // پیدا کردن چک متناظر بر اساس شماره چک
+                      const selectedCheck = availableChecks.find(
+                        (check) =>
+                          String(check.serialNo ?? "").trim() === serialNo,
+                      );
+
+                      // ثبت کد صیادی همان چک
+                      setSelectedCheckSayadiForCheckFori(
+                        String(selectedCheck?.sayadiCode ?? ""),
+                      );
+                    }}
+                    placeholder="جستجو یا انتخاب شماره چک"
+                    className="input input-bordered w-full font-mono text-sm ltr"
+                  />
+
+                  <datalist id="check-serial-list">
+                    {availableChecks.map((item) => (
+                      <option key={item.itemGUID} value={item.serialNo}>
+                        {item.serialNo}
+                      </option>
+                    ))}
+                  </datalist>
+
+                  {/* اختیاری: نمایش کد صیادی چک انتخاب‌شده */}
+                  {selectedCheckSayadiForCheckFori && (
+                    <p className="text-xs text-gray-500 ltr">
+                      کد صیادی: {selectedCheckSayadiForCheckFori}
+                    </p>
+                  )}
+                </div>
+              )}
             {activeTab === "haghighi" && (
               <div className="flex flex-col gap-2 items-end ">
                 <label className="text-sm font-semibold">کد ملی صاحب چک</label>
@@ -656,27 +732,48 @@ const UploadCheckoutForm: React.FC<Props> = ({
               {cashResean === "checkFori" && (
                 <div className="flex flex-col gap-2 items-end">
                   <label className="text-sm font-semibold">
-                    انتخاب چک (کد صیادی)
+                    انتخاب چک (شماره چک)
                   </label>
 
                   <input
                     type="text"
-                    list="check-sayadi-list"
-                    value={selectedCheckSayadiForCheckFori}
-                    onChange={(e) =>
-                      setSelectedCheckSayadiForCheckFori(e.target.value)
-                    }
-                    placeholder="جستجو یا انتخاب کد صیادی"
+                    list="check-serial-list"
+                    value={selectedCheckSerialNoForCheckFori}
+                    onChange={(e) => {
+                      const serialNo = e.target.value.trim();
+
+                      // شماره چک وارد/انتخاب‌شده
+                      setSelectedCheckSerialNoForCheckFori(serialNo);
+
+                      // پیدا کردن چک متناظر بر اساس شماره چک
+                      const selectedCheck = availableChecks.find(
+                        (check) =>
+                          String(check.serialNo ?? "").trim() === serialNo,
+                      );
+
+                      // ثبت کد صیادی همان چک
+                      setSelectedCheckSayadiForCheckFori(
+                        String(selectedCheck?.sayadiCode ?? ""),
+                      );
+                    }}
+                    placeholder="جستجو یا انتخاب شماره چک"
                     className="input input-bordered w-full font-mono text-sm ltr"
                   />
 
-                  <datalist id="check-sayadi-list">
+                  <datalist id="check-serial-list">
                     {availableChecks.map((item) => (
-                      <option key={item.itemGUID} value={item.sayadiCode}>
-                        {item.sayadiCode}
+                      <option key={item.itemGUID} value={item.serialNo}>
+                        {item.serialNo}
                       </option>
                     ))}
                   </datalist>
+
+                  {/* اختیاری: نمایش کد صیادی چک انتخاب‌شده */}
+                  {selectedCheckSayadiForCheckFori && (
+                    <p className="text-xs text-gray-500 ltr">
+                      کد صیادی: {selectedCheckSayadiForCheckFori}
+                    </p>
+                  )}
                 </div>
               )}
 
