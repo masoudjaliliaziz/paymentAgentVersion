@@ -88,6 +88,7 @@ export type Data = {
   cashResean?: string;
   agentDescription?: string;
   selectedCheckSayadiForCheckFori?: string;
+  selectedCheckSerialNoForCheckFor?: string;
 };
 export type CustomerType = {
   Id: number;

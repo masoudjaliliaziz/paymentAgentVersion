@@ -117,7 +117,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
     useState("");
 
   const [
-    selectedCheckSerialNoForCheckFori,
+    selectedCheckSerialNoForCheckFor,
     setSelectedCheckSerialNoForCheckFori,
   ] = useState("");
   const cashPic = useRef<FileUploaderHandle | null>(null);
@@ -239,11 +239,17 @@ const UploadCheckoutForm: React.FC<Props> = ({
 باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
         }
       }
-      if (!selectedCheckSerialNoForCheckFori.trim()) {
+      if (
+        cashResean === "checkFori" &&
+        !selectedCheckSerialNoForCheckFor.trim()
+      ) {
         return "انتخاب شماره چک برگشتی الزامی است.";
       }
 
-      if (!selectedCheckSayadiForCheckFori.trim()) {
+      if (
+        cashResean === "checkFori" &&
+        !selectedCheckSayadiForCheckFori.trim()
+      ) {
         return "شماره چک واردشده در لیست چک‌های برگشتی معتبر نیست.";
       }
     }
@@ -262,11 +268,17 @@ const UploadCheckoutForm: React.FC<Props> = ({
 باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
         }
       }
-      if (!selectedCheckSerialNoForCheckFori.trim()) {
+      if (
+        cashResean === "checkFori" &&
+        !selectedCheckSerialNoForCheckFor.trim()
+      ) {
         return "انتخاب شماره چک برگشتی الزامی است.";
       }
 
-      if (!selectedCheckSayadiForCheckFori.trim()) {
+      if (
+        cashResean === "checkFori" &&
+        !selectedCheckSayadiForCheckFori.trim()
+      ) {
         return "شماره چک واردشده در لیست چک‌های برگشتی معتبر نیست.";
       }
     }
@@ -328,7 +340,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         cashResean?: string;
         agentDescription?: string;
         selectedCheckSayadiForCheckFori?: string;
-        selectedCheckSerialNoForCheckFori?: string;
+        selectedCheckSerialNoForCheckFor?: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -353,7 +365,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           agentDescription,
           selectedCheckSayadiForCheckFori,
-          selectedCheckSerialNoForCheckFori,
+          selectedCheckSerialNoForCheckFor,
         };
       } else if (type === "check" && activeTab === "hoghoghi") {
         data = {
@@ -377,7 +389,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           agentDescription,
           selectedCheckSayadiForCheckFori,
-          selectedCheckSerialNoForCheckFori,
+          selectedCheckSerialNoForCheckFor,
         };
       } else {
         data = {
@@ -400,10 +412,10 @@ const UploadCheckoutForm: React.FC<Props> = ({
           cashResean: cashResean,
           agentDescription,
           selectedCheckSayadiForCheckFori,
-          selectedCheckSerialNoForCheckFori,
+          selectedCheckSerialNoForCheckFor,
         };
       }
-
+      console.log("🎶🎶🎶🎶🎶🎶🎶🎶", data);
       await handleAddItem(data);
 
       setTypeActiveTab("1");
@@ -527,53 +539,53 @@ const UploadCheckoutForm: React.FC<Props> = ({
                 placeholder="اسکن یا وارد کردن کد صیادی"
               />
             </div>
-  {cashResean === "checkFori" && (
-                <div className="flex flex-col gap-2 items-end">
-                  <label className="text-sm font-semibold">
-                    انتخاب چک (شماره چک)
-                  </label>
+            {cashResean === "checkFori" && (
+              <div className="flex flex-col gap-2 items-end">
+                <label className="text-sm font-semibold">
+                  انتخاب چک (شماره چک)
+                </label>
 
-                  <input
-                    type="text"
-                    list="check-serial-list"
-                    value={selectedCheckSerialNoForCheckFori}
-                    onChange={(e) => {
-                      const serialNo = e.target.value.trim();
+                <input
+                  type="text"
+                  list="check-serial-list"
+                  value={selectedCheckSerialNoForCheckFor}
+                  onChange={(e) => {
+                    const serialNo = e.target.value.trim();
 
-                      // شماره چک وارد/انتخاب‌شده
-                      setSelectedCheckSerialNoForCheckFori(serialNo);
+                    // شماره چک وارد/انتخاب‌شده
+                    setSelectedCheckSerialNoForCheckFori(serialNo);
 
-                      // پیدا کردن چک متناظر بر اساس شماره چک
-                      const selectedCheck = availableChecks.find(
-                        (check) =>
-                          String(check.serialNo ?? "").trim() === serialNo,
-                      );
+                    // پیدا کردن چک متناظر بر اساس شماره چک
+                    const selectedCheck = availableChecks.find(
+                      (check) =>
+                        String(check.serialNo ?? "").trim() === serialNo,
+                    );
 
-                      // ثبت کد صیادی همان چک
-                      setSelectedCheckSayadiForCheckFori(
-                        String(selectedCheck?.sayadiCode ?? ""),
-                      );
-                    }}
-                    placeholder="جستجو یا انتخاب شماره چک"
-                    className="input input-bordered w-full font-mono text-sm ltr"
-                  />
+                    // ثبت کد صیادی همان چک
+                    setSelectedCheckSayadiForCheckFori(
+                      String(selectedCheck?.sayadiCode ?? ""),
+                    );
+                  }}
+                  placeholder="جستجو یا انتخاب شماره چک"
+                  className="input input-bordered w-full font-mono text-sm ltr"
+                />
 
-                  <datalist id="check-serial-list">
-                    {availableChecks.map((item) => (
-                      <option key={item.itemGUID} value={item.serialNo}>
-                        {item.serialNo}
-                      </option>
-                    ))}
-                  </datalist>
+                <datalist id="check-serial-list">
+                  {availableChecks.map((item) => (
+                    <option key={item.itemGUID} value={item.serialNo}>
+                      {item.serialNo}
+                    </option>
+                  ))}
+                </datalist>
 
-                  {/* اختیاری: نمایش کد صیادی چک انتخاب‌شده */}
-                  {selectedCheckSayadiForCheckFori && (
-                    <p className="text-xs text-gray-500 ltr">
-                      کد صیادی: {selectedCheckSayadiForCheckFori}
-                    </p>
-                  )}
-                </div>
-              )}
+                {/* اختیاری: نمایش کد صیادی چک انتخاب‌شده */}
+                {selectedCheckSayadiForCheckFori && (
+                  <p className="text-xs text-gray-500 ltr">
+                    کد صیادی: {selectedCheckSayadiForCheckFori}
+                  </p>
+                )}
+              </div>
+            )}
             {activeTab === "haghighi" && (
               <div className="flex flex-col gap-2 items-end ">
                 <label className="text-sm font-semibold">کد ملی صاحب چک</label>
@@ -738,7 +750,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
                   <input
                     type="text"
                     list="check-serial-list"
-                    value={selectedCheckSerialNoForCheckFori}
+                    value={selectedCheckSerialNoForCheckFor}
                     onChange={(e) => {
                       const serialNo = e.target.value.trim();
 
