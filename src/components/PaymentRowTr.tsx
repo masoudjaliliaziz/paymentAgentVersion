@@ -23,6 +23,7 @@ import { useUpdateDueDate } from "../hooks/useUpdateDueDate";
 import { useUpdatePrice } from "../hooks/useUpdatePrice";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
+import Modal from "./Modal";
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -607,7 +608,13 @@ function PaymentRowTrComponent({
                   )}
                 </tbody>
               </table>
-
+              <Modal
+                id={`treasury-confirm-description-modal-${item.ID}`}
+                title={{
+                  slag: "توضیحات کارشناس",
+                  data: item?.agentDescription || "توضیحاتی درج نشده",
+                }}
+              />
               {errorMessage && (
                 <div className="flex justify-end">
                   <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold">
@@ -1203,7 +1210,13 @@ function PaymentRowTrComponent({
                   </tr>
                 </tbody>
               </table>
-
+              <Modal
+                id={`treasury-confirm-description-modal-${item.ID}`}
+                title={{
+                  slag: "توضیحات کارشناس",
+                  data: item?.agentDescription || "توضیحاتی درج نشده",
+                }}
+              />
               <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
                 <div>
                   <p className="text-sm font-semibold text-gray-500">
