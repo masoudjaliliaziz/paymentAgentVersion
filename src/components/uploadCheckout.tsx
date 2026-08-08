@@ -231,14 +231,14 @@ const UploadCheckoutForm: React.FC<Props> = ({
       if (!price || price === 0) return "مبلغ وارد نشده است.";
 
       if (!checkPic.current?.hasFile?.()) return "تصویر چک الزامی است.";
-      if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
-        const enteredAmount = Number(priceCash || 0);
+      //       if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
+      //         const enteredAmount = Number(priceCash || 0);
 
-        if (enteredAmount > remainingAmount) {
-          return `مبلغ وارد شده بیشتر از باقیمانده چک است.
-باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
-        }
-      }
+      //         if (enteredAmount > remainingAmount) {
+      //           return `مبلغ وارد شده بیشتر از باقیمانده چک است.
+      // باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
+      //         }
+      //       }
       if (
         cashResean === "checkFori" &&
         !selectedCheckSerialNoForCheckFor.trim()
@@ -260,14 +260,14 @@ const UploadCheckoutForm: React.FC<Props> = ({
       if (!priceCash || priceCash === 0) return "مبلغ وارد نشده است.";
 
       if (!cashPic.current?.hasFile?.()) return "تصویر رسید نقدی الزامی است.";
-      if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
-        const enteredAmount = Number(priceCash || 0);
+      //       if (cashResean === "checkFori" && selectedCheckSayadiForCheckFori) {
+      //         const enteredAmount = Number(priceCash || 0);
 
-        if (enteredAmount > remainingAmount) {
-          return `مبلغ وارد شده بیشتر از باقیمانده چک است.
-باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
-        }
-      }
+      //         if (enteredAmount > remainingAmount) {
+      //           return `مبلغ وارد شده بیشتر از باقیمانده چک است.
+      // باقیمانده قابل استفاده: ${remainingAmount.toLocaleString("fa-IR")} ریال`;
+      //         }
+      //       }
       if (
         cashResean === "checkFori" &&
         !selectedCheckSerialNoForCheckFor.trim()
