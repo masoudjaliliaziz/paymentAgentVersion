@@ -381,7 +381,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
             customerData?.["0"]?.SalesExpertAcunt_text || "",
           status: "1",
           cash: "0",
-          VerifiedHoghoghi: "0",
+          Verified: "0",
           invoiceType: typeactiveTab,
           customerCode: customer?.CustomerCode || "",
           customerTitle: customer?.Title || "",

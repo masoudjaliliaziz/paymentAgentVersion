@@ -70,7 +70,32 @@ const isInRange = (value?: string | null, range?: DateObject[]): boolean => {
 
   return itemTime >= startTime.getTime() && itemTime <= endTime.getTime();
 };
+const isCreatedDateInRange = (
+  value: string | undefined | null,
+  range: DateObject[] | undefined,
+) => {
+  if (!range || range.length !== 2) return true;
+  if (!value) return false;
 
+  const [start, end] = range;
+
+  const startDate = start.toDate();
+  const endDate = end.toDate();
+
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+
+  const createdDate = new Date(value);
+
+  if (Number.isNaN(createdDate.getTime())) {
+    return false;
+  }
+
+  return (
+    createdDate.getTime() >= startDate.getTime() &&
+    createdDate.getTime() <= endDate.getTime()
+  );
+};
 function App() {
   const guid = useParentGuid();
   const dispatch: AppDispatch = useDispatch();
@@ -258,7 +283,7 @@ function App() {
         return false;
       }
 
-      if (paymentType && item.paymentType !== paymentType) {
+      if (paymentType !== "" && String(item.cash) !== String(paymentType)) {
         return false;
       }
 
@@ -268,7 +293,7 @@ function App() {
       }
 
       // تاريخ ثبت: اگر اسم فيلدت فرق دارد، Created را عوض کن
-      if (!isInRange(item.Created, createdDateRange)) {
+      if (!isCreatedDateInRange(item.Created, createdDateRange)) {
         return false;
       }
 

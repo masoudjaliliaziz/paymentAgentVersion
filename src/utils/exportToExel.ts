@@ -14,6 +14,13 @@ const normalizeDate = (
   }
 };
 // تعریف interface برای داده‌های Excel - این interface ساختار فایل Excel خروجی را تعریف می‌کند
+interface ExcelRowDataForPayment {
+  ردیف: number; // شماره ردیف از 1 شروع می‌شود
+  روز: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
+  ماه: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
+  سال: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
+  مبلغ: number; // مبلغ از استعلام صیاد
+}
 interface ExcelRowData {
   ردیف: number; // شماره ردیف از 1 شروع می‌شود
   روز: string; // تاریخ سر رسید از استعلام صیاد (انگلیسی)
@@ -57,46 +64,44 @@ export const exportToExcel = (
       return;
     }
 
-    const excelData: ExcelRowData[] = payments.map((payment, index) => ({
-      ردیف: index + 1,
-      نوع: payment.cash === "1" ? "نقدي" : "چك",
-      "شماره چک": payment.serialNo || "",
-      "کد صیادی": payment.sayadiCode || "",
-      "نام صادرکننده": payment.name || "",
-      روز: convertToEnglishDate(payment.dueDate).slice(6, 8),
-      ماه: convertToEnglishDate(payment.dueDate).slice(4, 6),
-      سال:
-        convertToEnglishDate(payment.dueDate).slice(0, 4) === "1404"
-          ? "104"
-          : "105",
-      مبلغ:
-        Number(payment.price).toLocaleString("en-US", {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 3,
-        }) || "",
-      بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
-      توضیحات: payment.agentDescription,
-      مشتری: payment.customerTitle,
-      "نوع پرداخت":
-        payment.invoiceType === "1"
-          ? "نوع 1"
-          : payment.invoiceType === "2"
-            ? "نوع 2"
-            : payment.invoiceType === "3"
-              ? "دانش بنیان"
-              : "نامشخص",
-      وضعیت:
-        payment.status === "0"
-          ? "در انتظار تایید کارشناس"
-          : payment.status === "1"
-            ? "در انتظار تایید خزانه"
-            : payment.status === "3"
-              ? "رد شده توسط خزانه "
-              : payment.status === "4"
-                ? "تایید نهایی"
-                : "رد توسط کارشناس",
-      "تاریخ وضعیت ": formatCreatedDate(payment.Modified),
-    }));
+    const excelData: ExcelRowDataForPayment[] = payments.map(
+      (payment, index) => ({
+        ردیف: index + 1,
+        نوع: payment.cash === "1" ? "نقدي" : "چك",
+        "شماره چک": payment.serialNo || "",
+        "کد صیادی": payment.sayadiCode || "",
+        "نام صادرکننده": payment.name || "",
+        روز: convertToEnglishDate(payment.dueDate).slice(6, 8),
+        ماه: convertToEnglishDate(payment.dueDate).slice(4, 6),
+        سال:
+          convertToEnglishDate(payment.dueDate).slice(0, 4) === "1404"
+            ? "104"
+            : "105",
+        مبلغ: Number(payment.price),
+        بابت: payment.cashResean === "checkFori" ? "چک برگشتی" : "خرید کالا",
+        توضیحات: payment.agentDescription,
+        مشتری: payment.customerTitle,
+        "نوع پرداخت":
+          payment.invoiceType === "1"
+            ? "نوع 1"
+            : payment.invoiceType === "2"
+              ? "نوع 2"
+              : payment.invoiceType === "3"
+                ? "دانش بنیان"
+                : "نامشخص",
+        وضعیت:
+          payment.status === "0"
+            ? "در انتظار تایید کارشناس"
+            : payment.status === "1"
+              ? "در انتظار تایید خزانه"
+              : payment.status === "3"
+                ? "رد شده توسط خزانه "
+                : payment.status === "4"
+                  ? "تایید نهایی"
+                  : "رد توسط کارشناس",
+        "تاریخ وضعیت ": formatCreatedDate(payment.Modified),
+      }),
+    );
 
     // ایجاد workbook جدید
     const workbook = XLSX.utils.book_new();
