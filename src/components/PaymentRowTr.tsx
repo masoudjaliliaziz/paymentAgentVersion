@@ -17,13 +17,13 @@ import { useCustomers } from "../hooks/useCustomer";
 import { useClearPaymentError } from "./../hooks/useClearPaymentError";
 import { useResetVerified } from "./../hooks/useResetVerified";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
-import { useResetVerifiedHoghoghi } from "../hooks/useResetVerifiedHoghoghi";
+// import { useResetVerifiedHoghoghi } from "../hooks/useResetVerifiedHoghoghi";
 import { useUpdateSayadiCode } from "../hooks/useUpdateSayadiCode";
 import { useUpdateDueDate } from "../hooks/useUpdateDueDate";
 import { useUpdatePrice } from "../hooks/useUpdatePrice";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
-import Modal from "./Modal";
+
 type SayadHolders = {
   idCode: string;
   idType: number;
@@ -236,10 +236,10 @@ function PaymentRowTrComponent({
   const { mutate: mutateRejectTr } = useRejectSayadConfirmTr(item.parentGUID);
   const { mutate: resetVerifiedMutation, isPending: isResettingVerified } =
     useResetVerified(item.parentGUID);
-  const {
-    mutate: resetVerifiedHoghoghiMutation,
-    isPending: isResettingVerifiedHoghoghi,
-  } = useResetVerifiedHoghoghi(item.parentGUID);
+  // const {
+  //   mutate: resetVerifiedHoghoghiMutation,
+  //   isPending: isResettingVerifiedHoghoghi,
+  // } = useResetVerifiedHoghoghi(item.parentGUID);
   const { sayadiCode, dueDate, price, itemGUID, ID, status } = item;
   const queryClient = useQueryClient();
   const updateSayadVerifiedMutation = useSayadConfirm(item.parentGUID);
@@ -514,21 +514,19 @@ function PaymentRowTrComponent({
                         {item.nationalIdHoghoghi && (
                           <button
                             type="button"
-                            onClick={() =>
-                              resetVerifiedHoghoghiMutation(Number(ID))
-                            }
-                            disabled={isResettingVerifiedHoghoghi}
+                            onClick={() => resetVerifiedMutation(Number(ID))}
+                            disabled={isResettingVerified}
                             className={`px-3 py-1.5 cursor-pointer rounded-md text-white font-semibold text-xs whitespace-nowrap
                             w-32 h-10 text-center items-center justify-center flex 
                             ${
-                              isResettingVerifiedHoghoghi
+                              isResettingVerified
                                 ? "bg-gray-400 cursor-not-allowed"
                                 : "bg-orange-500 hover:bg-orange-600"
                             }`}
                           >
-                            {isResettingVerifiedHoghoghi
+                            {isResettingVerified
                               ? "در حال انجام..."
-                              : "تنظیم VerifiedHoghoghi به 0"}
+                              : "تنظیم Verified به 0"}
                           </button>
                         )}
                       </div>
@@ -608,13 +606,14 @@ function PaymentRowTrComponent({
                   )}
                 </tbody>
               </table>
-              <Modal
-                id={`treasury-confirm-description-modal-${item.ID}`}
-                title={{
-                  slag: "توضیحات کارشناس",
-                  data: item?.agentDescription || "توضیحاتی درج نشده",
-                }}
-              />
+              {item?.agentDescription !== "" &&
+                item?.agentDescription !== null &&
+                item?.agentDescription !== undefined && (
+                  <div className="bg-slate-100 font-bold w-full py-3 px-3 flex flex-col gap-2 justify-center items-center rounded-lg text-gray-600">
+                    <span>{item.agentDescription}</span>
+                  </div>
+                )}
+
               {errorMessage && (
                 <div className="flex justify-end">
                   <span className="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold">
@@ -1210,13 +1209,13 @@ function PaymentRowTrComponent({
                   </tr>
                 </tbody>
               </table>
-              <Modal
-                id={`treasury-confirm-description-modal-${item.ID}`}
-                title={{
-                  slag: "توضیحات کارشناس",
-                  data: item?.agentDescription || "توضیحاتی درج نشده",
-                }}
-              />
+              {item?.agentDescription !== "" &&
+                item?.agentDescription !== null &&
+                item?.agentDescription !== undefined && (
+                  <div className="bg-slate-100 font-bold w-full py-3 px-3 flex flex-col gap-2 justify-center items-center rounded-lg text-gray-600">
+                    <span>{item.agentDescription}</span>
+                  </div>
+                )}
               <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
                 <div>
                   <p className="text-sm font-semibold text-gray-500">
