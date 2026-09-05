@@ -139,16 +139,21 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const availableChecks = paymentList.filter(
     (p) => p.status === "4" && p.sayadiCode,
   );
+
   const originalCheck = paymentList.find(
     (p) => p.sayadiCode === selectedCheckSayadiForCheckFori,
   );
+
   const usedAmountForCheck = paymentList
     .filter(
       (p) =>
-        p.selectedCheckSayadiForCheckFori === selectedCheckSayadiForCheckFori,
+        p.selectedCheckSayadiForCheckFori === selectedCheckSayadiForCheckFori &&
+        (p.status === "1" || p.status === "4"),
     )
     .reduce((sum, item) => sum + Number(item.price || 0), 0);
+
   const originalCheckAmount = Number(originalCheck?.price || 0);
+
   const remainingAmount = originalCheckAmount - usedAmountForCheck;
 
   const [customer, setCustomer] = useState<CustomerType>();
