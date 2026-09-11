@@ -74,12 +74,12 @@ const bankOptions = [
 
 type Props = {
   parent_GUID: string;
-  type: "check" | "cash";
+  type: "check" | "cash" | "poz";
   formKey: number;
   setFormKey: Dispatch<SetStateAction<number>>;
-  typeactiveTab: "1" | "2" | "3" | "4";
+  typeactiveTab: "1" | "2" | "3" | "4" | "5";
   customerData: CustomerType[];
-  setTypeActiveTab: (value: "1" | "2" | "3" | "4") => void;
+  setTypeActiveTab: (value: "1" | "2" | "3" | "4" | "5") => void;
   // 👈 نوع فرم
   customerCodeHeader: string;
   customerNameHeader: string;
@@ -115,13 +115,17 @@ const UploadCheckoutForm: React.FC<Props> = ({
   const [cashResean, setCashResean] = useState<string>("buyGoods");
   const [selectedCheckSayadiForCheckFori, setSelectedCheckSayadiForCheckFori] =
     useState("");
-
+  const [pricepoz, setPricePozState] = useState<number | "">("");
+  const [pozEternal, setPozExternal] = useState<number | "">("");
+  const [dayOfYearPoz, setDayOfYearPoz] = useState<string>("0");
+  const [dueDatePoz, setDueDatePoz] = useState<DateObject | null>(null);
   const [
     selectedCheckSerialNoForCheckFor,
     setSelectedCheckSerialNoForCheckFori,
   ] = useState("");
   const cashPic = useRef<FileUploaderHandle | null>(null);
   const checkPic = useRef<FileUploaderHandle | null>(null);
+  const pozPic = useRef<FileUploaderHandle | null>(null);
   const checkConfirmPic = useRef<FileUploaderHandle | null>(null);
   const qrInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -228,6 +232,8 @@ const UploadCheckoutForm: React.FC<Props> = ({
   }, [sayadiCode, paymentList]);
 
   const validateFields = () => {
+    console.log("🔴 VALIDATE TYPE:", type);
+    console.log("🔴 cashResean:", cashResean);
     if (type === "check") {
       if (!sayadiCode.trim()) return "شناسه صیادی وارد نشده است.";
       if (sayadiError) return sayadiError;
@@ -287,6 +293,12 @@ const UploadCheckoutForm: React.FC<Props> = ({
         return "شماره چک واردشده در لیست چک‌های برگشتی معتبر نیست.";
       }
     }
+    if (type === "poz") {
+      if (!pozEternal || pozEternal === 0)
+        return " شماره پایانه وارد نشده است.";
+      if (!dueDatePoz) return "تاریخ سررسید انتخاب نشده است.";
+      if (!pricepoz || pricepoz === 0) return "مبلغ وارد نشده است.";
+    }
 
     return null;
   };
@@ -337,7 +349,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         bankName?: string;
         Verified?: string;
         VerifiedHoghoghi?: string;
-        invoiceType: "1" | "2" | "3" | "4";
+        invoiceType: "1" | "2" | "3" | "4" | "5";
         customerCode: string;
         customerTitle: string;
         customerCodeHeader: string;
@@ -346,6 +358,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
         agentDescription?: string;
         selectedCheckSayadiForCheckFori?: string;
         selectedCheckSerialNoForCheckFor?: string;
+        pozExternal?: string;
       };
 
       if (type === "check" && activeTab === "haghighi") {
@@ -370,6 +383,7 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           agentDescription,
           selectedCheckSayadiForCheckFori,
+          cashResean: cashResean,
           selectedCheckSerialNoForCheckFor,
         };
       } else if (type === "check" && activeTab === "hoghoghi") {
@@ -394,7 +408,29 @@ const UploadCheckoutForm: React.FC<Props> = ({
           customerNameHeader,
           agentDescription,
           selectedCheckSayadiForCheckFori,
+          cashResean: cashResean,
           selectedCheckSerialNoForCheckFor,
+        };
+      } else if (type === "poz") {
+        data = {
+          price: pricepoz ? pricepoz.toString() : "",
+          dueDate: dueDatePoz?.format("YYYY/MM/DD") || "",
+          dayOfYear: dayOfYearPoz,
+          parentGUID: parent_GUID,
+          itemGUID,
+          SalesExpert: customerData?.["0"]?.SalesExpert || "",
+          SalesExpertAcunt_text:
+            customerData?.["0"]?.SalesExpertAcunt_text || "",
+          status: "0",
+          cash: "2",
+          pozExternal: pozEternal.toString() || undefined,
+          invoiceType: typeactiveTab,
+          customerCode: customer?.CustomerCode || "",
+          customerTitle: customer?.Title || "",
+          customerCodeHeader,
+          customerNameHeader,
+          cashResean: cashResean,
+          agentDescription,
         };
       } else {
         data = {
@@ -428,7 +464,9 @@ const UploadCheckoutForm: React.FC<Props> = ({
       if (type === "cash") {
         if (cashPic.current) await cashPic.current.uploadFile();
       }
-
+      if (type === "poz") {
+        if (pozPic.current) await pozPic.current.uploadFile();
+      }
       if (type === "check") {
         if (checkPic.current) await checkPic.current.uploadFile();
         if (checkConfirmPic.current?.hasFile?.()) {
@@ -442,6 +480,12 @@ const UploadCheckoutForm: React.FC<Props> = ({
         setDueDateCash(null);
         setBankName("");
         cashPic.current?.clearFile?.();
+      }
+      if (type === "poz") {
+        setPricePozState("");
+        setDueDatePoz(null);
+        setPozExternal("");
+        pozPic.current?.clearFile?.();
       }
       setFormKey((cur) => cur + 1);
       toast.success("ثبت با موفقیت انجام شد");
@@ -504,400 +548,315 @@ const UploadCheckoutForm: React.FC<Props> = ({
     return str.slice(-16);
   }
   return (
-    <div className="flex flex-col gap-4 mb-6 p-4 rounded-lg text-base-content">
-      <div className="w-full bg-base-100 border border-base-300 rounded-2xl p-6 shadow-xl flex flex-col gap-6 transition-all duration-300">
-        {type === "check" && (
-          <div className="w-full flex justify-end items-center">
-            <NationalIdTypeDropdown
-              value={activeTab}
-              onChange={setActiveTab}
-              className="dropdown-end"
-            />
+    <div className="mb-6 w-full text-base-content">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {/* ================= HEADER ================= */}
+        <div className="border-b border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* عنوان */}
+            <div className="flex items-center gap-2">
+              {type === "check" && (
+                <div className="h-2.5 w-2.5 rounded-full bg-primary-600" />
+              )}
+              {type === "poz" && (
+                <div className="h-2.5 w-2.5 rounded-full bg-emerald-700" />
+              )}
+              {type === "cash" && (
+                <div className="h-2.5 w-2.5 rounded-full bg-green-600" />
+              )}
+
+              <span className="text-base font-bold text-slate-800 sm:text-lg">
+                {type === "check"
+                  ? "ثبت چک جدید"
+                  : type === "poz"
+                    ? "ثبت کارتخوان"
+                    : "ثبت واریز نقدی"}
+              </span>
+            </div>
+
+            {/* کنترل‌های Header */}
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              {/* نوع پرداخت */}
+              <div className="w-full sm:w-48">
+                <CashReseanComponent
+                  value={cashResean}
+                  onChange={setCashResean}
+                />
+              </div>
+
+              {/* نوع شخص / شرکت */}
+              {type === "check" && (
+                <div className="w-full sm:w-48">
+                  <NationalIdTypeDropdown
+                    value={activeTab}
+                    onChange={setActiveTab}
+                    className="dropdown-end"
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
-        <span className="text-lg font-bold border-b pb-2 text-right">
-          {type === "check" ? "ثبت چک جدید" : "ثبت واریز نقدی"}
-        </span>
+        {/* ================= CONTENT ================= */}
+        <div className="space-y-4 p-4 sm:p-5 lg:p-6">
+          {/* ===================================================== */}
+          {/* ======================= CHECK ======================= */}
+          {/* ===================================================== */}
 
-        {type === "check" && (
-          <>
-            <div className="flex flex-col gap-2 items-end ">
-              <CashReseanComponent
-                value={cashResean}
-                onChange={setCashResean}
-              />
-              <label className="text-sm font-semibold"> کد صیادی </label>
-              <input
-                ref={qrInputRef}
-                type="text"
-                value={sayadiCode}
-                onChange={(e) => handleQRCodeInput(e, e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault(); // جلوگیری از رفرش یا ارسال فرم
-                  }
-                }}
-                className={`input input-bordered w-full font-mono text-sm ltr ${
-                  sayadiError ? "input-error border-red-600" : ""
-                }`}
-                placeholder="اسکن یا وارد کردن کد صیادی"
-              />
-            </div>
-            {cashResean === "checkFori" && (
-              <div className="flex flex-col gap-2 items-end">
-                <label className="text-sm font-semibold">
-                  انتخاب چک (شماره چک)
-                </label>
+          {type === "check" && (
+            <>
+              {/* کد صیادی */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    کد صیادی
+                  </label>
 
-                <input
-                  type="text"
-                  list="check-serial-list"
-                  value={selectedCheckSerialNoForCheckFor}
-                  onChange={(e) => {
-                    const serialNo = e.target.value.trim();
-
-                    // شماره چک وارد/انتخاب‌شده
-                    setSelectedCheckSerialNoForCheckFori(serialNo);
-
-                    // پیدا کردن چک متناظر بر اساس شماره چک
-                    const selectedCheck = availableChecks.find(
-                      (check) =>
-                        String(check.serialNo ?? "").trim() === serialNo,
-                    );
-
-                    // ثبت کد صیادی همان چک
-                    setSelectedCheckSayadiForCheckFori(
-                      String(selectedCheck?.sayadiCode ?? ""),
-                    );
-                  }}
-                  placeholder="جستجو یا انتخاب شماره چک"
-                  className="input input-bordered w-full font-mono text-sm ltr"
-                />
-
-                <datalist id="check-serial-list">
-                  {availableChecks.map((item) => (
-                    <option key={item.itemGUID} value={item.serialNo}>
-                      {item.serialNo}
-                    </option>
-                  ))}
-                </datalist>
-
-                {/* اختیاری: نمایش کد صیادی چک انتخاب‌شده */}
-                {selectedCheckSayadiForCheckFori && (
-                  <p className="text-xs text-gray-500 ltr">
-                    کد صیادی: {selectedCheckSayadiForCheckFori}
-                  </p>
-                )}
+                  <input
+                    ref={qrInputRef}
+                    type="text"
+                    value={sayadiCode}
+                    onChange={(e) => handleQRCodeInput(e, e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                      }
+                    }}
+                    className={`input input-bordered w-full bg-white font-mono text-sm ltr ${
+                      sayadiError
+                        ? "input-error border-red-600"
+                        : "border-slate-300"
+                    }`}
+                    placeholder="اسکن یا وارد کردن کد صیادی"
+                  />
+                </div>
               </div>
-            )}
-            {activeTab === "haghighi" && (
-              <div className="flex flex-col gap-2 items-end ">
-                <label className="text-sm font-semibold">کد ملی صاحب چک</label>
-                <input
-                  type="text"
-                  value={nationalId}
-                  onChange={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setNationalId(e.target.value);
-                  }}
-                  minLength={10}
-                  maxLength={11}
-                  placeholder="مثلاً: 1234567890"
-                  className="input input-bordered w-full font-mono text-sm ltr"
-                />
-              </div>
-            )}
-            {activeTab === "hoghoghi" && (
-              <div className="flex flex-col gap-2 items-end ">
-                <label className="text-sm font-semibold"> شناسه ملی شرکت</label>
-                <input
-                  type="text"
-                  value={nationalIdHoghoghi}
-                  onChange={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setNationalIdHoghoghi(e.target.value);
-                  }}
-                  minLength={10}
-                  maxLength={11}
-                  placeholder="مثلاً: 1234567890"
-                  className="input input-bordered w-full font-mono text-sm ltr"
-                />
-              </div>
-            )}
-            <div className="flex flex-col gap-2 items-end ">
-              <label className="text-sm font-semibold">مبلغ (ریال)</label>
-              <input
-                type="text"
-                value={formatNumber(price)}
-                onChange={(e) => setPriceState(parseNumber(e.target.value))}
-                className="input input-bordered w-full font-semibold"
-                placeholder="مثال: 1,500,000"
-              />
-              {cashResean === "checkFori" &&
-                selectedCheckSayadiForCheckFori && (
-                  <div className="text-xs text-gray-600">
-                    مبلغ چک: {originalCheckAmount.toLocaleString("fa-IR")} ریال
-                    <br />
-                    استفاده شده: {usedAmountForCheck.toLocaleString(
-                      "fa-IR",
-                    )}{" "}
-                    ریال
-                    <br />
-                    باقیمانده: {remainingAmount.toLocaleString("fa-IR")} ریال
-                  </div>
-                )}
-            </div>
-            <div className="flex flex-col gap-2 items-end ">
-              <label className="text-sm font-semibold">تاریخ سررسید</label>
-              <DatePicker
-                calendar={persian}
-                locale={persian_fa}
-                value={dueDate}
-                onChange={(date: DateObject | null) => {
-                  if (date) {
-                    setDueDate(date);
-                    setDayOfYear(String(date.dayOfYear ?? 0));
-                  }
-                }}
-                inputClass="input input-bordered w-full"
-                placeholder="تاریخ را انتخاب کنید"
-                format="YYYY/MM/DD"
-              />
-            </div>
-            <div className="flex flex-col items-end w-full gap-1">
-              <label className=" text-sm font-bold ">توضیحات</label>
-              <textarea
-                value={agentDescription}
-                onChange={(e) => setAgentDescription(e.target.value)}
-                rows={4}
-                placeholder="توضیحات اختیاری"
-                className="w-full border rounded-md p-4 font-semibold text-sm resize-none text-end"
-              />
-            </div>
-            <FileUploader
-              ref={checkPic}
-              orderNumber={parent_GUID}
-              subFolder={itemGUID}
-              title="تصویر چک (الزامی)"
-              inputId="file-upload-check-pic"
-            />
-            <div className="flex flex-col gap-4 ">
-              <FileUploader
-                ref={checkConfirmPic}
-                orderNumber={parent_GUID}
-                subFolder={itemGUID}
-                title="رسید ثبت چک (اختیاری)"
-                inputId="file-upload-check-confirm"
-              />
-            </div>
-            <div className="flex justify-end mt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  mutation.mutate({ itemGUID });
-                }}
-                disabled={mutation.isPending}
-                className={`w-full px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  mutation.isPending
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500 shadow-sm hover:shadow-md"
-                }`}
-              >
-                {mutation.isPending ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <svg
-                      className="animate-spin h-4 w-4 text-gray-600"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    در حال ثبت...
-                  </div>
-                ) : (
-                  "ثبت"
-                )}
-              </button>
-            </div>
-          </>
-        )}
 
-        {type === "cash" && (
-          <>
-            <div className="flex flex-col gap-2 items-end">
-              <CashReseanComponent
-                value={cashResean}
-                onChange={setCashResean}
-              />
-
+              {/* انتخاب چک */}
               {cashResean === "checkFori" && (
-                <div className="flex flex-col gap-2 items-end">
-                  <label className="text-sm font-semibold">
-                    انتخاب چک (شماره چک)
+                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                  <div className="flex flex-col items-end gap-2">
+                    <label className="text-sm font-bold text-slate-700">
+                      انتخاب چک (شماره چک)
+                    </label>
+
+                    <input
+                      type="text"
+                      list="check-serial-list"
+                      value={selectedCheckSerialNoForCheckFor}
+                      onChange={(e) => {
+                        const serialNo = e.target.value.trim();
+
+                        setSelectedCheckSerialNoForCheckFori(serialNo);
+
+                        const selectedCheck = availableChecks.find(
+                          (check) =>
+                            String(check.serialNo ?? "").trim() === serialNo,
+                        );
+
+                        setSelectedCheckSayadiForCheckFori(
+                          String(selectedCheck?.sayadiCode ?? ""),
+                        );
+                      }}
+                      placeholder="جستجو یا انتخاب شماره چک"
+                      className="input input-bordered w-full bg-white font-mono text-sm ltr"
+                    />
+
+                    <datalist id="check-serial-list">
+                      {availableChecks.map((item) => (
+                        <option key={item.itemGUID} value={item.serialNo}>
+                          {item.serialNo}
+                        </option>
+                      ))}
+                    </datalist>
+
+                    {selectedCheckSayadiForCheckFori && (
+                      <div className="w-full rounded-lg border border-amber-100 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
+                        <span>کد صیادی:</span>{" "}
+                        <span className="font-mono ltr">
+                          {selectedCheckSayadiForCheckFori}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* کد ملی */}
+              {activeTab === "haghighi" && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-col items-end gap-2">
+                    <label className="text-sm font-bold text-slate-700">
+                      کد ملی صاحب چک
+                    </label>
+
+                    <input
+                      type="text"
+                      value={nationalId}
+                      onChange={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setNationalId(e.target.value);
+                      }}
+                      minLength={10}
+                      maxLength={11}
+                      placeholder="مثلاً: 1234567890"
+                      className="input input-bordered w-full bg-white font-mono text-sm ltr"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* شناسه ملی */}
+              {activeTab === "hoghoghi" && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-col items-end gap-2">
+                    <label className="text-sm font-bold text-slate-700">
+                      شناسه ملی شرکت
+                    </label>
+
+                    <input
+                      type="text"
+                      value={nationalIdHoghoghi}
+                      onChange={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setNationalIdHoghoghi(e.target.value);
+                      }}
+                      minLength={10}
+                      maxLength={11}
+                      placeholder="مثلاً: 1234567890"
+                      className="input input-bordered w-full bg-white font-mono text-sm ltr"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* مبلغ */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    مبلغ (ریال)
                   </label>
 
                   <input
                     type="text"
-                    list="check-serial-list"
-                    value={selectedCheckSerialNoForCheckFor}
-                    onChange={(e) => {
-                      const serialNo = e.target.value.trim();
-
-                      // شماره چک وارد/انتخاب‌شده
-                      setSelectedCheckSerialNoForCheckFori(serialNo);
-
-                      // پیدا کردن چک متناظر بر اساس شماره چک
-                      const selectedCheck = availableChecks.find(
-                        (check) =>
-                          String(check.serialNo ?? "").trim() === serialNo,
-                      );
-
-                      // ثبت کد صیادی همان چک
-                      setSelectedCheckSayadiForCheckFori(
-                        String(selectedCheck?.sayadiCode ?? ""),
-                      );
-                    }}
-                    placeholder="جستجو یا انتخاب شماره چک"
-                    className="input input-bordered w-full font-mono text-sm ltr"
+                    value={formatNumber(price)}
+                    onChange={(e) => setPriceState(parseNumber(e.target.value))}
+                    className="input input-bordered w-full bg-white font-semibold"
+                    placeholder="مثال: 1,500,000"
                   />
 
-                  <datalist id="check-serial-list">
-                    {availableChecks.map((item) => (
-                      <option key={item.itemGUID} value={item.serialNo}>
-                        {item.serialNo}
-                      </option>
-                    ))}
-                  </datalist>
+                  {cashResean === "checkFori" &&
+                    selectedCheckSayadiForCheckFori && (
+                      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs leading-6 text-slate-600">
+                        <div>
+                          مبلغ چک:{" "}
+                          <span className="font-bold">
+                            {originalCheckAmount.toLocaleString("fa-IR")} ریال
+                          </span>
+                        </div>
 
-                  {/* اختیاری: نمایش کد صیادی چک انتخاب‌شده */}
-                  {selectedCheckSayadiForCheckFori && (
-                    <p className="text-xs text-gray-500 ltr">
-                      کد صیادی: {selectedCheckSayadiForCheckFori}
-                    </p>
-                  )}
+                        <div>
+                          استفاده شده:{" "}
+                          <span className="font-bold">
+                            {usedAmountForCheck.toLocaleString("fa-IR")} ریال
+                          </span>
+                        </div>
+
+                        <div className="font-semibold text-green-600">
+                          باقیمانده:{" "}
+                          <span className="font-bold">
+                            {remainingAmount.toLocaleString("fa-IR")} ریال
+                          </span>
+                        </div>
+                      </div>
+                    )}
                 </div>
-              )}
-
-              <label className="text-sm font-semibold">نام بانک مقصد</label>
-              <div className="relative w-full">
-                <select
-                  className="select select-bordered w-full text-right"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                >
-                  <option value="">بانک را انتخاب کنید</option>
-                  {bankOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {/* Tooltip for selected bank */}
-                {bankName && (
-                  <div className="    w-full p-3 rounded bg-slate-200  text-xs ">
-                    <div className="text-center">
-                      <div className="font-bold text-sm mb-2 text-slate-700">
-                        شماره حساب بانک انتخاب شده
-                      </div>
-                      <div className="bg-slate-100 px-3 py-2 rounded text-center font-bold text-sm">
-                        {extractAccountFromBankValue(bankName)}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <label className="text-sm font-semibold">تاریخ واریز</label>
-              <DatePicker
-                calendar={persian}
-                locale={persian_fa}
-                value={dueDateCash}
-                onChange={(date: DateObject | null) => {
-                  if (date) {
-                    setDueDateCash(date);
-                    setDayOfYearCash(String(date.dayOfYear ?? 0));
-                  }
-                }}
-                inputClass="input input-bordered w-full"
-                placeholder="تاریخ را انتخاب کنید"
-                format="YYYY/MM/DD"
-                maxDate={new DateObject()} // اینجا تاریخ امروز
-              />
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <label className="text-sm font-semibold">مبلغ (ریال)</label>
-              <input
-                type="text"
-                value={formatNumber(priceCash)}
-                onChange={(e) => setPriceCashState(parseNumber(e.target.value))}
-                className="input input-bordered w-full font-semibold"
-                placeholder="مثال: 1,500,000"
-              />
-              {cashResean === "checkFori" &&
-                selectedCheckSayadiForCheckFori && (
-                  <div className="text-xs text-gray-600">
-                    مبلغ چک: {originalCheckAmount.toLocaleString("fa-IR")} ریال
-                    <br />
-                    استفاده شده: {usedAmountForCheck.toLocaleString(
-                      "fa-IR",
-                    )}{" "}
-                    ریال
-                    <br />
-                    باقیمانده: {remainingAmount.toLocaleString("fa-IR")} ریال
-                  </div>
-                )}
-            </div>
-            <div className="flex flex-col items-end w-full gap-1">
-              <label className=" text-sm font-bold ">توضیحات</label>
-              <textarea
-                value={agentDescription}
-                onChange={(e) => setAgentDescription(e.target.value)}
-                rows={4}
-                placeholder="توضیحات اختیاری"
-                className="w-full border rounded-md p-4 font-semibold text-sm resize-none text-end"
-              />
-            </div>
-            <FileUploader
-              ref={cashPic}
-              orderNumber={parent_GUID}
-              subFolder={itemGUID}
-              title="تصویر فیش واریزی (الزامی)"
-              inputId="file-upload-check-pic"
-            />
-            <div className="flex justify-end mt-4">
+
+              {/* تاریخ */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    تاریخ سررسید
+                  </label>
+
+                  <DatePicker
+                    calendar={persian}
+                    locale={persian_fa}
+                    value={dueDate}
+                    onChange={(date: DateObject | null) => {
+                      if (date) {
+                        setDueDate(date);
+                        setDayOfYear(String(date.dayOfYear ?? 0));
+                      }
+                    }}
+                    inputClass="input input-bordered w-full bg-white"
+                    placeholder="تاریخ را انتخاب کنید"
+                    format="YYYY/MM/DD"
+                  />
+                </div>
+              </div>
+
+              {/* توضیحات */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    توضیحات
+                  </label>
+
+                  <textarea
+                    value={agentDescription}
+                    onChange={(e) => setAgentDescription(e.target.value)}
+                    rows={4}
+                    placeholder="توضیحات اختیاری"
+                    className="w-full resize-none rounded-lg border border-slate-300 bg-white p-3 text-end text-sm font-semibold outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  />
+                </div>
+              </div>
+
+              {/* آپلود */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <FileUploader
+                    ref={checkPic}
+                    orderNumber={parent_GUID}
+                    subFolder={itemGUID}
+                    title="تصویر چک (الزامی)"
+                    inputId="file-upload-check-pic"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <FileUploader
+                    ref={checkConfirmPic}
+                    orderNumber={parent_GUID}
+                    subFolder={itemGUID}
+                    title="رسید ثبت چک (اختیاری)"
+                    inputId="file-upload-check-confirm"
+                  />
+                </div>
+              </div>
+
+              {/* ثبت */}
               <button
                 type="button"
                 onClick={() => {
                   mutation.mutate({ itemGUID });
                 }}
                 disabled={mutation.isPending}
-                className={`w-full px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                className={`flex min-h-11 w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                   mutation.isPending
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500 shadow-sm hover:shadow-md"
+                    ? "cursor-not-allowed bg-slate-300 text-slate-500"
+                    : "bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md focus:ring-primary-500"
                 }`}
               >
                 {mutation.isPending ? (
                   <div className="flex items-center justify-center gap-2">
                     <svg
-                      className="animate-spin h-4 w-4 text-gray-600"
+                      className="h-4 w-4 animate-spin"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -909,12 +868,384 @@ const UploadCheckoutForm: React.FC<Props> = ({
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
+
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                      />
+                    </svg>
+                    در حال ثبت...
+                  </div>
+                ) : (
+                  "ثبت چک"
+                )}
+              </button>
+            </>
+          )}
+
+          {/* ===================================================== */}
+          {/* ======================= CASH ======================== */}
+          {/* ===================================================== */}
+
+          {type === "cash" && (
+            <>
+              {/* انتخاب چک در واریز */}
+              {cashResean === "checkFori" && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                  <div className="flex flex-col items-end gap-2">
+                    <label className="text-sm font-bold text-slate-700">
+                      انتخاب چک (شماره چک)
+                    </label>
+
+                    <input
+                      type="text"
+                      list="check-serial-list"
+                      value={selectedCheckSerialNoForCheckFor}
+                      onChange={(e) => {
+                        const serialNo = e.target.value.trim();
+
+                        setSelectedCheckSerialNoForCheckFori(serialNo);
+
+                        const selectedCheck = availableChecks.find(
+                          (check) =>
+                            String(check.serialNo ?? "").trim() === serialNo,
+                        );
+
+                        setSelectedCheckSayadiForCheckFori(
+                          String(selectedCheck?.sayadiCode ?? ""),
+                        );
+                      }}
+                      placeholder="جستجو یا انتخاب شماره چک"
+                      className="input input-bordered w-full bg-white font-mono text-sm ltr"
+                    />
+
+                    <datalist id="check-serial-list">
+                      {availableChecks.map((item) => (
+                        <option key={item.itemGUID} value={item.serialNo}>
+                          {item.serialNo}
+                        </option>
+                      ))}
+                    </datalist>
+
+                    {selectedCheckSayadiForCheckFori && (
+                      <p className="w-full text-xs font-semibold text-slate-500 ltr">
+                        کد صیادی: {selectedCheckSayadiForCheckFori}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* بانک */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    نام بانک مقصد
+                  </label>
+
+                  <select
+                    className="select select-bordered w-full bg-white text-right"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                  >
+                    <option value="">بانک را انتخاب کنید</option>
+
+                    {bankOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {bankName && (
+                    <div className="w-full rounded-lg border border-slate-200 bg-white p-3">
+                      <div className="mb-2 text-center text-xs font-bold text-slate-500">
+                        شماره حساب بانک انتخاب شده
+                      </div>
+
+                      <div className="rounded-lg bg-slate-100 px-3 py-2 text-center text-sm font-bold text-slate-700 ltr">
+                        {extractAccountFromBankValue(bankName)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* تاریخ واریز */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    تاریخ واریز
+                  </label>
+
+                  <DatePicker
+                    calendar={persian}
+                    locale={persian_fa}
+                    value={dueDateCash}
+                    onChange={(date: DateObject | null) => {
+                      if (date) {
+                        setDueDateCash(date);
+                        setDayOfYearCash(String(date.dayOfYear ?? 0));
+                      }
+                    }}
+                    inputClass="input input-bordered w-full bg-white"
+                    placeholder="تاریخ را انتخاب کنید"
+                    format="YYYY/MM/DD"
+                    maxDate={new DateObject()}
+                  />
+                </div>
+              </div>
+
+              {/* مبلغ */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    مبلغ (ریال)
+                  </label>
+
+                  <input
+                    type="text"
+                    value={formatNumber(priceCash)}
+                    onChange={(e) =>
+                      setPriceCashState(parseNumber(e.target.value))
+                    }
+                    className="input input-bordered w-full bg-white font-semibold"
+                    placeholder="مثال: 1,500,000"
+                  />
+
+                  {cashResean === "checkFori" &&
+                    selectedCheckSayadiForCheckFori && (
+                      <div className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs leading-6 text-slate-600">
+                        <div>
+                          مبلغ چک:{" "}
+                          <span className="font-bold">
+                            {originalCheckAmount.toLocaleString("fa-IR")} ریال
+                          </span>
+                        </div>
+
+                        <div>
+                          استفاده شده:{" "}
+                          <span className="font-bold">
+                            {usedAmountForCheck.toLocaleString("fa-IR")} ریال
+                          </span>
+                        </div>
+
+                        <div className="font-semibold text-green-600">
+                          باقیمانده:{" "}
+                          <span className="font-bold">
+                            {remainingAmount.toLocaleString("fa-IR")} ریال
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              {/* توضیحات */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    توضیحات
+                  </label>
+
+                  <textarea
+                    value={agentDescription}
+                    onChange={(e) => setAgentDescription(e.target.value)}
+                    rows={4}
+                    placeholder="توضیحات اختیاری"
+                    className="w-full resize-none rounded-lg border border-slate-300 bg-white p-3 text-end text-sm font-semibold outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  />
+                </div>
+              </div>
+
+              {/* آپلود فیش */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <FileUploader
+                  ref={cashPic}
+                  orderNumber={parent_GUID}
+                  subFolder={itemGUID}
+                  title="تصویر فیش واریزی (الزامی)"
+                  inputId="file-upload-cash-pic"
+                />
+              </div>
+
+              {/* ثبت */}
+              <button
+                type="button"
+                onClick={() => {
+                  mutation.mutate({ itemGUID });
+                }}
+                disabled={mutation.isPending}
+                className={`flex min-h-11 w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  mutation.isPending
+                    ? "cursor-not-allowed bg-slate-300 text-slate-500"
+                    : "bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md focus:ring-primary-500"
+                }`}
+              >
+                {mutation.isPending ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg
+                      className="h-4 w-4 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    در حال ثبت...
+                  </div>
+                ) : (
+                  "ثبت واریز"
+                )}
+              </button>
+            </>
+          )}
+
+          {type === "poz" && (
+            <>
+              {/* ================= شماره پایانه ================= */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    شماره پایانه
+                  </label>
+
+                  <input
+                    type="text"
+                    value={formatNumber(pozEternal)}
+                    onChange={(e) =>
+                      setPozExternal(parseNumber(e.target.value))
+                    }
+                    className="input input-bordered w-full bg-white font-semibold"
+                    placeholder="مثلاً: 123456789"
+                  />
+                </div>
+              </div>
+
+              {/* ================= تاریخ واریز ================= */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    تاریخ واریز
+                  </label>
+
+                  <DatePicker
+                    calendar={persian}
+                    locale={persian_fa}
+                    value={dueDatePoz}
+                    onChange={(date: DateObject | null) => {
+                      if (date) {
+                        setDueDatePoz(date);
+                        setDayOfYearPoz(String(date.dayOfYear ?? 0));
+                      }
+                    }}
+                    inputClass="input input-bordered w-full bg-white"
+                    placeholder="تاریخ را انتخاب کنید"
+                    format="YYYY/MM/DD"
+                    maxDate={new DateObject()}
+                  />
+                </div>
+              </div>
+
+              {/* ================= مبلغ ================= */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    مبلغ (ریال)
+                  </label>
+
+                  <input
+                    type="text"
+                    value={formatNumber(pricepoz)}
+                    onChange={(e) =>
+                      setPricePozState(parseNumber(e.target.value))
+                    }
+                    className="input input-bordered w-full bg-white font-semibold"
+                    placeholder="مثال: 1,500,000"
+                  />
+                </div>
+              </div>
+
+              {/* ================= توضیحات ================= */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-end gap-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    توضیحات
+                  </label>
+
+                  <textarea
+                    value={agentDescription}
+                    onChange={(e) => setAgentDescription(e.target.value)}
+                    rows={4}
+                    placeholder="توضیحات اختیاری"
+                    className="w-full resize-none rounded-lg border border-slate-300 bg-white p-3 text-end text-sm font-semibold outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  />
+                </div>
+              </div>
+
+              {/* ================= آپلود فیش ================= */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <FileUploader
+                  ref={pozPic}
+                  orderNumber={parent_GUID}
+                  subFolder={itemGUID}
+                  title="تصویر فیش واریزی (الزامی)"
+                  inputId="file-upload-poz-pic"
+                />
+              </div>
+
+              {/* ================= ثبت ================= */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (mutation.isPending) return;
+
+                  mutation.mutate({ itemGUID });
+                }}
+                disabled={mutation.isPending}
+                className={`flex min-h-11 w-full items-center justify-center rounded-xl px-6 py-3 text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  mutation.isPending
+                    ? "cursor-not-allowed bg-slate-300 text-slate-500"
+                    : "bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md focus:ring-primary-500"
+                }`}
+              >
+                {mutation.isPending ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg
+                      className="h-4 w-4 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     در حال ثبت...
                   </div>
@@ -922,9 +1253,9 @@ const UploadCheckoutForm: React.FC<Props> = ({
                   "ثبت"
                 )}
               </button>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

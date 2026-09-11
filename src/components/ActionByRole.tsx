@@ -42,7 +42,7 @@ function ActionByRole({ ID }: Props) {
         onError: (err) => {
           console.error(err);
         },
-      }
+      },
     );
   };
 
@@ -55,7 +55,7 @@ function ActionByRole({ ID }: Props) {
       {
         id: ID,
         status: String(numericStatus),
-        agentDescription:
+        agentDistDescription:
           AgentStatus === "rejected" ? AgentDescription : undefined,
       },
       {
@@ -68,7 +68,7 @@ function ActionByRole({ ID }: Props) {
         onError: (err) => {
           console.error(err);
         },
-      }
+      },
     );
   };
 

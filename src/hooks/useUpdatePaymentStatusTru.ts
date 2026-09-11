@@ -5,7 +5,8 @@ interface UpdatePaymentStatusParams {
   id: number;
   status: string;
   treasuryConfirmDescription?: string;
-  agentDescription?: string;
+
+  agentDistDescription?: string;
 }
 
 interface UpdatePayload {
@@ -14,14 +15,15 @@ interface UpdatePayload {
   };
   status: string;
   treasuryConfirmDescription?: string;
-  agentDescription?: string;
+  agentDistDescription?: string;
 }
 
 export const updatePaymentStatus = async ({
   id,
   status,
   treasuryConfirmDescription,
-  agentDescription,
+
+  agentDistDescription,
 }: UpdatePaymentStatusParams): Promise<true> => {
   const digest = await getDigest();
 
@@ -35,8 +37,8 @@ export const updatePaymentStatus = async ({
   if (status === "3" && treasuryConfirmDescription) {
     payload.treasuryConfirmDescription = treasuryConfirmDescription;
   }
-  if (status === "2" && agentDescription) {
-    payload.agentDescription = agentDescription;
+  if (status === "2" && agentDistDescription) {
+    payload.agentDistDescription = agentDistDescription;
   }
   const res = await fetch(
     `https://crm.zarsim.com/_api/web/lists/getbytitle('CustomerPayment')/items(${id})`,
@@ -51,7 +53,7 @@ export const updatePaymentStatus = async ({
       },
       body: JSON.stringify(payload),
       credentials: "same-origin",
-    }
+    },
   );
 
   if (!res.ok) {

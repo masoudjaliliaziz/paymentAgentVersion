@@ -5,7 +5,7 @@ import type { PaymentType } from "../types/apiTypes";
 import { useSayadConfirm } from "../hooks/useSayadConfirm";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { getBankNameFromIBAN } from "../utils/getBankNameFromIban";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useUpdateInvoiceType } from "../hooks/useUpdateInvoiceType";
 type SayadHolders = {
@@ -149,16 +149,16 @@ const normalizeDate = (date: string | undefined | null): string | null => {
   return null;
 };
 
-const getCheckColor = (colorCode: string | undefined) => {
-  const colorMap: Record<string, string> = {
-    "1": "bg-gray-100",
-    "2": "bg-yellow-300",
-    "3": "bg-orange-300",
-    "4": "bg-amber-800",
-    "5": "bg-red-400",
-  };
-  return colorMap[colorCode ?? ""] ?? "bg-gray-500 border border-gray-700";
-};
+// const getCheckColor = (colorCode: string | undefined) => {
+//   const colorMap: Record<string, string> = {
+//     "1": "bg-gray-100",
+//     "2": "bg-yellow-300",
+//     "3": "bg-orange-300",
+//     "4": "bg-amber-800",
+//     "5": "bg-red-400",
+//   };
+//   return colorMap[colorCode ?? ""] ?? "bg-gray-500 border border-gray-700";
+// };
 
 interface PaymentRowProps {
   item: PaymentType;
@@ -393,47 +393,168 @@ export const PaymentRow = ({
             transition={{ duration: 0.3 }}
             className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-6"
           >
-            <div className="flex justify-between items-center gap-4 rounded-md bg-slate-100 p-1.5">
-              <div>
-                <p className="font-semibold text-gray-500">استعلام رنگ چک</p>
-                <div className="flex gap-1 items-center">
-                  {Array.from(
-                    { length: Number(item.checksColor ?? 0) || 0 },
-                    (_, i) => (
-                      <span
-                        key={i}
-                        className={`rounded-sm w-4 h-4 ${getCheckColor(
-                          item.checksColor,
-                        )}`}
-                      ></span>
-                    ),
-                  )}
-                </div>
+            <div
+              className="
+    flex
+    flex-row-reverse
+    flex-wrap
+    items-center
+    justify-start
+    gap-2
+    rounded-xl
+    bg-slate-100
+    p-2
+    px-3
+    sm:gap-3
+  "
+            >
+              {/* ===================================================== */}
+              {/* عنوان چک + انتخاب */}
+              {/* ===================================================== */}
+
+              <div
+                className="
+      flex
+      shrink-0
+      items-center
+      justify-center
+      gap-2
+      rounded-lg
+      bg-white
+      px-3
+      py-2
+      shadow-sm
+    "
+              >
+                <span className="m-0 text-xs font-bold text-sky-500 sm:text-base">
+                  چک
+                </span>
+
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={onToggleSelect}
+                  className="
+        h-4
+        w-4
+        cursor-pointer
+        accent-sky-500
+      "
+                />
               </div>
 
-              {itemGUID && parentGuid && (
-                <>
-                  <CheckPicConfirm
-                    itemGuid={itemGUID}
-                    parentGuid={parentGuid}
-                  />
-                  <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
-                </>
+              {/* ===================================================== */}
+              {/* نوع فاکتور */}
+              {/* ===================================================== */}
+
+              {item.invoiceType && (
+                <span
+                  className={`
+        inline-flex
+        min-h-9
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-2
+        text-xs
+        font-bold
+        text-white
+        whitespace-nowrap
+
+        ${
+          String(item.invoiceType) === "1"
+            ? "bg-blue-500"
+            : String(item.invoiceType) === "2"
+              ? "bg-purple-500"
+              : String(item.invoiceType) === "3"
+                ? "bg-green-500"
+                : "bg-gray-500"
+        }
+      `}
+                >
+                  {String(item.invoiceType) === "1" && "نوع ۱"}
+                  {String(item.invoiceType) === "2" && "نوع ۲"}
+                  {String(item.invoiceType) === "3" && "دانش بنیان"}
+                  {String(item.invoiceType) === "4" && "نامشخص"}
+                </span>
               )}
 
-              {item.status === "0" && <ActionByRole ID={ID} />}
+              {/* علت واریز نقدی */}
+              {/* ===================================================== */}
 
-              {/* دکمه استعلام یا نمایش مرحله */}
+              {item.cashResean && (
+                <span
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          String(item.cashResean) === "buyGoods"
+            ? "bg-blue-500 text-white"
+            : "bg-orange-500 text-white"
+        }
+      `}
+                >
+                  {item.cashResean === "buyGoods" && "بابت خرید کالا"}
+
+                  {item.cashResean === "checkFori" && "بابت چک برگشتی"}
+                </span>
+              )}
+              {/* ===================================================== */}
+              {/* تصویر چک */}
+              {/* ===================================================== */}
+
+              {itemGUID && parentGuid && (
+                <div className="shrink-0">
+                  <CheckPic itemGuid={itemGUID} parentGuid={parentGuid} />
+                </div>
+              )}
+
+              {/* ===================================================== */}
+              {/* وضعیت پرداخت */}
+              {/* ===================================================== */}
+
+              {item.status === "0" && (
+                <div className="shrink-0">
+                  <ActionByRole ID={ID} />
+                </div>
+              )}
+
+              {/* ===================================================== */}
+              {/* وضعیت استعلام */}
+              {/* ===================================================== */}
+
               {item.status === "0" ? (
                 <button
                   type="button"
                   onClick={checkSayadConfirm}
                   disabled={isVerifyingAll || isVerifying}
-                  className={`px-4 py-2 rounded-md text-white font-semibold ${
-                    isVerifyingAll || isVerifying
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-sky-500 hover:bg-sky-600"
-                  }`}
+                  className="
+        min-h-9
+        shrink-0
+        rounded-lg
+        bg-sky-500
+        px-4
+        py-2
+        text-xs
+        font-semibold
+        text-white
+        transition
+        hover:bg-sky-600
+        disabled:cursor-not-allowed
+        disabled:bg-gray-400
+        sm:text-sm
+      "
                 >
                   {isVerifyingAll || isVerifying
                     ? "در حال استعلام..."
@@ -441,61 +562,104 @@ export const PaymentRow = ({
                 </button>
               ) : (
                 <div
-                  className={`px-4 py-2 rounded-md font-semibold text-center ${getPaymentStageColor(
-                    item.status,
-                  )}`}
+                  className={`
+        flex
+        min-h-9
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-2
+        text-xs
+        font-semibold
+        text-center
+        whitespace-nowrap
+        sm:text-sm
+        ${getPaymentStageColor(item.status)}
+      `}
                 >
                   {getPaymentStage(item.status)}
                 </div>
               )}
 
+              {/* ===================================================== */}
+              {/* عدم ثبت چک به نام زرسیم */}
+              {/* ===================================================== */}
+
               {String(item.VerifiedSayad) === "2" && (
-                <button
-                  disabled
-                  type="button"
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                <div
+                  className="
+        flex
+        min-h-9
+        shrink-0
+        items-center
+        justify-center
+        rounded-lg
+        border
+        border-red-200
+        bg-red-50
+        px-3
+        py-2
+        text-center
+        text-xs
+        font-bold
+        text-red-600
+        whitespace-nowrap
+      "
                 >
                   چک به نام زرسیم ثبت نشده است
-                </button>
+                </div>
               )}
 
-              <div className="py-3.5 px-1.5 flex justify-end items-center gap-2">
-                <div className="font-bold text-sky-500 text-xl">
-                  {item.iban ? getBankNameFromIBAN(item.iban) : "نامشخص"}
-                </div>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={onToggleSelect}
-                  className="w-4 h-4 cursor-pointer"
-                />
-              </div>
-              {item.invoiceType && (
-                <span
-                  className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
-                    String(item.invoiceType) === "1"
-                      ? "bg-blue-500 text-white"
-                      : String(item.invoiceType) === "2"
-                        ? "bg-purple-500 text-white"
-                        : String(item.invoiceType) === "3"
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-500 text-white"
-                  }`}
-                >
-                  {item.invoiceType === "1" && "نوع ۱"}
-                  {item.invoiceType === "2" && "نوع ۲"}
-                  {item.invoiceType === "3" && " دانش بنیان"}
-                  {item.invoiceType === "4" && "نامشخص"}
-                </span>
-              )}
+              {/* ===================================================== */}
+              {/* تعیین نوع فاکتور */}
+              {/* ===================================================== */}
+
               {String(item.invoiceType) === "4" && (
-                <div className="flex items-center gap-2">
+                <div
+                  className="
+        flex
+        w-full
+        shrink-0
+        flex-col
+        gap-2
+        rounded-lg
+        bg-white
+        p-2
+        shadow-sm
+
+        sm:w-auto
+        sm:flex-row
+        sm:items-center
+      "
+                >
                   <select
                     value={manualInvoiceType}
                     onChange={(e) => setManualInvoiceType(e.target.value)}
-                    className="border rounded-md px-2 py-1 text-sm"
+                    className="
+          min-h-9
+          w-full
+          min-w-0
+          rounded-lg
+          border
+          border-slate-300
+          bg-white
+          px-3
+          py-1.5
+          text-sm
+          text-slate-700
+          outline-none
+          transition
+          focus:border-sky-500
+          focus:ring-2
+          focus:ring-sky-100
+
+          sm:w-48
+        "
                   >
                     <option value="">انتخاب نوع فاکتور</option>
+
                     {invoiceTypeOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -507,7 +671,22 @@ export const PaymentRow = ({
                     type="button"
                     disabled={!manualInvoiceType}
                     onClick={handleUpdateInvoiceType}
-                    className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 text-white px-3 py-1 rounded-md text-sm font-semibold"
+                    className="
+          min-h-9
+          shrink-0
+          rounded-lg
+          bg-emerald-500
+          px-4
+          py-1.5
+          text-sm
+          font-semibold
+          text-white
+          transition
+          hover:bg-emerald-600
+          disabled:cursor-not-allowed
+          disabled:bg-gray-400
+          disabled:hover:bg-gray-400
+        "
                   >
                     ثبت
                   </button>
@@ -517,8 +696,17 @@ export const PaymentRow = ({
             {item?.treasuryConfirmDescription !== "" &&
               item?.treasuryConfirmDescription !== null &&
               item?.treasuryConfirmDescription !== undefined && (
-                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex flex-col gap-2 justify-center items-center rounded-lg text-gray-600">
+                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex  gap-3 justify-start items-center rounded-lg text-gray-600 flex-row-reverse">
+                  <span className="text-emerald-700">توضیحات خزانه داری</span>
                   <span>{item.treasuryConfirmDescription}</span>
+                </div>
+              )}
+            {item?.distDescription !== "" &&
+              item?.distDescription !== null &&
+              item?.distDescription !== undefined && (
+                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex  gap-3 justify-start items-center rounded-lg text-gray-600 flex-row-reverse">
+                  <span className="text-emerald-700">توضیحات مشتری</span>
+                  <span>{item.distDescription}</span>
                 </div>
               )}
             {errorMessage && (
@@ -528,7 +716,6 @@ export const PaymentRow = ({
                 </span>
               </div>
             )}
-
             {String(item.VerifiedSayad) === "1" && !item.Error && (
               <div className="flex justify-end">
                 {isPriceAndDateMatch ? (
@@ -542,7 +729,6 @@ export const PaymentRow = ({
                 )}
               </div>
             )}
-
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-4 gap-4 text-sm">
                 <div>
@@ -761,24 +947,188 @@ export const PaymentRow = ({
             transition={{ duration: 0.3 }}
             className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
           >
-            <div className="flex justify-end items-center gap-4 rounded-md bg-slate-100 p-1.5 px-3">
-              {itemGUID && parentGuid && (
-                <CheckPicConfirm
-                  title="دانلود فیش واریزی"
-                  itemGuid={itemGUID}
-                  parentGuid={parentGuid}
+            <div
+              className="
+    flex
+    flex-wrap
+    flex-row-reverse
+    items-center
+    justify-start
+    gap-2
+    rounded-xl
+    bg-slate-100
+    p-2
+    px-3
+    sm:gap-3
+  "
+            >
+              {/* ===================================================== */}
+              {/* عنوان و انتخاب */}
+              {/* ===================================================== */}
+
+              <div
+                className="
+      flex
+      shrink-0
+      items-center
+      justify-center
+      gap-2
+      rounded-lg
+      bg-white
+      px-3
+      py-2
+      shadow-sm
+    "
+              >
+                <span className="m-0 text-xs font-bold text-sky-500 sm:text-base">
+                  واریز نقدی
+                </span>
+
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={onToggleSelect}
+                  className="
+        h-4
+        w-4
+        cursor-pointer
+        accent-sky-500
+      "
                 />
+              </div>
+
+              {/* ===================================================== */}
+              {/* نوع فاکتور */}
+              {/* ===================================================== */}
+
+              {item.invoiceType && (
+                <span
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          String(item.invoiceType) === "1"
+            ? "bg-blue-500 text-white"
+            : String(item.invoiceType) === "2"
+              ? "bg-purple-500 text-white"
+              : String(item.invoiceType) === "3"
+                ? "bg-green-500 text-white"
+                : "bg-gray-500 text-white"
+        }
+      `}
+                >
+                  {String(item.invoiceType) === "1" && "نوع ۱"}
+                  {String(item.invoiceType) === "2" && "نوع ۲"}
+                  {String(item.invoiceType) === "3" && "دانش بنیان"}
+                  {String(item.invoiceType) === "4" && "نامشخص"}
+                </span>
               )}
+
+              {/* علت واریز نقدی */}
+              {/* ===================================================== */}
+
+              {item.cashResean && (
+                <span
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          String(item.cashResean) === "buyGoods"
+            ? "bg-blue-500 text-white"
+            : "bg-orange-500 text-white"
+        }
+      `}
+                >
+                  {item.cashResean === "buyGoods" && "بابت خرید کالا"}
+
+                  {item.cashResean === "checkFori" && "بابت چک برگشتی"}
+                </span>
+              )}
+              {/* ===================================================== */}
+              {/* شماره چک برگشتی */}
+              {/* ===================================================== */}
+
+              {item.cashResean === "checkFori" &&
+                item.selectedCheckSayadiForCheckFori && (
+                  <span
+                    className="
+          inline-flex
+          min-h-8
+          max-w-full
+          items-center
+          justify-center
+          rounded-lg
+          bg-orange-500
+          px-3
+          py-1.5
+          text-xs
+          font-bold
+          text-white
+          break-all
+        "
+                  >
+                    {item.selectedCheckSayadiForCheckFori}
+                  </span>
+                )}
+
+              {/* ===================================================== */}
+              {/* دانلود فیش */}
+              {/* ===================================================== */}
+
+              {itemGUID && parentGuid && (
+                <div className="shrink-0">
+                  <CheckPicConfirm
+                    title="دانلود فیش واریزی"
+                    itemGuid={itemGUID}
+                    parentGuid={parentGuid}
+                  />
+                </div>
+              )}
+
+              {/* ===================================================== */}
+              {/* وضعیت کارشناس */}
+              {/* ===================================================== */}
 
               {status && (
                 <span
-                  className={`font-bold text-xs ${
-                    status === "1"
-                      ? "text-green-700"
-                      : status === "2"
-                        ? "text-red-700"
-                        : ""
-                  }`}
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          status === "1"
+            ? "bg-green-50 text-green-700 ring-1 ring-green-200"
+            : status === "2"
+              ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+              : "bg-slate-50 text-slate-500 ring-1 ring-slate-200"
+        }
+      `}
                 >
                   {status === "1"
                     ? "تایید توسط کارشناس"
@@ -787,63 +1137,66 @@ export const PaymentRow = ({
                       : ""}
                 </span>
               )}
-              {item.status === "0" && <ActionByRole ID={ID} />}
 
-              <p className="font-bold text-sky-500 text-lg">واریز نقدی</p>
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={onToggleSelect}
-                className="w-4 h-4 cursor-pointer "
-              />
-              {item.invoiceType && (
-                <span
-                  className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
-                    String(item.invoiceType) === "1"
-                      ? "bg-blue-500 text-white"
-                      : String(item.invoiceType) === "2"
-                        ? "bg-purple-500 text-white"
-                        : String(item.invoiceType) === "3"
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-500 text-white"
-                  }`}
-                >
-                  {item.invoiceType === "1" && "نوع ۱"}
-                  {item.invoiceType === "2" && "نوع ۲"}
-                  {item.invoiceType === "3" && " دانش بنیان"}
-                  {item.invoiceType === "4" && "نامشخص"}
-                </span>
+              {/* ===================================================== */}
+              {/* عملیات نقش */}
+              {/* ===================================================== */}
+
+              {item.status === "0" && (
+                <div className="shrink-0">
+                  <ActionByRole ID={ID} />
+                </div>
               )}
-              {item.cashResean && (
-                <span
-                  className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
-                    String(item.cashResean) === "buyGoods"
-                      ? "bg-blue-500 text-white"
-                      : "bg-orange-500 text-white"
-                  }`}
-                >
-                  {item.cashResean === "buyGoods" && "بابت خرید کالا"}
-                  {item.cashResean === "checkFori" && "بابت چک برگشتی"}
-                </span>
-              )}
-              {item.cashResean === "checkFori" && (
-                <span
-                  className={
-                    "text-xs font-bold px-2 py-1 rounded-md  text-center  bg-orange-500 text-white"
-                  }
-                >
-                  {item.cashResean === "checkFori" &&
-                    item.selectedCheckSayadiForCheckFori}
-                </span>
-              )}
+
+              {/* ===================================================== */}
+
+              {/* ===================================================== */}
+              {/* تعیین نوع فاکتور در حالت نامشخص */}
+              {/* ===================================================== */}
+
               {String(item.invoiceType) === "4" && (
-                <div className="flex items-center gap-2">
+                <div
+                  className="
+        flex
+        w-full
+        flex-col
+        gap-2
+        rounded-lg
+        bg-white
+        p-2
+        shadow-sm
+        sm:w-auto
+        sm:flex-row
+        sm:items-center
+      "
+                >
                   <select
                     value={manualInvoiceType}
                     onChange={(e) => setManualInvoiceType(e.target.value)}
-                    className="border rounded-md px-2 py-1 text-sm"
+                    className="
+          min-h-9
+          w-full
+          min-w-0
+          rounded-lg
+          border
+          border-slate-300
+          bg-white
+          px-3
+          py-1.5
+          text-sm
+          text-slate-700
+          outline-none
+          transition
+
+          focus:border-sky-500
+          focus:ring-2
+          focus:ring-sky-100
+
+          sm:w-48
+        "
                   >
                     <option value="">انتخاب نوع فاکتور</option>
+
                     {invoiceTypeOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -855,18 +1208,45 @@ export const PaymentRow = ({
                     type="button"
                     disabled={!manualInvoiceType}
                     onClick={handleUpdateInvoiceType}
-                    className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 text-white px-3 py-1 rounded-md text-sm font-semibold"
+                    className="
+          min-h-9
+          shrink-0
+          rounded-lg
+          bg-emerald-500
+          px-4
+          py-1.5
+          text-sm
+          font-semibold
+          text-white
+          transition
+
+          hover:bg-emerald-600
+
+          disabled:cursor-not-allowed
+          disabled:bg-gray-400
+          disabled:hover:bg-gray-400
+        "
                   >
                     ثبت
                   </button>
                 </div>
               )}
             </div>
+
             {item?.treasuryConfirmDescription !== "" &&
               item?.treasuryConfirmDescription !== null &&
               item?.treasuryConfirmDescription !== undefined && (
-                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex flex-col gap-2 justify-center items-center rounded-lg text-gray-600">
+                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex  gap-3 justify-start items-center rounded-lg text-gray-600 flex-row-reverse">
+                  <span className="text-emerald-700">توضیحات خزانه داری</span>
                   <span>{item.treasuryConfirmDescription}</span>
+                </div>
+              )}
+            {item?.distDescription !== "" &&
+              item?.distDescription !== null &&
+              item?.distDescription !== undefined && (
+                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex  gap-3 justify-start items-center rounded-lg text-gray-600 flex-row-reverse">
+                  <span className="text-emerald-700">توضیحات مشتری</span>
+                  <span>{item.distDescription}</span>
                 </div>
               )}
             <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
@@ -900,6 +1280,281 @@ export const PaymentRow = ({
                 <p className="font-semibold text-gray-500">نام بانک مقصد</p>
                 <span className="font-bold text-sky-700 text-sm">
                   {item.bankName ?? "نامشخص"}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      )}
+      {item.cash === "2" && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key="main"
+            layout
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.3 }}
+            className="transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
+          >
+            <div
+              className="
+    flex
+    flex-wrap
+    flex-row-reverse
+    items-center
+    justify-start
+    gap-2
+    rounded-xl
+    bg-slate-100
+    p-2
+    px-3
+    sm:gap-3
+  "
+            >
+              {/* ===================================================== */}
+              {/* عنوان و انتخاب */}
+              {/* ===================================================== */}
+
+              <div
+                className="
+      flex
+      shrink-0
+      items-center
+      justify-center
+      gap-2
+      rounded-lg
+      bg-white
+      px-3
+      py-2
+      shadow-sm
+    "
+              >
+                <span className="m-0 text-xs font-bold text-sky-500 sm:text-base">
+                  کارتخوان
+                </span>
+
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={onToggleSelect}
+                  className="
+        h-4
+        w-4
+        cursor-pointer
+        accent-sky-500
+      "
+                />
+              </div>
+
+              {/* ===================================================== */}
+              {/* نوع فاکتور */}
+              {/* ===================================================== */}
+
+              {item.invoiceType && (
+                <span
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          String(item.invoiceType) === "1"
+            ? "bg-blue-500 text-white"
+            : String(item.invoiceType) === "2"
+              ? "bg-purple-500 text-white"
+              : String(item.invoiceType) === "3"
+                ? "bg-green-500 text-white"
+                : String(item.invoiceType) === "5"
+                  ? "bg-teal-700 text-white"
+                  : "bg-gray-500 text-white"
+        }
+      `}
+                >
+                  {String(item.invoiceType) === "1" && "نوع ۱"}
+                  {String(item.invoiceType) === "2" && "نوع ۲"}
+                  {String(item.invoiceType) === "3" && "دانش بنیان"}
+                  {String(item.invoiceType) === "5" && " نوع ۳"}
+                  {String(item.invoiceType) === "4" && "نامشخص"}
+                </span>
+              )}
+
+              {/* علت واریز نقدی */}
+              {/* ===================================================== */}
+
+              {item.cashResean && (
+                <span
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          String(item.cashResean) === "buyGoods"
+            ? "bg-blue-500 text-white"
+            : "bg-orange-500 text-white"
+        }
+      `}
+                >
+                  {item.cashResean === "buyGoods" && "بابت خرید کالا"}
+
+                  {item.cashResean === "checkFori" && "بابت چک برگشتی"}
+                </span>
+              )}
+              {/* ===================================================== */}
+              {/* شماره چک برگشتی */}
+              {/* ===================================================== */}
+
+              {item.cashResean === "checkFori" &&
+                item.selectedCheckSayadiForCheckFori && (
+                  <span
+                    className="
+          inline-flex
+          min-h-8
+          max-w-full
+          items-center
+          justify-center
+          rounded-lg
+          bg-orange-500
+          px-3
+          py-1.5
+          text-xs
+          font-bold
+          text-white
+          break-all
+        "
+                  >
+                    {item.selectedCheckSayadiForCheckFori}
+                  </span>
+                )}
+
+              {/* ===================================================== */}
+              {/* دانلود فیش */}
+              {/* ===================================================== */}
+
+              {itemGUID && parentGuid && (
+                <div className="shrink-0">
+                  <CheckPicConfirm
+                    title="دانلود فیش واریزی"
+                    itemGuid={itemGUID}
+                    parentGuid={parentGuid}
+                  />
+                </div>
+              )}
+
+              {/* ===================================================== */}
+              {/* وضعیت کارشناس */}
+              {/* ===================================================== */}
+
+              {status && (
+                <span
+                  className={`
+        inline-flex
+        min-h-8
+        items-center
+        justify-center
+        rounded-lg
+        px-3
+        py-1.5
+        text-xs
+        font-bold
+        whitespace-nowrap
+
+        ${
+          status === "1"
+            ? "bg-green-50 text-green-700 ring-1 ring-green-200"
+            : status === "2"
+              ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+              : "bg-slate-50 text-slate-500 ring-1 ring-slate-200"
+        }
+      `}
+                >
+                  {status === "1"
+                    ? "تایید توسط کارشناس"
+                    : status === "2"
+                      ? "رد شده توسط کارشناس"
+                      : ""}
+                </span>
+              )}
+
+              {/* ===================================================== */}
+              {/* عملیات نقش */}
+              {/* ===================================================== */}
+
+              {item.status === "0" && (
+                <div className="shrink-0">
+                  <ActionByRole ID={ID} />
+                </div>
+              )}
+
+              {/* ===================================================== */}
+
+              {/* ===================================================== */}
+              {/* تعیین نوع فاکتور در حالت نامشخص */}
+              {/* ===================================================== */}
+            </div>
+
+            {item?.treasuryConfirmDescription !== "" &&
+              item?.treasuryConfirmDescription !== null &&
+              item?.treasuryConfirmDescription !== undefined && (
+                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex  gap-3 justify-start items-center rounded-lg text-gray-600 flex-row-reverse">
+                  <span className="text-emerald-700">توضیحات خزانه داری</span>
+                  <span>{item.treasuryConfirmDescription}</span>
+                </div>
+              )}
+            {item?.distDescription !== "" &&
+              item?.distDescription !== null &&
+              item?.distDescription !== undefined && (
+                <div className="bg-slate-100 font-bold w-full py-3 px-3 flex  gap-3 justify-start items-center rounded-lg text-gray-600 flex-row-reverse">
+                  <span className="text-emerald-700">توضیحات مشتری</span>
+                  <span>{item.distDescription}</span>
+                </div>
+              )}
+            <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
+              <div>
+                <p className="text-sm font-semibold text-gray-500">
+                  تاریخ واریز
+                </p>
+                <span className="font-bold text-sky-700 text-sm">
+                  {dueDate ?? "نامشخص"}
+                </span>
+              </div>
+
+              <div>
+                <p className="font-semibold text-gray-500">مبلغ</p>
+                <div className="flex items-center gap-1">
+                  <span>{Number(price ?? 0).toLocaleString("fa-IR")}</span>
+                  <span className="font-semibold text-sky-700 text-sm">
+                    ریال
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p className="font-semibold text-gray-500">نام کارشناس</p>
+                <span className="font-bold text-sky-700 text-sm">
+                  {item.SalesExpert ?? "نامشخص"}
+                </span>
+              </div>
+
+              <div>
+                <p className="font-semibold text-gray-500"> شماره پایانه </p>
+                <span className="font-bold text-sky-700 text-sm">
+                  {item.pozExternal}
                 </span>
               </div>
             </div>

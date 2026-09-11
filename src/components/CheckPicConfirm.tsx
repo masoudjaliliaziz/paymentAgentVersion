@@ -12,28 +12,57 @@ function CheckPicConfirm({ parentGuid, itemGuid, title }: Props) {
     isLoading: loadingConfirm,
     isError: errorConfirm,
   } = usePaymentFiles(parentGuid, itemGuid, "checkPicConfirm");
+
+  if (loadingConfirm) {
+    return (
+      <span className="text-xs text-slate-400">
+        در حال دریافت تصویر ثبت چک...
+      </span>
+    );
+  }
+
+  if (errorConfirm) {
+    return (
+      <span className="text-xs font-semibold text-red-500">
+        خطا در دریافت تصویر ثبت چک
+      </span>
+    );
+  }
+
+  if (!confirmFiles?.length) {
+    return null;
+  }
+
   return (
-    <div>
-      {loadingConfirm && <p>در حال دریافت تصویر ثبت چک...</p>}
-      {errorConfirm && (
-        <p className="text-red-500">خطا در دریافت تصویر ثبت چک</p>
-      )}
-      {confirmFiles?.length === 0 && <p>تصویر ثبت چک یافت نشد</p>}
-      <ul className="list-disc list-inside">
-        {confirmFiles?.map((file) => (
-          <div key={file.Name}>
-            <a
-              href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-green-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-green-800"
-            >
-              {title ?? "دانلود تصویر ثبت چک"}
-            </a>
-          </div>
-        ))}
-      </ul>
-    </div>
+    <>
+      {confirmFiles.map((file) => (
+        <a
+          key={file.Name}
+          href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
+          target="_blank"
+          rel="noreferrer"
+          className="
+            inline-flex
+            min-h-9
+            items-center
+            justify-center
+            rounded-lg
+            bg-green-600
+            px-3
+            py-2
+            text-xs
+            font-semibold
+            text-white
+            whitespace-nowrap
+            transition
+            hover:bg-green-700
+            active:scale-95
+          "
+        >
+          {title ?? "تصویر ثبت چک"}
+        </a>
+      ))}
+    </>
   );
 }
 

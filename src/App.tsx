@@ -28,7 +28,7 @@ const specialUsers = [
   "i:0#.w|zarsim\\mesmaeili",
   "i:0#.w|zarsim\\mmoradabadi",
 ];
-export type InvoiceType = "1" | "2" | "3" | "4";
+export type InvoiceType = "1" | "2" | "3" | "4" | "5";
 export type InvoiceTypeFilter = InvoiceType | "all";
 
 const toComparableTime = (value?: string | null): number | null => {
@@ -109,7 +109,7 @@ function App() {
 
   const [activeTab, setActiveTab] = useState<
     "normal" | "pending" | "treasury" | "trDenied" | "all"
-  >("normal");
+  >("all");
   const [isVerifyingAll, setIsVerifyingAll] = useState(false);
   const [verifyAllIds, setVerifyAllIds] = useState<string[]>([]);
   const [completedVerifications, setCompletedVerifications] = useState<
@@ -152,7 +152,7 @@ function App() {
     Title: "",
   });
 
-  const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("1");
+  const [typeactiveTab, setTypeActiveTab] = useState<InvoiceTypeFilter>("all");
   const [customerCode, setCustomerCode] = useState<string>("");
   const [customerTitle, setCustomerTitle] = useState<string>("");
 
@@ -368,67 +368,68 @@ function App() {
         </a>
         {/* تب‌های اصلی */}
         <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+            {/* ثبت پرداخت */}
             <div
               onClick={() => setIsShownNewPayment((cur) => !cur)}
-              className={`flex items-center justify-center text-xs font-bold border-2 border-slate-800 rounded-md text-slate-800 cursor-pointer hover:bg-slate-800 hover:text-white px-2 py-1 gap-2 ${
-                isShownNewPayment ? "bg-slate-800 text-white" : ""
+              className={`flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border-2 px-4 py-2 text-xs font-bold transition-all duration-200 ${
+                isShownNewPayment
+                  ? "border-slate-800 bg-slate-800 text-white shadow-sm"
+                  : "border-slate-800 bg-white text-slate-800 hover:bg-slate-800 hover:text-white"
               }`}
             >
-              ثبت پرداخت
-              <BanknoteArrowUpIcon width={20} height={20} />
+              <BanknoteArrowUpIcon width={19} height={19} />
+              <span>ثبت پرداخت</span>
             </div>
-            {/* تب‌های نمایش چک‌ها */}
 
-            <div
-              onClick={() => setActiveTab("normal")}
-              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
-                activeTab === "normal"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              در انتظار تایید کارشناس
-            </div>
-            <div
-              onClick={() => setActiveTab("pending")}
-              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
-                activeTab === "pending"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              در انتظار تایید خزانه
-            </div>
-            <div
-              onClick={() => setActiveTab("trDenied")}
-              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
-                activeTab === "trDenied"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              رد شده توسط خزانه
-            </div>
-            <div
-              onClick={() => setActiveTab("treasury")}
-              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
-                activeTab === "treasury"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              تایید شده توسط خزانه
-            </div>
-            <div
-              onClick={() => setActiveTab("all")}
-              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors duration-200 cursor-pointer flex justify-center items-center ${
-                activeTab === "all"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              همه پرداخت ها
+            {/* Dropdown وضعیت پرداخت */}
+            <div className="relative min-w-[220px]">
+              <select
+                value={activeTab}
+                onChange={(e) =>
+                  setActiveTab(
+                    e.target.value as
+                      | "normal"
+                      | "pending"
+                      | "trDenied"
+                      | "treasury"
+                      | "all",
+                  )
+                }
+                className={`min-h-10 w-full cursor-pointer appearance-none rounded-lg border px-4 py-2 pl-10 text-right text-xs font-bold outline-none transition-all duration-200 ${
+                  activeTab === "normal"
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : activeTab === "pending"
+                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      : activeTab === "trDenied"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : activeTab === "treasury"
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-slate-200 bg-slate-100 text-slate-700"
+                } focus:ring-2 focus:ring-primary-200`}
+              >
+                <option value="normal">در انتظار تایید کارشناس</option>
+                <option value="pending">در انتظار تایید خزانه</option>
+                <option value="trDenied">رد شده توسط خزانه</option>
+                <option value="treasury">تایید شده توسط خزانه</option>
+                <option value="all">همه پرداخت‌ها</option>
+              </select>
+
+              {/* فلش Dropdown */}
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
@@ -451,162 +452,376 @@ function App() {
         )}{" "}
         {!isShownNewPayment && (
           <>
-            <span className="text-sm font-bold mb-4 text-base-content w-full bg-base-300 text-center rounded-lg px-2 py-1 bg-slate-800 text-white">
-              {data?.[0]?.Title ?? "در حال بارگذاری..."}
-            </span>
-            <div className="flex flex-col gap-4 items-center justify-center">
-              <span className="text-sky-500 text-sm font-bold">
-                راس پرداخت‌های انتخاب‌شده
-              </span>
-              <span className="text-slate-500 text-lg font-bold">
-                {selectedRasDate
-                  ? getShamsiDateFromDayOfYear(selectedRasDate)
-                  : "چکی انتخاب نشده"}
-              </span>
-              <span className="text-green-500 text-sm font-bold">
-                جمع کل چک‌های انتخاب‌شده
-              </span>
-              <div className="flex flex-row-reverse gap-3 items-center justify-center">
-                <span className="text-slate-700 text-lg font-bold mt-2">
-                  {totalSelectedPrice.toLocaleString("fa-IR")}
-                </span>
-                <span className="text-sky-700 text-sm font-semibold mt-2">
-                  ریال
-                </span>
-              </div>
-            </div>
+            <div className="grid grid-cols-1  gap-4 items-start">
+              {/* ===================================================== */}
+              {/* باکس خلاصه اطلاعات */}
+              {/* ===================================================== */}
 
-            <div className="flex flex-col w-full gap-2 text-sm">
-              <button
-                type="button"
-                onClick={handleExportToExcel}
-                disabled={filteredPayments.length === 0}
-                className={`px-4 py-2 rounded-md text-white font-semibold flex items-center gap-2 ${
-                  filteredPayments.length === 0
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-500 hover:bg-green-600"
-                }`}
+              <div
+                className="
+        flex
+        min-h-full
+        flex-col
+        rounded-xl
+        border
+        border-slate-200
+        bg-white
+        p-4
+        shadow-sm
+      "
               >
-                <FileTerminal size={16} />
-                <span className="text-sm font-bold">اکسل</span>
-              </button>
-
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">بازه تاریخ سررسید</label>
-                <DatePicker
-                  value={dateRange}
-                  onChange={(dates) => {
-                    if (Array.isArray(dates)) {
-                      setDateRange(dates);
-                    } else {
-                      setDateRange([]);
-                    }
-                  }}
-                  calendar={persian}
-                  locale={persian_fa}
-                  range
-                  rangeHover
-                  numberOfMonths={2}
-                  className="w-full"
-                  containerClassName="w-full"
-                  inputClass="border p-1 rounded-md w-full text-right"
-                  placeholder="از تاریخ - تا تاریخ"
-                />
-                {dateRange.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setDateRange([])}
-                    className="mt-1 text-xs text-red-600 hover:text-red-800"
-                  >
-                    پاک کردن فیلتر تاریخ
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">بازه تاریخ ثبت چک</label>
-                <DatePicker
-                  value={createdDateRange}
-                  onChange={(dates) => {
-                    if (Array.isArray(dates)) {
-                      setCreatedDateRange(dates);
-                    } else {
-                      setCreatedDateRange([]);
-                    }
-                  }}
-                  calendar={persian}
-                  locale={persian_fa}
-                  range
-                  rangeHover
-                  numberOfMonths={2}
-                  className="w-full"
-                  containerClassName="w-full"
-                  inputClass="border p-1 rounded-md w-full text-right"
-                  placeholder="از تاریخ ثبت - تا تاریخ ثبت"
-                />
-                {createdDateRange.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setCreatedDateRange([])}
-                    className="mt-1 text-xs text-red-600 hover:text-red-800"
-                  >
-                    پاک کردن فیلتر تاریخ ثبت
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">نوع فاکتور</label>
-                <select
-                  className="border p-1 rounded-md text-right"
-                  value={typeactiveTab}
-                  onChange={(e) =>
-                    setTypeActiveTab(e.target.value as InvoiceTypeFilter)
-                  }
+                {/* عنوان */}
+                <div
+                  className="
+          mb-5
+          w-full
+          rounded-lg
+          bg-slate-800
+          px-3
+          py-2
+          text-center
+          text-sm
+          font-bold
+          text-white
+        "
                 >
-                  <option value="all">همه</option>
-                  <option value="1">نوع 1</option>
-                  <option value="2">نوع 2</option>
-                  <option value="3">دانش بنیان</option>
-                  <option value="4">نامشخص</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="mb-1 text-gray-600">نوع پرداخت</label>
-                <select
-                  className="border p-1 rounded-md text-right"
-                  value={paymentType}
-                  onChange={(e) => setPaymentType(e.target.value)}
-                >
-                  <option value="">همه</option>
-                  <option value="0">چک</option>
-                  <option value="1">نقدی</option>
-                </select>
-              </div>
-
-              {Object.entries({
-                sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
-                price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",
-                seriesNo: "شماره سری (مثلاً ۱۲۳)",
-                serialNo: "شماره سریال (مثلاً ۹۸۷۶۵۴)",
-                SalesExpert: "کارشناس فروش (مثلاً سمیرا علی‌پور)",
-                iban: "شماره شبا (مثلاً IR123...)",
-                name: "نام مشتری (مثلاً علی رضایی)",
-              }).map(([key, placeholder]) => (
-                <div key={key} className="flex flex-col">
-                  <label className="mb-1 text-gray-600">
-                    {placeholder.split(" (")[0]}
-                  </label>
-                  <input
-                    className="border p-1 rounded-md "
-                    placeholder={placeholder}
-                    value={filters[key as keyof typeof filters]}
-                    onChange={(e) => handleInputChange(key, e)}
-                    onKeyDown={handleInputKeyDown}
-                  />
+                  {data?.[0]?.Title ?? "در حال بارگذاری..."}
                 </div>
-              ))}
+
+                {/* اطلاعات */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* راس */}
+                  <div
+                    className="
+            flex
+            flex-col
+            items-center
+            justify-center
+            rounded-lg
+            bg-sky-50
+            px-3
+            py-4
+          "
+                  >
+                    <span className="mb-2 text-xs font-bold text-sky-500">
+                      راس پرداخت‌های انتخاب‌شده
+                    </span>
+
+                    <span className="text-base font-bold text-slate-700 sm:text-lg">
+                      {selectedRasDate
+                        ? getShamsiDateFromDayOfYear(selectedRasDate)
+                        : "چکی انتخاب نشده"}
+                    </span>
+                  </div>
+
+                  {/* مبلغ */}
+                  <div
+                    className="
+            flex
+            flex-col
+            items-center
+            justify-center
+            rounded-lg
+            bg-green-50
+            px-3
+            py-4
+          "
+                  >
+                    <span className="mb-2 text-xs font-bold text-green-500">
+                      جمع کل چک‌های انتخاب‌شده
+                    </span>
+
+                    <div className="flex flex-row-reverse items-center gap-2">
+                      <span className="text-base font-bold text-slate-700 sm:text-lg">
+                        {totalSelectedPrice.toLocaleString("fa-IR")}
+                      </span>
+
+                      <span className="text-xs font-semibold text-sky-700">
+                        ریال
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ===================================================== */}
+              {/* باکس فیلترها */}
+              {/* ===================================================== */}
+
+              <div
+                className="
+        rounded-xl
+        border
+        border-slate-200
+        bg-white
+        p-4
+        shadow-sm
+      "
+              >
+                {/* هدر فیلتر */}
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-700">
+                    فیلتر و جستجو
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={handleExportToExcel}
+                    disabled={filteredPayments.length === 0}
+                    className="
+            flex
+            min-h-9
+            items-center
+            gap-2
+            rounded-lg
+            px-3
+            py-2
+            text-xs
+            font-bold
+            text-white
+            transition
+
+            bg-green-500
+            hover:bg-green-600
+
+            disabled:cursor-not-allowed
+            disabled:bg-gray-400
+          "
+                  >
+                    <FileTerminal size={16} />
+                    <span>خروجی اکسل</span>
+                  </button>
+                </div>
+
+                {/* ===================================================== */}
+                {/* فیلترها */}
+                {/* ===================================================== */}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* بازه تاریخ سررسید */}
+                  <div className="flex flex-col">
+                    <label className="mb-1.5 text-xs font-semibold text-slate-600">
+                      بازه تاریخ سررسید
+                    </label>
+
+                    <DatePicker
+                      value={dateRange}
+                      onChange={(dates) => {
+                        if (Array.isArray(dates)) {
+                          setDateRange(dates);
+                        } else {
+                          setDateRange([]);
+                        }
+                      }}
+                      calendar={persian}
+                      locale={persian_fa}
+                      range
+                      rangeHover
+                      numberOfMonths={2}
+                      className="w-full"
+                      containerClassName="w-full"
+                      inputClass="
+              w-full
+              rounded-lg
+              border
+              border-slate-300
+              bg-white
+              p-2
+              text-right
+              text-sm
+              outline-none
+              focus:border-sky-500
+              focus:ring-2
+              focus:ring-sky-100
+            "
+                      placeholder="از تاریخ - تا تاریخ"
+                    />
+
+                    {dateRange.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setDateRange([])}
+                        className="
+                mt-1
+                text-right
+                text-xs
+                font-semibold
+                text-red-500
+                hover:text-red-700
+              "
+                      >
+                        پاک کردن فیلتر تاریخ
+                      </button>
+                    )}
+                  </div>
+
+                  {/* بازه تاریخ ثبت */}
+                  <div className="flex flex-col">
+                    <label className="mb-1.5 text-xs font-semibold text-slate-600">
+                      بازه تاریخ ثبت چک
+                    </label>
+
+                    <DatePicker
+                      value={createdDateRange}
+                      onChange={(dates) => {
+                        if (Array.isArray(dates)) {
+                          setCreatedDateRange(dates);
+                        } else {
+                          setCreatedDateRange([]);
+                        }
+                      }}
+                      calendar={persian}
+                      locale={persian_fa}
+                      range
+                      rangeHover
+                      numberOfMonths={2}
+                      className="w-full"
+                      containerClassName="w-full"
+                      inputClass="
+              w-full
+              rounded-lg
+              border
+              border-slate-300
+              bg-white
+              p-2
+              text-right
+              text-sm
+              outline-none
+              focus:border-sky-500
+              focus:ring-2
+              focus:ring-sky-100
+            "
+                      placeholder="از تاریخ ثبت - تا تاریخ ثبت"
+                    />
+
+                    {createdDateRange.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setCreatedDateRange([])}
+                        className="
+                mt-1
+                text-right
+                text-xs
+                font-semibold
+                text-red-500
+                hover:text-red-700
+              "
+                      >
+                        پاک کردن فیلتر تاریخ ثبت
+                      </button>
+                    )}
+                  </div>
+
+                  {/* نوع فاکتور */}
+                  <div className="flex flex-col">
+                    <label className="mb-1.5 text-xs font-semibold text-slate-600">
+                      نوع فاکتور
+                    </label>
+
+                    <select
+                      className="
+              w-full
+              rounded-lg
+              border
+              border-slate-300
+              bg-white
+              p-2
+              text-right
+              text-sm
+              outline-none
+              focus:border-sky-500
+              focus:ring-2
+              focus:ring-sky-100
+            "
+                      value={typeactiveTab}
+                      onChange={(e) =>
+                        setTypeActiveTab(e.target.value as InvoiceTypeFilter)
+                      }
+                    >
+                      <option value="all">همه</option>
+                      <option value="1">نوع 1</option>
+                      <option value="2">نوع 2</option>
+                      <option value="5">نوع 3</option>
+
+                      <option value="3">دانش بنیان</option>
+                      <option value="4">نامشخص</option>
+                    </select>
+                  </div>
+
+                  {/* نوع پرداخت */}
+                  <div className="flex flex-col">
+                    <label className="mb-1.5 text-xs font-semibold text-slate-600">
+                      نوع پرداخت
+                    </label>
+
+                    <select
+                      className="
+              w-full
+              rounded-lg
+              border
+              border-slate-300
+              bg-white
+              p-2
+              text-right
+              text-sm
+              outline-none
+              focus:border-sky-500
+              focus:ring-2
+              focus:ring-sky-100
+            "
+                      value={paymentType}
+                      onChange={(e) => setPaymentType(e.target.value)}
+                    >
+                      <option value="">همه</option>
+                      <option value="0">چک</option>
+                      <option value="1">نقدی</option>
+                      <option value="2">کارتخوان</option>
+                    </select>
+                  </div>
+
+                  {/* فیلدهای جستجو */}
+                  {Object.entries({
+                    sayadiCode: "کد صیادی (مثلاً ۱۲۳۴۵۶)",
+                    price: "مبلغ (مثلاً ۵۰۰۰۰۰۰)",
+                    seriesNo: "شماره سری (مثلاً ۱۲۳)",
+                    serialNo: "شماره سریال (مثلاً ۹۸۷۶۵۴)",
+                    SalesExpert: "کارشناس فروش (مثلاً سمیرا علی‌پور)",
+                    iban: "شماره شبا (مثلاً IR123...)",
+                    name: "نام مشتری (مثلاً علی رضایی)",
+                  }).map(([key, placeholder]) => (
+                    <div key={key} className="flex flex-col">
+                      <label className="mb-1.5 text-xs font-semibold text-slate-600">
+                        {placeholder.split(" (")[0]}
+                      </label>
+
+                      <input
+                        className="
+                w-full
+                rounded-lg
+                border
+                border-slate-300
+                bg-white
+                p-2
+                text-right
+                text-sm
+                outline-none
+                transition
+
+                placeholder:text-slate-400
+
+                focus:border-sky-500
+                focus:ring-2
+                focus:ring-sky-100
+              "
+                        placeholder={placeholder}
+                        value={filters[key as keyof typeof filters]}
+                        onChange={(e) => handleInputChange(key, e)}
+                        onKeyDown={handleInputKeyDown}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -642,41 +857,37 @@ function App() {
             </div>
           )}
 
-          <div className="mb-4 flex items-center justify-end gap-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={areAllSelected}
-                onChange={() => {
-                  if (areAllSelected) {
-                    deselectAllPayments();
-                  } else {
-                    selectAllPayments();
-                  }
-                }}
-                id="selectAllCheckbox"
-                className="cursor-pointer "
-              />
-              <label
-                htmlFor="selectAllCheckbox"
-                className="cursor-pointer select-none text-xl font-bold"
-              >
-                انتخاب همه
-              </label>
-            </div>
-            {/* <button
-              onClick={verifyAllPayments}
-              disabled={isVerifyingAll || filteredPayments.length === 0}
-              className={`px-4 py-2 rounded-md text-white font-semibold ${
-                isVerifyingAll || filteredPayments.length === 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-sky-500 hover:bg-sky-600"
+          <div className="mb-4 flex items-center justify-end">
+            <div
+              onClick={() => {
+                if (filteredPayments.length === 0) return;
+
+                if (areAllSelected) {
+                  deselectAllPayments();
+                } else {
+                  selectAllPayments();
+                }
+              }}
+              className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all duration-200 ${
+                filteredPayments.length === 0
+                  ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                  : areAllSelected
+                    ? "bg-red-50 text-red-600 hover:bg-red-100"
+                    : "bg-sky-50 text-sky-600 hover:bg-sky-100"
               }`}
             >
-              {isVerifyingAll
-                ? `در حال استعلام (${completedVerifications.length}/${verifyAllIds.length})`
-                : "استعلام همه"}
-            </button> */}
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded-md border-2 ${
+                  areAllSelected
+                    ? "border-red-500 bg-red-500 text-white"
+                    : "border-sky-500"
+                }`}
+              >
+                {areAllSelected && "✓"}
+              </span>
+
+              <span>{areAllSelected ? "لغو انتخاب همه" : "انتخاب همه"}</span>
+            </div>
           </div>
 
           {filteredPayments.map((item) => (

@@ -40,7 +40,7 @@ export type PaymentType = {
   acceptDescrptionFromSP: string;
   VerifiedConfirmSayadTr: string;
   VerifiedRejectSayadTr: string;
-  invoiceType: "1" | "2" | "3" | "4";
+  invoiceType: "1" | "2" | "3" | "4" | "5";
   customerTitle: string;
   customerCode: string;
   customerCodeHeader?: string;
@@ -50,6 +50,8 @@ export type PaymentType = {
   Created?: string;
   selectedCheckSayadiForCheckFori?: string;
   paymentType?: string;
+  pozExternal?: string;
+  distDescription?: string;
 };
 
 export type DebtType = {
@@ -80,9 +82,10 @@ export type Data = {
   itemGUID: string;
   Verified?: string;
   VerifiedHoghoghi?: string;
-  invoiceType: "1" | "2" | "3" | "4";
+  invoiceType: "1" | "2" | "3" | "4" | "5";
   customerTitle: string;
   customerCode: string;
+  pozExternal?: string;
   customerCodeHeader?: string;
   customerNameHeader?: string;
   cashResean?: string;

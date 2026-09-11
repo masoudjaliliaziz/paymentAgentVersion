@@ -1,4 +1,6 @@
+
 import toast from "react-hot-toast";
+
 import type { Data } from "../types/apiTypes";
 import { getDigest } from "../utils/getDigest";
 
@@ -18,14 +20,30 @@ export async function handleAddItem(
     return;
   }
 
+  // ==========================================
+  // اعتبارسنجی بر اساس نوع پرداخت
+  // ==========================================
+
+  // نقدی
   if (data.cash === "1") {
     if (!data.bankName) {
       toast.error("نام بانک الزامی است.");
       return;
     }
-  } else {
+  }
+
+  // چک
+  if (data.cash === "0") {
     if (!data.sayadiCode) {
       toast.error("شناسه صیادی الزامی است.");
+      return;
+    }
+  }
+
+  // POS / کارتخوان
+  if (data.cash === "2") {
+    if (!data.pozExternal) {
+      toast.error("شماره پایانه الزامی است.");
       return;
     }
   }
@@ -34,29 +52,46 @@ export async function handleAddItem(
     const digest = await getDigest();
 
     const bodyData: Partial<Data> = {
-      __metadata: { type: itemType },
+      __metadata: {
+        type: itemType,
+      },
+
       Title: "disributer check",
+
       price: data.price,
       dueDate: data.dueDate,
       sayadiCode: data.sayadiCode,
       dayOfYear: data.dayOfYear,
+
       nationalIdHoghoghi: data.nationalIdHoghoghi,
+
       cash: data.cash,
       status: data.status,
+
       bankName: data.bankName || "",
+
       SalesExpert: data.SalesExpert,
       SalesExpertAcunt_text: data.SalesExpertAcunt_text,
+
       parentGUID: data.parentGUID,
       itemGUID: data.itemGUID,
+
       invoiceType: data.invoiceType,
+
       customerCode: data.customerCode,
       customerTitle: data.customerTitle,
+
       customerCodeHeader: data.customerCodeHeader,
       customerNameHeader: data.customerNameHeader,
+
       cashResean: data.cashResean,
       agentDescription: data.agentDescription,
+
+      pozExternal: data.pozExternal,
+
       selectedCheckSayadiForCheckFori:
         data.selectedCheckSayadiForCheckFori,
+
       selectedCheckSerialNoForCheckFor: String(
         data.selectedCheckSerialNoForCheckFor,
       ),
@@ -73,6 +108,7 @@ export async function handleAddItem(
     }
 
     // ===================== DEBUG =====================
+
     console.group("🚀 SharePoint Request");
 
     console.log("URL:");
@@ -83,12 +119,25 @@ export async function handleAddItem(
     console.log("ItemType:");
     console.log(itemType);
 
+    console.log("Payment Type:");
+    console.log(
+      data.cash === "0"
+        ? "CHECK"
+        : data.cash === "1"
+          ? "CASH"
+          : data.cash === "2"
+            ? "POS"
+            : "UNKNOWN",
+    );
+
     console.log("Digest:");
     console.log(digest);
 
     console.log("Body:");
     console.table(bodyData);
+
     console.log(JSON.stringify(bodyData, null, 2));
+
     // =================================================
 
     const response = await fetch(

@@ -11,26 +11,55 @@ function CheckPic({ parentGuid, itemGuid }: Props) {
     isLoading: loadingCheck,
     isError: errorCheck,
   } = usePaymentFiles(parentGuid, itemGuid, "checkPic");
+
+  if (loadingCheck) {
+    return (
+      <span className="text-xs text-slate-400">در حال دریافت تصویر چک...</span>
+    );
+  }
+
+  if (errorCheck) {
+    return (
+      <span className="text-xs font-semibold text-red-500">
+        خطا در دریافت تصویر چک
+      </span>
+    );
+  }
+
+  if (!checkFiles?.length) {
+    return null;
+  }
+
   return (
-    <div>
-      {loadingCheck && <p>در حال دریافت تصویر چک...</p>}
-      {errorCheck && <p className="text-red-500">خطا در دریافت تصویر چک</p>}
-      {checkFiles?.length === 0 && <p>تصویری یافت نشد</p>}
-      <ul className="list-disc list-inside">
-        {checkFiles?.map((file) => (
-          <div key={file.Name}>
-            <a
-              href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-blue-600 text-xs px-3 py-1.5 rounded-md font-semibold text-white  hover:bg-blue-800"
-            >
-              دانلود تصویر چک
-            </a>
-          </div>
-        ))}
-      </ul>
-    </div>
+    <>
+      {checkFiles.map((file) => (
+        <a
+          key={file.Name}
+          href={`https://crm.zarsim.com${file.ServerRelativeUrl}`}
+          target="_blank"
+          rel="noreferrer"
+          className="
+            inline-flex
+            min-h-9
+            items-center
+            justify-center
+            rounded-lg
+            bg-blue-600
+            px-3
+            py-2
+            text-xs
+            font-semibold
+            text-white
+            whitespace-nowrap
+            transition
+            hover:bg-blue-700
+            active:scale-95
+          "
+        >
+          تصویر چک
+        </a>
+      ))}
+    </>
   );
 }
 
