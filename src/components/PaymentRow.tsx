@@ -616,9 +616,10 @@ export const PaymentRow = ({
               {/* تعیین نوع فاکتور */}
               {/* ===================================================== */}
 
-              {String(item.invoiceType) === "4" && (
-                <div
-                  className="
+              {String(item.invoiceType) === "4" ||
+                (String(item.new) === "1" && (
+                  <div
+                    className="
         flex
         w-full
         shrink-0
@@ -633,11 +634,11 @@ export const PaymentRow = ({
         sm:flex-row
         sm:items-center
       "
-                >
-                  <select
-                    value={manualInvoiceType}
-                    onChange={(e) => setManualInvoiceType(e.target.value)}
-                    className="
+                  >
+                    <select
+                      value={manualInvoiceType}
+                      onChange={(e) => setManualInvoiceType(e.target.value)}
+                      className="
           min-h-9
           w-full
           min-w-0
@@ -657,21 +658,21 @@ export const PaymentRow = ({
 
           sm:w-48
         "
-                  >
-                    <option value="">انتخاب نوع فاکتور</option>
+                    >
+                      <option value="">انتخاب نوع فاکتور</option>
 
-                    {invoiceTypeOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                      {invoiceTypeOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
 
-                  <button
-                    type="button"
-                    disabled={!manualInvoiceType}
-                    onClick={handleUpdateInvoiceType}
-                    className="
+                    <button
+                      type="button"
+                      disabled={!manualInvoiceType}
+                      onClick={handleUpdateInvoiceType}
+                      className="
           min-h-9
           shrink-0
           rounded-lg
@@ -687,11 +688,11 @@ export const PaymentRow = ({
           disabled:bg-gray-400
           disabled:hover:bg-gray-400
         "
-                  >
-                    ثبت
-                  </button>
-                </div>
-              )}
+                    >
+                      ثبت
+                    </button>
+                  </div>
+                ))}
             </div>
             {item?.treasuryConfirmDescription !== "" &&
               item?.treasuryConfirmDescription !== null &&
@@ -1154,9 +1155,10 @@ export const PaymentRow = ({
               {/* تعیین نوع فاکتور در حالت نامشخص */}
               {/* ===================================================== */}
 
-              {String(item.invoiceType) === "4" && (
-                <div
-                  className="
+              {String(item.invoiceType) === "4" ||
+                (String(item.new) === "1" && (
+                  <div
+                    className="
         flex
         w-full
         flex-col
@@ -1169,11 +1171,11 @@ export const PaymentRow = ({
         sm:flex-row
         sm:items-center
       "
-                >
-                  <select
-                    value={manualInvoiceType}
-                    onChange={(e) => setManualInvoiceType(e.target.value)}
-                    className="
+                  >
+                    <select
+                      value={manualInvoiceType}
+                      onChange={(e) => setManualInvoiceType(e.target.value)}
+                      className="
           min-h-9
           w-full
           min-w-0
@@ -1194,21 +1196,21 @@ export const PaymentRow = ({
 
           sm:w-48
         "
-                  >
-                    <option value="">انتخاب نوع فاکتور</option>
+                    >
+                      <option value="">انتخاب نوع فاکتور</option>
 
-                    {invoiceTypeOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                      {invoiceTypeOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
 
-                  <button
-                    type="button"
-                    disabled={!manualInvoiceType}
-                    onClick={handleUpdateInvoiceType}
-                    className="
+                    <button
+                      type="button"
+                      disabled={!manualInvoiceType}
+                      onClick={handleUpdateInvoiceType}
+                      className="
           min-h-9
           shrink-0
           rounded-lg
@@ -1226,11 +1228,11 @@ export const PaymentRow = ({
           disabled:bg-gray-400
           disabled:hover:bg-gray-400
         "
-                  >
-                    ثبت
-                  </button>
-                </div>
-              )}
+                    >
+                      ثبت
+                    </button>
+                  </div>
+                ))}
             </div>
 
             {item?.treasuryConfirmDescription !== "" &&
@@ -1505,6 +1507,84 @@ export const PaymentRow = ({
 
               {/* ===================================================== */}
               {/* تعیین نوع فاکتور در حالت نامشخص */}
+              {String(item.invoiceType) === "4" ||
+                (String(item.new) === "1" && (
+                  <div
+                    className="
+        flex
+        w-full
+        flex-col
+        gap-2
+        rounded-lg
+        bg-white
+        p-2
+        shadow-sm
+        sm:w-auto
+        sm:flex-row
+        sm:items-center
+      "
+                  >
+                    <select
+                      value={manualInvoiceType}
+                      onChange={(e) => setManualInvoiceType(e.target.value)}
+                      className="
+          min-h-9
+          w-full
+          min-w-0
+          rounded-lg
+          border
+          border-slate-300
+          bg-white
+          px-3
+          py-1.5
+          text-sm
+          text-slate-700
+          outline-none
+          transition
+
+          focus:border-sky-500
+          focus:ring-2
+          focus:ring-sky-100
+
+          sm:w-48
+        "
+                    >
+                      <option value="">انتخاب نوع فاکتور</option>
+
+                      {invoiceTypeOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      disabled={!manualInvoiceType}
+                      onClick={handleUpdateInvoiceType}
+                      className="
+          min-h-9
+          shrink-0
+          rounded-lg
+          bg-emerald-500
+          px-4
+          py-1.5
+          text-sm
+          font-semibold
+          text-white
+          transition
+
+          hover:bg-emerald-600
+
+          disabled:cursor-not-allowed
+          disabled:bg-gray-400
+          disabled:hover:bg-gray-400
+        "
+                    >
+                      ثبت
+                    </button>
+                  </div>
+                ))}
               {/* ===================================================== */}
             </div>
 

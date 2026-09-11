@@ -1,4 +1,5 @@
 export type PaymentType = {
+  new: string;
   ID: number;
   price: string;
   dueDate: string;
