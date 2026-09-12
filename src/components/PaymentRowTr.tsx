@@ -1257,6 +1257,186 @@ function PaymentRowTrComponent({
             </motion.div>
           </AnimatePresence>
         )}
+        {item.cash === "2" && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="main"
+              layout
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.3 }}
+              className="relative transition-all shadow-md hover:shadow-lg rounded-xl border p-6 mb-6 bg-white flex flex-col gap-3"
+            >
+              {/* Badge وضعیت کلی ردیف بر اساس status */}
+              {status && (
+                <span
+                  className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm ${
+                    getStatusBadge(status).colorClass
+                  }`}
+                >
+                  {getStatusBadge(status).label}
+                </span>
+              )}
+
+              <table className="w-full rounded-lg bg-slate-100 border-collapse">
+                <tbody>
+                  <tr className="border-b border-slate-200">
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="font-semibold text-gray-600 text-sm">
+                          نوع پرداخت
+                        </p>
+                        <p className="font-bold text-emerald-700 text-lg">
+                          کارتخوان
+                        </p>
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex items-center justify-center gap-2">
+                        {itemGUID && item.parentGUID && (
+                          <CheckPicConfirm
+                            title="دانلود فیش واریزی"
+                            itemGuid={itemGUID}
+                            parentGuid={item.parentGUID}
+                          />
+                        )}
+                        <ActionByRole ID={ID} />
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="flex items-center justify-center">
+                        {status && (
+                          <span
+                            className={`font-bold text-sm px-3 py-1 rounded-md ${
+                              status === "1"
+                                ? "text-green-700 bg-green-100"
+                                : status === "2"
+                                  ? "text-red-700 bg-red-100"
+                                  : ""
+                            }`}
+                          >
+                            {status === "1"
+                              ? "تایید توسط کارشناس"
+                              : status === "2"
+                                ? "رد شده توسط کارشناس"
+                                : ""}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3 text-center border-r border-slate-200">
+                      <div className="font-bold text-sky-500 text-lg">
+                        {item.bankName ?? "نامشخص"}
+                      </div>
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="text-sm font-bold text-white bg-slate-800 text-center rounded-lg px-3 py-2 whitespace-nowrap">
+                          {data?.[0]?.Title ?? "در حال بارگذاری..."}
+                        </span>
+                        {item.invoiceType && (
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                              String(item.invoiceType) === "1"
+                                ? "bg-blue-500 text-white"
+                                : String(item.invoiceType) === "2"
+                                  ? "bg-purple-500 text-white"
+                                  : String(item.invoiceType) === "3"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-500 text-white"
+                            }`}
+                          >
+                            {item.invoiceType === "1" && "نوع ۱"}
+                            {item.invoiceType === "2" && "نوع ۲"}
+                            {item.invoiceType === "3" && " دانش بنیان"}
+                            {item.invoiceType === "5" && "کارتخوان"}
+
+                            {item.invoiceType === "4" && "نامشخص"}
+                          </span>
+                        )}
+                        {item.cashResean && (
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-md w-16 text-center ${
+                              String(item.cashResean) === "buyGoods"
+                                ? "bg-blue-500 text-white"
+                                : "bg-orange-500 text-white"
+                            }`}
+                          >
+                            {item.cashResean === "buyGoods" && "بابت خرید کالا"}
+                            {item.cashResean === "checkFori" &&
+                              "بابت چک برگشتی"}
+                          </span>
+                        )}
+                        {item.cashResean === "checkFori" && (
+                          <span
+                            className={
+                              "text-xs font-bold px-2 py-1 rounded-md  text-center  bg-orange-500 text-white"
+                            }
+                          >
+                            {item.cashResean === "checkFori" &&
+                              item.selectedCheckSerialNoForCheckFor}
+                          </span>
+                        )}
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => onToggleSelect(item)}
+                          className="w-5 h-5 cursor-pointer"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              {item?.agentDescription !== "" &&
+                item?.agentDescription !== null &&
+                item?.agentDescription !== undefined && (
+                  <div className="bg-slate-100 font-bold w-full py-3 px-3 flex flex-col gap-2 justify-center items-center rounded-lg text-gray-600">
+                    <span>{item.agentDescription}</span>
+                  </div>
+                )}
+              <div className="grid grid-cols-4 gap-4 mb-4 text-sm">
+                <div>
+                  <p className="text-sm font-semibold text-gray-500">
+                    تاریخ واریز
+                  </p>
+                  <span className="font-bold text-sky-700 text-sm">
+                    {dueDate ?? "نامشخص"}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-500">مبلغ</p>
+                  <div className="flex items-center gap-1">
+                    <span>
+                      {Number(price?.replaceAll(",", "") ?? 0).toLocaleString(
+                        "fa-IR",
+                      )}
+                    </span>
+                    <span className="font-semibold text-sky-700 text-sm">
+                      ریال
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-500">نام کارشناس</p>
+                  <span className="font-bold text-sky-700 text-sm">
+                    {item.SalesExpert ?? "نامشخص"}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-500">شماره پایانه</p>
+                  <span className="font-bold text-sky-700 text-sm">
+                    {item.pozExternal ?? "نامشخص"}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );

@@ -18,10 +18,11 @@ interface ExcelRowData {
   شعبه: string; // branchCode
   تاریخ: string;
   سری: string;
-سریال: string;
+  سریال: string;
   کارشناس: string;
   صادرکننده: string;
   شبا: string;
+  "شماره پایانه": string;
   // تاریخ ثبت چک (انگلیسی)
 }
 
@@ -50,7 +51,12 @@ export const exportToExcel = (
     // تبدیل داده‌های پرداخت به فرمت Excel
     const excelData: ExcelRowData[] = payments.map((payment, index) => ({
       ردیف: index + 1, // شماره ردیف از 1 شروع می‌شود
-      نوع: payment.cash === "1" ? "نقدی" : "چک", // "نقدي" برای واریز نقدی، "چک" برای چک
+      نوع:
+        payment.cash === "1"
+          ? "نقدی"
+          : payment.cash === "2"
+            ? "کارتخوان"
+            : "چک", // "نقدي" برای واریز نقدی، "چک" برای چک
       کد:
         payment.invoiceType === 3 || payment.invoiceType === "3" ? "78" : "24", // "78" اگر invoiceType = 3 باشد، در غیر این صورت "24"
       ماهیت: determineEntityType(payment), // 2 برای حقوقی، 1 برای حقیقی
@@ -71,6 +77,7 @@ export const exportToExcel = (
       شبا: payment.iban,
       صادرکننده: payment.name,
       کارشناس: payment.SalesExpert,
+      "شماره پایانه": payment.pozExternal || "",
       // تاریخ ثبت چک
     }));
 
@@ -138,7 +145,12 @@ export const exportToExcelType2 = (
     // تبدیل داده‌های پرداخت به فرمت Excel با ستون customerCode
     const excelData: ExcelRowDataType2[] = payments.map((payment, index) => ({
       ردیف: index + 1,
-      نوع: payment.cash === "1" ? "نقدی" : "چک",
+      نوع:
+        payment.cash === "1"
+          ? "نقدی"
+          : payment.cash === "2"
+            ? "کارتخوان"
+            : "چک",
       کد:
         payment.invoiceType === 3 || payment.invoiceType === "3" ? "78" : "24", // "78" اگر invoiceType = 3 باشد، در غیر این صورت "24"
       ماهیت: determineEntityType(payment),
@@ -163,7 +175,8 @@ export const exportToExcelType2 = (
       سریال: payment.serialNo,
       شبا: payment.iban,
       صادرکننده: payment.name,
-      کارشناس: payment.SalesExpert, // اضافه کردن customerCode
+      کارشناس: payment.SalesExpert,
+      "شماره پایانه": payment.pozExternal || "", // اضافه کردن customerCode
     }));
 
     // ایجاد workbook جدید

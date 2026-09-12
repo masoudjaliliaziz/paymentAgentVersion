@@ -957,6 +957,8 @@ function App() {
               <option value="1">نوع 1</option>
               <option value="2">نوع 2</option>
               <option value="3">دانش بنیان</option>
+              <option value="5"> نوع ۳</option>
+
               <option value="4">نامشخص</option>
             </select>
           </div>
@@ -972,6 +974,7 @@ function App() {
               <option value="">همه</option>
               <option value="0">چک</option>
               <option value="1">نقدی</option>
+              <option value="2">کارتخوان</option>
             </select>
           </div>
 

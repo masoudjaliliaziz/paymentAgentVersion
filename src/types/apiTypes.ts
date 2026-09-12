@@ -47,6 +47,7 @@ export type PaymentType = {
   cashResean?: string;
   selectedCheckSayadiForCheckFori?: string;
   selectedCheckSerialNoForCheckFor?: string;
+  pozExternal?: string;
 };
 
 export type DebtType = {
